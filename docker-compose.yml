@@ -1,0 +1,203 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: format7-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-format7}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-format7}
+      POSTGRES_DB: ${POSTGRES_DB:-format7}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-format7}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: format7-redis
+    restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: format7-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+      - postgres
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health',timeout=3).status==200 else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql+psycopg2://format7:format7@postgres:5432/format7}
+      - APP_ENV=${APP_ENV:-development}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-}
+      - CORS_ORIGINS=${CORS_ORIGINS:-}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - ENABLE_DEV_PAYMENT=${ENABLE_DEV_PAYMENT:-0}
+      - PAYMENT_PROVIDER=${PAYMENT_PROVIDER:-none}
+      - YOOKASSA_SHOP_ID=${YOOKASSA_SHOP_ID:-}
+      - YOOKASSA_SECRET_KEY=${YOOKASSA_SECRET_KEY:-}
+      - PUBLIC_SITE_URL=${PUBLIC_SITE_URL:-http://localhost:3000}
+      - SBP_MERCHANT_NAME=${SBP_MERCHANT_NAME:-}
+      - SBP_PERSONAL_ACC=${SBP_PERSONAL_ACC:-}
+      - SBP_BANK_NAME=${SBP_BANK_NAME:-}
+      - SBP_BIC=${SBP_BIC:-}
+      - SBP_CORRESP_ACC=${SBP_CORRESP_ACC:-}
+      - SBP_INN=${SBP_INN:-}
+      - SBP_KPP=${SBP_KPP:-}
+      - ADMIN_EMAILS=${ADMIN_EMAILS:-}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM=${SMTP_FROM:-}
+      - SMTP_FROM_NAME=${SMTP_FROM_NAME:-Format7}
+      - SMTP_TLS=${SMTP_TLS:-1}
+      - SMTP_SSL=${SMTP_SSL:-0}
+      - SENTRY_DSN=${SENTRY_DSN:-}
+      - SENTRY_TRACES=${SENTRY_TRACES:-0.1}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - TURNSTILE_SECRET=${TURNSTILE_SECRET:-}
+      - YOOKASSA_SEND_RECEIPT=${YOOKASSA_SEND_RECEIPT:-0}
+      - YOOKASSA_VAT_CODE=${YOOKASSA_VAT_CODE:-1}
+      - STORAGE_BACKEND=${STORAGE_BACKEND:-local}
+      - S3_ENDPOINT_URL=${S3_ENDPOINT_URL:-}
+      - S3_REGION=${S3_REGION:-ru-central1}
+      - S3_BUCKET=${S3_BUCKET:-}
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY:-}
+      - S3_SECRET_KEY=${S3_SECRET_KEY:-}
+      - YANDEX_CLIENT_ID=${YANDEX_CLIENT_ID:-}
+      - YANDEX_CLIENT_SECRET=${YANDEX_CLIENT_SECRET:-}
+      - VK_CLIENT_ID=${VK_CLIENT_ID:-}
+      - VK_CLIENT_SECRET=${VK_CLIENT_SECRET:-}
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY:-}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY:-}
+      - VAPID_SUBJECT=${VAPID_SUBJECT:-admin@format7.ru}
+    volumes:
+      - backend_data:/app/data
+      - backend_uploads:/app/uploads
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://backend:8000}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+        NEXT_PUBLIC_YM_ID:    ${NEXT_PUBLIC_YM_ID:-}
+        NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
+    container_name: format7-web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:8000
+    depends_on:
+      - backend
+
+  pgbouncer:
+    image: edoburu/pgbouncer:1.22.1
+    container_name: format7-pgbouncer
+    restart: unless-stopped
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER:-format7}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-format7}
+      DB_NAME: ${POSTGRES_DB:-format7}
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 200
+      DEFAULT_POOL_SIZE: 20
+      AUTH_TYPE: scram-sha-256
+    depends_on:
+      - postgres
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: format7-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+      - backend
+
+  prometheus:
+    image: prom/prometheus:v2.51.2
+    container_name: format7-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prom_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=30d"
+
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: format7-grafana
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana-datasources.yml:/etc/grafana/provisioning/datasources/ds.yml:ro
+    depends_on:
+      - prometheus
+
+  backup:
+    image: postgres:16-alpine
+    container_name: format7-backup
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    volumes:
+      - ./backups:/backups
+      - ./scripts/backup.sh:/backup.sh:ro
+    environment:
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER:-format7}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-format7}
+      PGDATABASE: ${POSTGRES_DB:-format7}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      "while true; do
+         sh /backup.sh || echo '[backup] failed';
+         sleep 86400;
+       done"
+
+volumes:
+  backend_data:
+  backend_uploads:
+  redis_data:
+  pg_data:
+  caddy_data:
+  caddy_config:
+  prom_data:
+  grafana_data:

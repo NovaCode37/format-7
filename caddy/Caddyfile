@@ -1,0 +1,36 @@
+
+{
+  email admin@format7.ru
+}
+
+format7.ru, www.format7.ru {
+  encode zstd gzip
+
+  handle_path /api/* {
+    reverse_proxy backend:8000 {
+      header_up X-Real-IP {remote_host}
+      header_up X-Forwarded-For {remote_host}
+      header_up X-Forwarded-Proto {scheme}
+    }
+  }
+  handle /api/payments/webhook/* {
+    reverse_proxy backend:8000
+  }
+  handle /health {
+    reverse_proxy backend:8000
+  }
+
+  reverse_proxy frontend:3000 {
+    header_up X-Real-IP {remote_host}
+    header_up X-Forwarded-For {remote_host}
+    header_up X-Forwarded-Proto {scheme}
+  }
+
+
+  log {
+    output file /data/access.log {
+      roll_size 50MiB
+      roll_keep 5
+    }
+  }
+}

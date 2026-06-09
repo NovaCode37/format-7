@@ -1,0 +1,23 @@
+{
+  "name": "Format7 — типография",
+  "short_name": "Format7",
+  "description": "Format7 — типография полного цикла в Тюмени",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#111111",
+  "lang": "ru",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "shortcuts": [
+    { "name": "Корзина", "url": "/cart" },
+    { "name": "Цены",    "url": "/prices" },
+    { "name": "Мои заказы", "url": "/profile" }
+  ]
+}
