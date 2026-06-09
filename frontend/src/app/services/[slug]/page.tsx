@@ -28,6 +28,9 @@ import PostcardCalculator from "@/components/PostcardCalculator";
 import QuarterlyCalendarCalculator from "@/components/QuarterlyCalendarCalculator";
 import NotebookCalculator from "@/components/NotebookCalculator";
 import LeafletCalculator from "@/components/LeafletCalculator";
+import EnvelopeCalculator from "@/components/EnvelopeCalculator";
+import DiplomaCalculator from "@/components/DiplomaCalculator";
+import PhotoCalculator from "@/components/PhotoCalculator";
 
 const COPY_PRINT_SLUG = "копирование-и-печать-документов";
 const FLYER_SLUG = "флаеры";
@@ -49,6 +52,9 @@ const POSTCARD_SLUGS = ["открытки", "открытка"];
 const QUARTERLY_CALENDAR_SLUGS = ["квартальный-календарь", "квартальные-календари"];
 const NOTEBOOK_SLUGS = ["блокноты", "блокнот"];
 const LEAFLET_SLUGS = ["листовки", "листовка"];
+const ENVELOPE_SLUGS = ["конверты", "конверт"];
+const DIPLOMA_SLUGS = ["грамоты-и-дипломы", "грамоты", "дипломы", "грамоты-дипломы"];
+const PHOTO_SLUGS = ["печать-фотографий", "печать-фото", "фотопечать"];
 
 const CATEGORY_TITLES: Record<string, string> = {
   "копирование-и-печать-документов": "Услуги копицентра",
@@ -159,6 +165,7 @@ export default function ServicePage() {
       ...MENU_SLUGS, ...STICKER_SLUGS, ...CARD_SLUGS, ...BOOKLET_SLUGS, ...DESK_CALENDAR_SLUGS,
       ...POCKET_CALENDAR_SLUGS, ...FLIP_CALENDAR_SLUGS, ...POSTCARD_SLUGS,
       ...QUARTERLY_CALENDAR_SLUGS, ...NOTEBOOK_SLUGS, ...LEAFLET_SLUGS,
+      ...ENVELOPE_SLUGS, ...DIPLOMA_SLUGS, ...PHOTO_SLUGS,
     ].includes(decodedSlug);
     return (
       <div className="bg-white">
@@ -241,6 +248,18 @@ export default function ServicePage() {
         ) : LEAFLET_SLUGS.includes(decodeURIComponent(slug).toLowerCase()) ? (
           <section className="border-b border-ink-200 bg-ink-50/40">
             <LeafletCalculator />
+          </section>
+        ) : ENVELOPE_SLUGS.includes(decodeURIComponent(slug).toLowerCase()) ? (
+          <section className="border-b border-ink-200 bg-ink-50/40">
+            <EnvelopeCalculator />
+          </section>
+        ) : DIPLOMA_SLUGS.includes(decodeURIComponent(slug).toLowerCase()) ? (
+          <section className="border-b border-ink-200 bg-ink-50/40">
+            <DiplomaCalculator />
+          </section>
+        ) : PHOTO_SLUGS.includes(decodeURIComponent(slug).toLowerCase()) ? (
+          <section className="border-b border-ink-200 bg-ink-50/40">
+            <PhotoCalculator />
           </section>
         ) : fallbackCalc ? (
           <section className="border-b border-ink-200 bg-ink-50/40">
@@ -492,6 +511,27 @@ export default function ServicePage() {
           return (
             <section className="border-b border-ink-200 bg-ink-50/40">
               <LeafletCalculator serviceId={service.id} />
+            </section>
+          );
+        }
+        if (ENVELOPE_SLUGS.includes(service.slug.toLowerCase())) {
+          return (
+            <section className="border-b border-ink-200 bg-ink-50/40">
+              <EnvelopeCalculator serviceId={service.id} />
+            </section>
+          );
+        }
+        if (DIPLOMA_SLUGS.includes(service.slug.toLowerCase())) {
+          return (
+            <section className="border-b border-ink-200 bg-ink-50/40">
+              <DiplomaCalculator serviceId={service.id} />
+            </section>
+          );
+        }
+        if (PHOTO_SLUGS.includes(service.slug.toLowerCase())) {
+          return (
+            <section className="border-b border-ink-200 bg-ink-50/40">
+              <PhotoCalculator serviceId={service.id} />
             </section>
           );
         }

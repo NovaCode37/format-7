@@ -33,6 +33,9 @@ const ALL_SERVICES: CatalogItem[] = [
   { title: "Наклейки и стикеры",       slug: "наклейки",                         image: IMG.stickers,           from: "от 200 ₽", group: "Полиграфия" },
   { title: "Меню для кафе",            slug: "меню-для-кафе",                    image: IMG.flyerPaper,         from: "от 600 ₽", group: "Полиграфия" },
   { title: "Блокноты",                 slug: "блокноты",                         image: IMG.stickerPack,        from: "от 400 ₽", group: "Полиграфия" },
+  { title: "Конверты",                 slug: "конверты",                         image: IMG.businessCardBrand,  from: "от 16 ₽",  group: "Полиграфия" },
+  { title: "Грамоты и дипломы",        slug: "грамоты-и-дипломы",                image: IMG.printPress,         from: "от 55 ₽",  group: "Полиграфия" },
+  { title: "Печать фотографий",        slug: "печать-фотографий",                image: IMG.polaroid,           from: "от 22 ₽",  group: "Печать фото" },
 ];
 
 export default function CatalogPage() {

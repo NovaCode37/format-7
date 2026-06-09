@@ -149,6 +149,30 @@ export const CATALOG_INDEX: CatalogIndexItem[] = [
     group: "Полиграфия",
     keywords: ["записная книжка", "ежедневник", "notebook"],
   },
+  {
+    title: "Конверты",
+    slug: "конверты",
+    image: IMG.businessCardBrand,
+    from: "от 16 ₽",
+    group: "Полиграфия",
+    keywords: ["е65", "с5", "с4", "конверт"],
+  },
+  {
+    title: "Грамоты и дипломы",
+    slug: "грамоты-и-дипломы",
+    image: IMG.printPress,
+    from: "от 55 ₽",
+    group: "Полиграфия",
+    keywords: ["диплом", "грамота", "благодарственное письмо", "награда"],
+  },
+  {
+    title: "Печать фотографий",
+    slug: "печать-фотографий",
+    image: IMG.polaroid,
+    from: "от 22 ₽",
+    group: "Печать фото",
+    keywords: ["фото", "photo", "10x15", "фотопечать"],
+  },
 ];
 
 export function searchCatalog(
