@@ -70,7 +70,7 @@ export default function Footer() {
 
           <Reveal className="col-span-12 lg:col-span-4">
             <Link href="/" className="inline-flex items-center gap-3 mb-5">
-              <img src="/logo.jpg" alt="Формат7" className="h-10 w-auto rounded-md" />
+              <img src="/logo.png" alt="Формат7" className="h-10 w-auto" />
             </Link>
             <p className="text-ink-600 leading-relaxed max-w-sm">
               Типография полного цикла в&nbsp;Тюмени. Печать, копицентр, сувенирная

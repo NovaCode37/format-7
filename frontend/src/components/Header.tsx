@@ -93,9 +93,9 @@ export default function Header() {
           aria-label="Format7 — на главную"
         >
           <img
-            src="/logo.jpg"
+            src="/logo.png"
             alt="Формат7"
-            className="h-9 w-auto rounded-md"
+            className="h-9 w-auto"
           />
           <span className="hidden sm:flex flex-col leading-tight">
             <span className="text-[10px] text-ink-400 uppercase tracking-[0.1em]">
