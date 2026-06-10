@@ -23,7 +23,7 @@ export const CATALOG_INDEX: CatalogIndexItem[] = [
   {
     title: "Сканирование",
     slug: "сканирование-документов",
-    image: IMG.printDetail,
+    image: IMG.prodScan,
     from: "от 10 ₽",
     group: "Печать документов",
     keywords: ["скан", "оцифровка", "pdf", "scan"],
@@ -31,7 +31,7 @@ export const CATALOG_INDEX: CatalogIndexItem[] = [
   {
     title: "Ламинирование",
     slug: "ламинирование",
-    image: IMG.printPress,
+    image: IMG.prodLamination,
     from: "от 50 ₽",
     group: "Печать документов",
     keywords: ["плёнка", "ламинат", "глянец"],
@@ -39,7 +39,7 @@ export const CATALOG_INDEX: CatalogIndexItem[] = [
   {
     title: "Брошюровка и переплёт",
     slug: "переплёт-и-брошюровка",
-    image: IMG.magazines,
+    image: IMG.prodBinding,
     from: "от 120 ₽",
     group: "Печать документов",
     keywords: ["пружина", "скоба", "клеевой", "твёрдый"],
@@ -104,7 +104,7 @@ export const CATALOG_INDEX: CatalogIndexItem[] = [
   {
     title: "Карманные календари",
     slug: "карманные-календари",
-    image: IMG.printDetail,
+    image: IMG.prodPocketCal,
     from: "от 8 ₽",
     group: "Полиграфия",
     keywords: ["карманный", "7x10", "70x100"],
@@ -128,7 +128,7 @@ export const CATALOG_INDEX: CatalogIndexItem[] = [
   {
     title: "Наклейки и стикеры",
     slug: "наклейки",
-    image: IMG.stickers,
+    image: IMG.prodStickers,
     from: "от 200 ₽",
     group: "Полиграфия",
     keywords: ["стикеры", "магниты", "винил", "sticker"],
@@ -152,7 +152,7 @@ export const CATALOG_INDEX: CatalogIndexItem[] = [
   {
     title: "Конверты",
     slug: "конверты",
-    image: IMG.businessCardBrand,
+    image: IMG.prodEnvelopes,
     from: "от 16 ₽",
     group: "Полиграфия",
     keywords: ["е65", "с5", "с4", "конверт"],

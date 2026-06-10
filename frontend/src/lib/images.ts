@@ -49,4 +49,10 @@ export const IMG = {
   prodMenu:         "/products/menu.jpg",
   prodPostcard:     "/products/postcard.webp",
   prodFlyers:       "/products/flyers.jpg",
+  prodBinding:      "/products/binding.webp",
+  prodPocketCal:    "/products/calendar-pocket.webp",
+  prodStickers:     "/products/stickers.jpg",
+  prodScan:         "/products/scan.jpg",
+  prodLamination:   "/products/lamination.jpg",
+  prodEnvelopes:    "/products/envelopes.jpg",
 };
