@@ -50,17 +50,16 @@ export default function FinalCTA() {
               <div className="bg-ink-50 rounded-2xl p-6">
                 <MapPin size={20} strokeWidth={1.5} className="text-ink-400 mb-3" />
                 <p className="text-[13px] text-ink-400 mb-1">Адрес</p>
-                <p className="font-heading text-lg font-bold text-ink-900">
-                  г. Тюмень
+                <p className="font-heading text-base font-bold text-ink-900 leading-snug">
+                  г. Тюмень, ул. Широтная, д. 113, к1 стр1, офис 7
                 </p>
               </div>
               <div className="bg-ink-50 rounded-2xl p-6">
                 <Clock size={20} strokeWidth={1.5} className="text-ink-400 mb-3" />
                 <p className="text-[13px] text-ink-400 mb-1">Время работы</p>
                 <p className="font-heading text-lg font-bold text-ink-900 tabular">
-                  Пн–Пт · 9–19
+                  Пн–Пт · 9–13, 14–17
                 </p>
-                <p className="text-sm text-ink-400 tabular">Сб · 10–16</p>
               </div>
               <div className="bg-accent rounded-2xl p-6 flex flex-col justify-between">
                 <p className="text-sm text-white/70">Электронная почта</p>

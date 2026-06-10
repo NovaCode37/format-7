@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import {
-  Search, ShoppingCart, User, LogOut, Heart, Menu,
+  Search, ShoppingCart, User, LogOut, Heart, Menu, MessageCircle,
   FileText, Camera, Printer, LayoutGrid,
 } from "lucide-react";
 import MobileDrawer from "./MobileDrawer";
@@ -200,6 +200,16 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-1 text-sm ml-auto md:ml-0">
+          <a
+            href="https://max.ru/u/f9LHodD0cOL5K_y_ohndrIuQqxgsgd1UTeFnK4VSa5Swa303MHSbSyCAxRE"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Написать в MAX"
+            aria-label="Написать в MAX"
+            className="h-9 w-9 grid place-items-center rounded-lg text-ink-500 hover:text-accent hover:bg-ink-50 transition-colors"
+          >
+            <MessageCircle size={16} strokeWidth={1.75} />
+          </a>
           {user ? (
             <>
               {user.is_admin && (

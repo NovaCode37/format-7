@@ -59,7 +59,7 @@ export default function RunningBanner() {
               <div className="relative w-full h-[80%] grid grid-cols-2 grid-rows-3 gap-3">
                 <div className="col-span-1 row-span-2 rounded-2xl overflow-hidden">
                   <img
-                    src={IMG.businessCards}
+                    src={IMG.prodBusinessCard}
                     alt="Визитки"
                     className="w-full h-full object-cover"
                     loading="eager"
@@ -67,7 +67,7 @@ export default function RunningBanner() {
                 </div>
                 <div className="col-span-1 row-span-1 rounded-2xl overflow-hidden">
                   <img
-                    src={IMG.polaroid}
+                    src={IMG.prodPhoto}
                     alt="Фотопечать"
                     className="w-full h-full object-cover"
                     loading="eager"
@@ -94,7 +94,7 @@ export default function RunningBanner() {
           <Reveal delay={0.1} className="lg:hidden pb-10">
             <div className="rounded-2xl overflow-hidden aspect-[4/3]">
               <img
-                src={IMG.printPress}
+                src={IMG.prodPolygraphy}
                 alt="Полиграфия"
                 className="w-full h-full object-cover"
                 loading="eager"

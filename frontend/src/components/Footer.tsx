@@ -12,8 +12,6 @@ const COLUMNS = [
     links: [
       { label: "О компании", href: "#" },
       { label: "Контакты", href: "/contacts" },
-      { label: "Адреса офисов", href: "/contacts" },
-      { label: "Вакансии", href: "#" },
     ],
   },
   {
@@ -36,13 +34,6 @@ const COLUMNS = [
       { label: "Статус заказа", href: "/order-status" },
       { label: "Корзина", href: "/cart" },
       { label: "Отзывы", href: "/reviews" },
-    ],
-  },
-  {
-    title: "Партнёрам",
-    links: [
-      { label: "Франчайзинг", href: "#" },
-      { label: "Арендодателям", href: "#" },
     ],
   },
   {
@@ -184,7 +175,7 @@ export default function Footer() {
                   <MessageCircle size={14} strokeWidth={1.75} /> Написать в MAX
                 </a>
               </li>
-              <li className="text-ink-600">Тюмень, ул.&nbsp;Ленина, 1</li>
+              <li className="text-ink-600">г.&nbsp;Тюмень, ул.&nbsp;Широтная, д.&nbsp;113, к1 стр1, офис&nbsp;7</li>
               <li className="text-ink-500 text-[13px]">
                 Пн–Пт 9:00–19:00
                 <br />
