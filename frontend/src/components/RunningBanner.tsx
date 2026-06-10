@@ -81,7 +81,7 @@ export default function RunningBanner() {
                 </div>
                 <div className="col-span-2 row-span-1 rounded-2xl overflow-hidden">
                   <img
-                    src={IMG.printPress}
+                    src={IMG.prodFlyers}
                     alt="Полиграфия"
                     className="w-full h-full object-cover"
                     loading="eager"
