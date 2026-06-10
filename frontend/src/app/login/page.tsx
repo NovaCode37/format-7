@@ -116,24 +116,6 @@ export default function LoginPage() {
                 </p>
               </form>
 
-              <div className="mt-6 pt-5 border-t border-ink-200">
-                <p className="text-center text-[12px] text-ink-500 mb-3">или войти через</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <a
-                    href="/api/auth/yandex/authorize"
-                    className="btn btn-sm justify-center hover:border-ink-400 transition-colors"
-                  >
-                    Яндекс ID
-                  </a>
-                  <a
-                    href="/api/auth/vk/authorize"
-                    className="btn btn-sm justify-center hover:border-ink-400 transition-colors"
-                  >
-                    VK ID
-                  </a>
-                </div>
-              </div>
-
               <p className="mt-6 pt-5 border-t border-ink-200 text-[13px] text-ink-500 text-center">
                 Нет аккаунта?{" "}
                 <Link href="/register" className="text-ink-900 font-medium hover:text-brand transition-colors">
