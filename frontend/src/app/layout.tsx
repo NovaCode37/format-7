@@ -8,6 +8,7 @@ const inter = {
 import { AuthProvider } from "@/lib/auth-context";
 import Topbar from "@/components/Topbar";
 import Header from "@/components/Header";
+import VerifyBanner from "@/components/VerifyBanner";
 import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
 import CookieConsent from "@/components/CookieConsent";
@@ -101,6 +102,7 @@ export default function RootLayout({
             <ApiErrorGuard />
             <Topbar />
             <Header />
+            <VerifyBanner />
             <main className="flex-1">
               <PageTransition>{children}</PageTransition>
             </main>
