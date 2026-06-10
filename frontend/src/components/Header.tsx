@@ -92,16 +92,12 @@ export default function Header() {
           className="flex items-center gap-2.5 shrink-0 group"
           aria-label="Format7 — на главную"
         >
-          <span
-            aria-hidden="true"
-            className="w-9 h-9 grid place-items-center rounded-lg bg-ink-900 text-white font-bold text-[13px] tracking-tight group-hover:bg-ink-800 transition-colors"
-          >
-            F7
-          </span>
+          <img
+            src="/logo.jpg"
+            alt="Формат7"
+            className="h-9 w-auto rounded-md"
+          />
           <span className="hidden sm:flex flex-col leading-tight">
-            <span className="text-[15px] font-bold text-ink-900 tracking-tight">
-              Формат7
-            </span>
             <span className="text-[10px] text-ink-400 uppercase tracking-[0.1em]">
               Онлайн-типография
             </span>

@@ -134,7 +134,7 @@ export default function DesignBriefForm({ onUseConstructor }: { onUseConstructor
           </div>
 
           <div className="mt-6 flex gap-2 justify-center">
-            <a href="tel:+73452000000" className="h-11 px-5 rounded-lg flex items-center justify-center gap-2 border border-ink-200 text-ink-900 text-[13px] font-medium hover:bg-ink-50"><Phone size={14} /> Позвонить</a>
+            <a href="tel:+79324759511" className="h-11 px-5 rounded-lg flex items-center justify-center gap-2 border border-ink-200 text-ink-900 text-[13px] font-medium hover:bg-ink-50"><Phone size={14} /> Позвонить</a>
             <button onClick={() => setOrderNumber(null)} className="h-11 px-5 rounded-lg bg-ink-900 text-white text-[13px] font-medium hover:bg-ink-800">Новый бриф</button>
           </div>
         </div>

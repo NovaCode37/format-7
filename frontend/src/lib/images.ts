@@ -33,4 +33,20 @@ export const IMG = {
   printDetail:  U("photo-1693031630146-568e2f72db0e"),
 
   magazines: U("photo-1519682337058-a94d519337bc"),
+
+  prodBuklety:      "/products/buklety.png",
+  prodDeskCal:      "/products/calendar-desk.png",
+  prodFlipCal:      "/products/calendar-flip.png",
+  prodPosterCal:    "/products/calendar-poster.jpg",
+  prodLeaflets:     "/products/leaflets.png",
+  prodDocs:         "/products/docs.jpg",
+  prodPhoto:        "/products/photo.png",
+  prodPolygraphy:   "/products/polygraphy.jpg",
+  prodNotebook:     "/products/notebook.png",
+  prodBusinessCard: "/products/business-card.jpg",
+  prodDiploma:      "/products/diploma.jpg",
+  prodQuarterly:    "/products/calendar-quarterly.jpg",
+  prodMenu:         "/products/menu.jpg",
+  prodPostcard:     "/products/postcard.webp",
+  prodFlyers:       "/products/flyers.jpg",
 };

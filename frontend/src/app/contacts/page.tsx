@@ -14,9 +14,9 @@ export default async function ContactsPage() {
   ]);
 
   const channels = [
-    { Icon: Phone,         title: "Телефон",   value: "+7 (3452) 00-00-00", sub: "Ежедневно 9:00–21:00",  href: "tel:+73452000000"   },
+    { Icon: Phone,         title: "Телефон",   value: "+7 932 475-95-11", sub: "Ежедневно 9:00–21:00",  href: "tel:+79324759511"   },
     { Icon: Mail,          title: "Email",     value: "info@format7.ru",    sub: "Ответим в течение часа", href: "mailto:info@format7.ru" },
-    { Icon: MessageCircle, title: "WhatsApp",  value: "+7 (3452) 00-00-00", sub: "Быстрые заказы",         href: "#" },
+    { Icon: MessageCircle, title: "MAX",       value: "Написать в MAX",     sub: "Быстрые заказы",         href: "https://max.ru/u/f9LHodD0cOL5K_y_ohndrIuQqxgsgd1UTeFnK4VSa5Swa303MHSbSyCAxRE" },
     { Icon: Send,          title: "Telegram",  value: "@format7tmn",        sub: "Чат для заказов",        href: "#" },
   ];
 

@@ -89,7 +89,7 @@ const FIELD_LABELS: Record<string, string> = {
 
 const FIELD_DEFAULTS: Record<string, string> = {
   company: "Format7", person: "Иван Иванов", position: "Менеджер",
-  phone: "+7 (3452) 00-00-00", email: "info@format7.ru",
+  phone: "+7 932 475-95-11", email: "info@format7.ru",
   website: "format7.ru", address: "г. Тюмень",
   headline: "Заголовок", subline: "Подзаголовок",
   body: "Текст описания здесь", cta: "Заказать", year: "2026",

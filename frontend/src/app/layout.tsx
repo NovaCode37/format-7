@@ -61,7 +61,7 @@ const jsonLd = {
   name: "Format7",
   image: `${SITE_URL}/og.jpg`,
   url: SITE_URL,
-  telephone: "+7 (3452) 00-00-01",
+  telephone: "+7 932 475-95-11",
   priceRange: "₽₽",
   address: {
     "@type": "PostalAddress",

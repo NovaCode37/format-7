@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, MessageCircle } from "lucide-react";
 import { api } from "@/lib/api";
 import Reveal, { Stagger, StaggerItem, DrawLine } from "./Reveal";
 
@@ -79,15 +79,7 @@ export default function Footer() {
 
           <Reveal className="col-span-12 lg:col-span-4">
             <Link href="/" className="inline-flex items-center gap-3 mb-5">
-              <span
-                aria-hidden="true"
-                className="w-9 h-9 grid place-items-center rounded-md bg-ink-900 text-white font-semibold text-[13px]"
-              >
-                F7
-              </span>
-              <span className="text-ink-900 font-semibold text-lg tracking-tight">
-                Format7
-              </span>
+              <img src="/logo.jpg" alt="Формат7" className="h-10 w-auto rounded-md" />
             </Link>
             <p className="text-ink-600 leading-relaxed max-w-sm">
               Типография полного цикла в&nbsp;Тюмени. Печать, копицентр, сувенирная
@@ -176,10 +168,20 @@ export default function Footer() {
             <ul className="space-y-2.5">
               <li>
                 <a
-                  href="tel:+73452000000"
+                  href="tel:+79324759511"
                   className="text-ink-700 hover:text-brand transition-colors tabular"
                 >
-                  +7 (3452) 00-00-00
+                  +7 932 475-95-11
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://max.ru/u/f9LHodD0cOL5K_y_ohndrIuQqxgsgd1UTeFnK4VSa5Swa303MHSbSyCAxRE"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-ink-700 hover:text-brand transition-colors"
+                >
+                  <MessageCircle size={14} strokeWidth={1.75} /> Написать в MAX
                 </a>
               </li>
               <li className="text-ink-600">Тюмень, ул.&nbsp;Ленина, 1</li>

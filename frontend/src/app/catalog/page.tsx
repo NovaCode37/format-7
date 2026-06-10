@@ -15,27 +15,27 @@ type CatalogItem = {
 
 const ALL_SERVICES: CatalogItem[] = [
 
-  { title: "Копирование и печать",     slug: "копирование-и-печать-документов", image: IMG.printStudio,        from: "от 6 ₽",   group: "Печать документов" },
+  { title: "Копирование и печать",     slug: "копирование-и-печать-документов", image: IMG.prodDocs,        from: "от 6 ₽",   group: "Печать документов" },
   { title: "Сканирование",             slug: "сканирование-документов",          image: IMG.printDetail,        from: "от 10 ₽",  group: "Печать документов" },
   { title: "Ламинирование",            slug: "ламинирование",                    image: IMG.printPress,         from: "от 50 ₽",  group: "Печать документов" },
   { title: "Брошюровка и переплёт",    slug: "переплёт-и-брошюровка",            image: IMG.magazines,          from: "от 120 ₽", group: "Печать документов" },
 
-  { title: "Визитки",                  slug: "визитки",                          image: IMG.businessCardMockup, from: "от 500 ₽", group: "Полиграфия" },
-  { title: "Листовки",                 slug: "листовки",                         image: IMG.flyer,              from: "от 300 ₽", group: "Полиграфия" },
-  { title: "Флаеры",                   slug: "флаеры",                           image: IMG.flyerMockup,        from: "от 300 ₽", group: "Полиграфия" },
-  { title: "Буклеты",                  slug: "буклеты",                          image: IMG.magazines,          from: "от 800 ₽", group: "Полиграфия" },
-  { title: "Открытки",                 slug: "открытки",                         image: IMG.polaroidHand,       from: "от 400 ₽", group: "Полиграфия" },
+  { title: "Визитки",                  slug: "визитки",                          image: IMG.prodBusinessCard, from: "от 500 ₽", group: "Полиграфия" },
+  { title: "Листовки",                 slug: "листовки",                         image: IMG.prodLeaflets,              from: "от 300 ₽", group: "Полиграфия" },
+  { title: "Флаеры",                   slug: "флаеры",                           image: IMG.prodFlyers,        from: "от 300 ₽", group: "Полиграфия" },
+  { title: "Буклеты",                  slug: "буклеты",                          image: IMG.prodBuklety,          from: "от 800 ₽", group: "Полиграфия" },
+  { title: "Открытки",                 slug: "открытки",                         image: IMG.prodPostcard,       from: "от 400 ₽", group: "Полиграфия" },
   { title: "Карманные календари",      slug: "карманные-календари",              image: IMG.printDetail,        from: "от 18 ₽",  group: "Календари" },
-  { title: "Настольный календарь-домик", slug: "настольный-календарь-домик",     image: IMG.printDetail,        from: "от 100 ₽", group: "Календари" },
-  { title: "Плакатный календарь",      slug: "плакатный-календарь",              image: IMG.printPress,         from: "от 230 ₽", group: "Календари" },
-  { title: "Перекидной настенный календарь", slug: "перекидной-календарь",       image: IMG.printPress,         from: "от 730 ₽", group: "Календари" },
-  { title: "Квартальный календарь",    slug: "квартальный-календарь",            image: IMG.printDetail,        from: "от 300 ₽", group: "Календари" },
+  { title: "Настольный календарь-домик", slug: "настольный-календарь-домик",     image: IMG.prodDeskCal,        from: "от 100 ₽", group: "Календари" },
+  { title: "Плакатный календарь",      slug: "плакатный-календарь",              image: IMG.prodPosterCal,         from: "от 230 ₽", group: "Календари" },
+  { title: "Перекидной настенный календарь", slug: "перекидной-календарь",       image: IMG.prodFlipCal,         from: "от 730 ₽", group: "Календари" },
+  { title: "Квартальный календарь",    slug: "квартальный-календарь",            image: IMG.prodQuarterly,        from: "от 300 ₽", group: "Календари" },
   { title: "Наклейки и стикеры",       slug: "наклейки",                         image: IMG.stickers,           from: "от 200 ₽", group: "Полиграфия" },
-  { title: "Меню для кафе",            slug: "меню-для-кафе",                    image: IMG.flyerPaper,         from: "от 600 ₽", group: "Полиграфия" },
-  { title: "Блокноты",                 slug: "блокноты",                         image: IMG.stickerPack,        from: "от 400 ₽", group: "Полиграфия" },
+  { title: "Меню для кафе",            slug: "меню-для-кафе",                    image: IMG.prodMenu,         from: "от 600 ₽", group: "Полиграфия" },
+  { title: "Блокноты",                 slug: "блокноты",                         image: IMG.prodNotebook,        from: "от 400 ₽", group: "Полиграфия" },
   { title: "Конверты",                 slug: "конверты",                         image: IMG.businessCardBrand,  from: "от 16 ₽",  group: "Полиграфия" },
-  { title: "Грамоты и дипломы",        slug: "грамоты-и-дипломы",                image: IMG.printPress,         from: "от 55 ₽",  group: "Полиграфия" },
-  { title: "Печать фотографий",        slug: "печать-фотографий",                image: IMG.polaroid,           from: "от 22 ₽",  group: "Печать фото" },
+  { title: "Грамоты и дипломы",        slug: "грамоты-и-дипломы",                image: IMG.prodDiploma,         from: "от 55 ₽",  group: "Полиграфия" },
+  { title: "Печать фотографий",        slug: "печать-фотографий",                image: IMG.prodPhoto,           from: "от 22 ₽",  group: "Печать фото" },
 ];
 
 export default function CatalogPage() {

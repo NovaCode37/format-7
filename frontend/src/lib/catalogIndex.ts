@@ -15,7 +15,7 @@ export const CATALOG_INDEX: CatalogIndexItem[] = [
   {
     title: "Копирование и печать",
     slug: "копирование-и-печать-документов",
-    image: IMG.printStudio,
+    image: IMG.prodDocs,
     from: "от 6 ₽",
     group: "Печать документов",
     keywords: ["копия", "ксерокс", "распечатать", "ч/б", "цветная"],
@@ -48,7 +48,7 @@ export const CATALOG_INDEX: CatalogIndexItem[] = [
   {
     title: "Визитки",
     slug: "визитки",
-    image: IMG.businessCardMockup,
+    image: IMG.prodBusinessCard,
     from: "от 500 ₽",
     group: "Полиграфия",
     keywords: ["визитка", "карточки", "business card"],
@@ -56,7 +56,7 @@ export const CATALOG_INDEX: CatalogIndexItem[] = [
   {
     title: "Листовки",
     slug: "листовки",
-    image: IMG.flyer,
+    image: IMG.prodLeaflets,
     from: "от 300 ₽",
     group: "Полиграфия",
     keywords: ["a5", "a6", "реклама"],
@@ -64,7 +64,7 @@ export const CATALOG_INDEX: CatalogIndexItem[] = [
   {
     title: "Флаеры",
     slug: "флаеры",
-    image: IMG.flyerMockup,
+    image: IMG.prodFlyers,
     from: "от 300 ₽",
     group: "Полиграфия",
     keywords: ["flyer", "евро", "реклама"],
@@ -72,7 +72,7 @@ export const CATALOG_INDEX: CatalogIndexItem[] = [
   {
     title: "Буклеты",
     slug: "буклеты",
-    image: IMG.magazines,
+    image: IMG.prodBuklety,
     from: "от 800 ₽",
     group: "Полиграфия",
     keywords: ["евробуклет", "сгиб", "фальцовка"],
@@ -80,7 +80,7 @@ export const CATALOG_INDEX: CatalogIndexItem[] = [
   {
     title: "Открытки",
     slug: "открытки",
-    image: IMG.polaroidHand,
+    image: IMG.prodPostcard,
     from: "от 400 ₽",
     group: "Полиграфия",
     keywords: ["postcard", "поздравление"],
@@ -88,7 +88,7 @@ export const CATALOG_INDEX: CatalogIndexItem[] = [
   {
     title: "Настольный календарь-домик",
     slug: "настольный-календарь-домик",
-    image: IMG.printDetail,
+    image: IMG.prodDeskCal,
     from: "от 100 ₽",
     group: "Полиграфия",
     keywords: ["домик", "настольный", "а5", "безблочный", "12 блоков"],
@@ -96,7 +96,7 @@ export const CATALOG_INDEX: CatalogIndexItem[] = [
   {
     title: "Плакатный календарь",
     slug: "плакатный-календарь",
-    image: IMG.printPress,
+    image: IMG.prodPosterCal,
     from: "от 230 ₽",
     group: "Полиграфия",
     keywords: ["плакат", "а3", "настенный", "односторонний"],
@@ -112,7 +112,7 @@ export const CATALOG_INDEX: CatalogIndexItem[] = [
   {
     title: "Перекидной настенный календарь",
     slug: "перекидной-календарь",
-    image: IMG.printPress,
+    image: IMG.prodFlipCal,
     from: "от 730 ₽",
     group: "Полиграфия",
     keywords: ["перекидной", "настенный", "пружина", "а3", "а4"],
@@ -120,7 +120,7 @@ export const CATALOG_INDEX: CatalogIndexItem[] = [
   {
     title: "Квартальный календарь",
     slug: "квартальный-календарь",
-    image: IMG.printDetail,
+    image: IMG.prodQuarterly,
     from: "от 300 ₽",
     group: "Полиграфия",
     keywords: ["квартальный", "3 пружины", "постер", "блоки"],
@@ -136,7 +136,7 @@ export const CATALOG_INDEX: CatalogIndexItem[] = [
   {
     title: "Меню для кафе",
     slug: "меню-для-кафе",
-    image: IMG.flyerPaper,
+    image: IMG.prodMenu,
     from: "от 600 ₽",
     group: "Полиграфия",
     keywords: ["ресторан", "бар", "карта блюд"],
@@ -144,7 +144,7 @@ export const CATALOG_INDEX: CatalogIndexItem[] = [
   {
     title: "Блокноты",
     slug: "блокноты",
-    image: IMG.stickerPack,
+    image: IMG.prodNotebook,
     from: "от 400 ₽",
     group: "Полиграфия",
     keywords: ["записная книжка", "ежедневник", "notebook"],
@@ -160,7 +160,7 @@ export const CATALOG_INDEX: CatalogIndexItem[] = [
   {
     title: "Грамоты и дипломы",
     slug: "грамоты-и-дипломы",
-    image: IMG.printPress,
+    image: IMG.prodDiploma,
     from: "от 55 ₽",
     group: "Полиграфия",
     keywords: ["диплом", "грамота", "благодарственное письмо", "награда"],
@@ -168,7 +168,7 @@ export const CATALOG_INDEX: CatalogIndexItem[] = [
   {
     title: "Печать фотографий",
     slug: "печать-фотографий",
-    image: IMG.polaroid,
+    image: IMG.prodPhoto,
     from: "от 22 ₽",
     group: "Печать фото",
     keywords: ["фото", "photo", "10x15", "фотопечать"],

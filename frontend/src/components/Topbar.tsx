@@ -16,7 +16,7 @@ export default function Topbar() {
             className="hidden sm:inline-flex items-center gap-1.5 hover:text-white transition-colors"
           >
             <Phone size={11} strokeWidth={1.75} className="text-white/40" />
-            +7 (3452) 00-00-00
+            +7 932 475-95-11
           </Link>
           <span className="hidden md:inline text-white/20">·</span>
           <a

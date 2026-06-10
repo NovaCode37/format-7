@@ -29,7 +29,7 @@ export default function FinalCTA() {
                 <ArrowRight size={16} strokeWidth={2} />
               </Link>
               <a
-                href="tel:+73452000000"
+                href="tel:+79324759511"
                 className="btn btn-lg bg-transparent text-ink-600 border border-ink-200 hover:bg-ink-50 hover:border-ink-300"
               >
                 <Phone size={15} strokeWidth={1.75} />
@@ -43,8 +43,8 @@ export default function FinalCTA() {
               <div className="bg-ink-50 rounded-2xl p-6">
                 <Phone size={20} strokeWidth={1.5} className="text-ink-400 mb-3" />
                 <p className="text-[13px] text-ink-400 mb-1">Телефон</p>
-                <a href="tel:+73452000000" className="font-heading text-lg font-bold text-ink-900 hover:text-brand transition-colors tabular">
-                  +7 (3452) 00-00-00
+                <a href="tel:+79324759511" className="font-heading text-lg font-bold text-ink-900 hover:text-brand transition-colors tabular">
+                  +7 932 475-95-11
                 </a>
               </div>
               <div className="bg-ink-50 rounded-2xl p-6">

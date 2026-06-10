@@ -754,7 +754,7 @@ function CheckoutModal({
 
             <div className="mt-5 flex gap-2">
               <a
-                href="tel:+73452000000"
+                href="tel:+79324759511"
                 className="flex-1 h-11 rounded-lg flex items-center justify-center gap-2 border border-ink-200 text-ink-900 text-[13px] font-medium hover:bg-ink-50"
               >
                 <Phone size={14} /> Позвонить
