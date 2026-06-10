@@ -78,10 +78,10 @@ export default function Footer() {
             </p>
             <p className="mt-3 text-ink-500">
               <a
-                href="mailto:info@format7.ru"
+                href="mailto:Format7-tmn@yandex.ru"
                 className="text-ink-700 hover:text-brand transition-colors"
               >
-                info@format7.ru
+                Format7-tmn@yandex.ru
               </a>
             </p>
 

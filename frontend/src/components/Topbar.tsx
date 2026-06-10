@@ -20,11 +20,11 @@ export default function Topbar() {
           </Link>
           <span className="hidden md:inline text-white/20">·</span>
           <a
-            href="mailto:info@format7.ru"
+            href="mailto:Format7-tmn@yandex.ru"
             className="hidden md:inline-flex items-center gap-1.5 hover:text-white transition-colors"
           >
             <Mail size={11} strokeWidth={1.75} className="text-white/40" />
-            info@format7.ru
+            Format7-tmn@yandex.ru
           </a>
         </div>
 

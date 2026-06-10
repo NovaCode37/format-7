@@ -73,7 +73,7 @@ export default function OfferPage() {
         <strong>Наименование:</strong> ИП Format7<br />
         <strong>ИНН:</strong> 0000000000<br />
         <strong>Адрес:</strong> г. Тюмень, ул. Мельникайте, 126<br />
-        <strong>Email:</strong> hello@format7.ru<br />
+        <strong>Email:</strong> Format7-tmn@yandex.ru<br />
         <strong>Телефон:</strong> +7 932 475-95-11
       </p>
     </>

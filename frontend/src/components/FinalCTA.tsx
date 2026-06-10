@@ -64,10 +64,10 @@ export default function FinalCTA() {
               <div className="bg-accent rounded-2xl p-6 flex flex-col justify-between">
                 <p className="text-sm text-white/70">Электронная почта</p>
                 <a
-                  href="mailto:info@format7.ru"
+                  href="mailto:Format7-tmn@yandex.ru"
                   className="font-heading text-lg font-bold text-white hover:text-white/80 transition-colors mt-2"
                 >
-                  info@format7.ru
+                  Format7-tmn@yandex.ru
                 </a>
               </div>
             </div>
