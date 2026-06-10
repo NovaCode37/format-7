@@ -197,7 +197,7 @@ export default function Footer() {
               Политика cookies
             </Link>
           </div>
-          <span>© 2010–{new Date().getFullYear()} ООО «Формат7», Тюмень</span>
+          <span>© {new Date().getFullYear()} ООО «Формат7», Тюмень</span>
         </div>
       </div>
     </footer>
