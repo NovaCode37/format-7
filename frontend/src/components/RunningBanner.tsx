@@ -94,7 +94,7 @@ export default function RunningBanner() {
           <Reveal delay={0.1} className="lg:hidden pb-10">
             <div className="rounded-2xl overflow-hidden aspect-[4/3]">
               <img
-                src={IMG.prodPolygraphy}
+                src={IMG.prodFlyers}
                 alt="Полиграфия"
                 className="w-full h-full object-cover"
                 loading="eager"
