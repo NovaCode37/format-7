@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ShoppingCart, User, LogOut, Heart, PenTool, Copy, ScanLine, Layers, BookOpen } from "lucide-react";
+import { X, ShoppingCart, User, LogOut, Heart, PenTool, Copy, ScanLine, Layers, BookOpen } from "@/lib/icons";
 import { useAuth } from "@/lib/auth-context";
 
 type NavItem = { href: string; label: string; icon?: React.ComponentType<any> };
@@ -65,7 +65,7 @@ export default function MobileDrawer({ open, onClose, links }: Props) {
                 aria-label="Закрыть меню"
                 className="h-9 w-9 grid place-items-center rounded-md text-ink-500 hover:text-ink-900 hover:bg-ink-100 cursor-pointer"
               >
-                <X size={18} strokeWidth={1.75} />
+                <X size={18} strokeWidth={2} />
               </button>
             </div>
 
@@ -78,7 +78,7 @@ export default function MobileDrawer({ open, onClose, links }: Props) {
                       onClick={onClose}
                       className="flex items-center gap-2.5 px-3 h-12 rounded-md text-[15px] text-ink-900 hover:bg-ink-100 transition-colors"
                     >
-                      {l.icon && <l.icon size={16} strokeWidth={1.75} className="text-ink-500" />}
+                      {l.icon && <l.icon size={16} strokeWidth={2} className="text-ink-500" />}
                       {l.label}
                     </Link>
                   </li>
@@ -107,7 +107,7 @@ export default function MobileDrawer({ open, onClose, links }: Props) {
                         onClick={onClose}
                         className="flex items-center gap-2 px-3 h-11 rounded-md text-[14px] text-ink-900 hover:bg-ink-100 transition-colors"
                       >
-                        <User size={16} strokeWidth={1.75} className="text-ink-500" />
+                        <User size={16} strokeWidth={2} className="text-ink-500" />
                         <span className="flex-1 truncate">{user.name}</span>
                       </Link>
                     </li>
@@ -117,7 +117,7 @@ export default function MobileDrawer({ open, onClose, links }: Props) {
                         onClick={onClose}
                         className="flex items-center gap-2 px-3 h-11 rounded-md text-[14px] text-ink-900 hover:bg-ink-100 transition-colors"
                       >
-                        <Heart size={16} strokeWidth={1.75} className="text-ink-500" />
+                        <Heart size={16} strokeWidth={2} className="text-ink-500" />
                         Избранное
                       </Link>
                     </li>
@@ -127,7 +127,7 @@ export default function MobileDrawer({ open, onClose, links }: Props) {
                         onClick={() => { logout(); onClose(); }}
                         className="w-full flex items-center gap-2 px-3 h-11 rounded-md text-[14px] text-ink-700 hover:bg-ink-100 transition-colors cursor-pointer"
                       >
-                        <LogOut size={16} strokeWidth={1.75} className="text-ink-500" />
+                        <LogOut size={16} strokeWidth={2} className="text-ink-500" />
                         Выйти
                       </button>
                     </li>
@@ -152,7 +152,7 @@ export default function MobileDrawer({ open, onClose, links }: Props) {
                 onClick={onClose}
                 className="btn-primary w-full justify-center"
               >
-                <ShoppingCart size={15} strokeWidth={1.75} />
+                <ShoppingCart size={15} strokeWidth={2} />
                 Корзина
                 {cartCount > 0 && (
                   <span className="tabular text-white/85">· {cartCount}</span>

@@ -9,7 +9,7 @@ import CopyPrintCalculator from "@/components/CopyPrintCalculator";
 import {
   Calculator, ShoppingCart, CheckCircle, Upload, MapPin,
   Truck, ChevronRight, ChevronLeft, FileText, Trash2, Info, Star,
-} from "lucide-react";
+} from "@/lib/icons";
 
 interface PriceOption {
   label: string;
@@ -326,7 +326,7 @@ export default function CalculatorPage() {
     return (
       <div className="bg-white min-h-[60vh] py-16 sm:py-24">
         <div className="container-page max-w-xl mx-auto text-center">
-          <CheckCircle className="mx-auto mb-6 text-emerald-600" size={40} strokeWidth={1.5} />
+          <CheckCircle className="mx-auto mb-6 text-emerald-600" size={40} strokeWidth={2} />
           <p className="eyebrow mb-4">Готово</p>
           <h1 className="h-display mb-4">Заказ оформлен.</h1>
           <p className="text-ink-500 mb-2">Номер вашего заказа:</p>
@@ -410,7 +410,7 @@ export default function CalculatorPage() {
                 ))}
               </div>
               <div className="border border-ink-200 rounded-md p-4 flex items-start gap-3">
-                <Info size={16} strokeWidth={1.75} className="text-ink-500 shrink-0 mt-0.5" />
+                <Info size={16} strokeWidth={2} className="text-ink-500 shrink-0 mt-0.5" />
                 <p className="text-[13px] text-ink-700">
                   <strong className="text-ink-900">{svc.name}</strong> — базовая цена от <strong className="text-ink-900">{svc.basePrice}&nbsp;₽</strong> за {svc.unit}.
                   Выберите параметры на следующем шаге для точного расчёта.
@@ -495,7 +495,7 @@ export default function CalculatorPage() {
                   dragOver ? "border-ink-900 bg-ink-50" : "border-ink-300 hover:border-ink-500"
                 }`}
               >
-                <Upload className="mx-auto mb-3 text-ink-400" size={28} strokeWidth={1.5} />
+                <Upload className="mx-auto mb-3 text-ink-400" size={28} strokeWidth={2} />
                 <p className="text-sm font-medium text-ink-900 mb-1">Перетащите файлы сюда</p>
                 <p className="text-[12px] text-ink-400">или нажмите для выбора · PDF, JPG, PNG, AI, CDR, PSD</p>
                 <input
@@ -512,7 +512,7 @@ export default function CalculatorPage() {
                 <ul className="border border-ink-200 rounded-md overflow-hidden divide-y divide-ink-200">
                   {files.map((f, i) => (
                     <li key={i} className="flex items-center gap-3 bg-white px-4 py-3">
-                      <FileText size={16} strokeWidth={1.75} className="text-ink-500 shrink-0" />
+                      <FileText size={16} strokeWidth={2} className="text-ink-500 shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="text-[13px] font-medium text-ink-900 truncate">{f.name}</p>
                         <p className="text-[11px] text-ink-400 tabular">
@@ -521,7 +521,7 @@ export default function CalculatorPage() {
                         </p>
                       </div>
                       <button onClick={() => removeFile(i)} className="grid place-items-center w-7 h-7 rounded-md text-ink-400 hover:text-red-600 hover:bg-red-50 transition-colors">
-                        <Trash2 size={14} strokeWidth={1.75} />
+                        <Trash2 size={14} strokeWidth={2} />
                       </button>
                     </li>
                   ))}
@@ -552,7 +552,7 @@ export default function CalculatorPage() {
                     deliveryType === "pickup" ? "border-ink-900 bg-ink-50" : "border-ink-200 hover:border-ink-400"
                   }`}
                 >
-                  <MapPin size={18} strokeWidth={1.75} className="text-ink-500 shrink-0 mt-0.5" />
+                  <MapPin size={18} strokeWidth={2} className="text-ink-500 shrink-0 mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-ink-900">Самовывоз</p>
                     <p className="text-[12px] text-ink-500 mt-0.5">Бесплатно · забрать в офисе</p>
@@ -564,7 +564,7 @@ export default function CalculatorPage() {
                     deliveryType === "delivery" ? "border-ink-900 bg-ink-50" : "border-ink-200 hover:border-ink-400"
                   }`}
                 >
-                  <Truck size={18} strokeWidth={1.75} className="text-ink-500 shrink-0 mt-0.5" />
+                  <Truck size={18} strokeWidth={2} className="text-ink-500 shrink-0 mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-ink-900">Доставка</p>
                     <p className="text-[12px] text-ink-500 mt-0.5">По Тюмени · от 700&nbsp;₽</p>
@@ -626,7 +626,7 @@ export default function CalculatorPage() {
 
               {user && (
                 <div className="border border-ink-200 rounded-md px-4 py-3 text-[13px] text-ink-700 flex items-center gap-2">
-                  <Star size={14} strokeWidth={1.75} className="text-ink-500 shrink-0" />
+                  <Star size={14} strokeWidth={2} className="text-ink-500 shrink-0" />
                   Вы вошли как <strong className="text-ink-900">{user?.name}</strong> — данные заполнены автоматически
                 </div>
               )}
@@ -710,7 +710,7 @@ export default function CalculatorPage() {
               disabled={step === 0}
               className="btn disabled:opacity-30 disabled:cursor-not-allowed"
             >
-              <ChevronLeft size={16} strokeWidth={1.75} />
+              <ChevronLeft size={16} strokeWidth={2} />
               Назад
             </button>
 
@@ -721,7 +721,7 @@ export default function CalculatorPage() {
                 className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Далее
-                <ChevronRight size={16} strokeWidth={1.75} />
+                <ChevronRight size={16} strokeWidth={2} />
               </button>
             ) : (
               <button
@@ -729,7 +729,7 @@ export default function CalculatorPage() {
                 disabled={sending || !canNext()}
                 className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                <ShoppingCart size={16} strokeWidth={1.75} />
+                <ShoppingCart size={16} strokeWidth={2} />
                 {sending ? "Оформляем..." : "Оформить заказ"}
               </button>
             )}

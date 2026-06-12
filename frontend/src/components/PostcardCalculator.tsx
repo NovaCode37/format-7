@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { Upload, FileCheck2, Truck, Package, Palette, LayoutTemplate } from "lucide-react";
+import { Upload, FileCheck2, Truck, Package, Palette, LayoutTemplate } from "@/lib/icons";
 import {
   PillsField, QuantityField, TrackCard, BreakdownRow, CheckoutModal, DesignBriefCard,
   TemplateCatalogCard, DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
@@ -124,8 +124,7 @@ export default function PostcardCalculator({ serviceId }: { serviceId?: number }
           </p>
         </div>
 
-        <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <TrackCard active={track === "template"} onClick={() => setTrack("template")} icon={<LayoutTemplate size={18} />} title="Каталог шаблонов" hint="Готовые макеты" />
+        <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-2">
           <TrackCard active={track === "upload"} onClick={() => setTrack("upload")} icon={<Upload size={18} />} title="Загрузить ваш макет" hint="У вас уже есть готовый файл" />
           <TrackCard active={track === "design"} onClick={() => setTrack("design")} icon={<Palette size={18} />} title="Заказ дизайна" hint="Разработка 1 000 ₽" />
         </div>
@@ -162,6 +161,7 @@ export default function PostcardCalculator({ serviceId }: { serviceId?: number }
 
               <div className="rounded-xl border border-ink-200 bg-ink-50 p-4 text-[12px] text-ink-600 space-y-2">
                 <p>Бумага 300 г/м². Фольгирование: одностороннее +50 ₽, двустороннее +100 ₽ за открытку.</p>
+                <p>Размер готового изделия может отличаться от стандартного на ±2 мм.</p>
                 <p className="flex items-center gap-1.5"><Truck size={13} /> Доставка по Тюмени — 700 ₽.</p>
                 <p className="flex items-center gap-1.5"><Package size={13} /> Возможна отправка СДЭК наложенным платежом по РФ.</p>
               </div>
@@ -172,7 +172,7 @@ export default function PostcardCalculator({ serviceId }: { serviceId?: number }
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
               <PillsField label="Размер" values={["Евро (98×210 мм)", "А6 (105×148 мм)", "А5 (148×210 мм)"]} value={size} onChange={(v) => setSize(v as Size)} />
               <PillsField label="Цветность" values={["Цветная", "Цветная + ч/б", "Чёрно-белая"]} value={color} onChange={(v) => setColor(v as Color)} hint={approx ? "ч/б — по ближайшей позиции прайса" : undefined} />
-              <PillsField label="Стороны печати" values={["Односторонняя", "Двусторонняя"]} value={sides} onChange={(v) => setSides(v as Sides)} />
+              <PillsField label="Стороны печати" values={["Двусторонняя", "Односторонняя"]} value={sides} onChange={(v) => setSides(v as Sides)} />
               <PillsField label="Ориентация" values={["По вертикали", "По горизонтали"]} value={orientation} onChange={(v) => setOrientation(v as Orientation)} hint="на цену не влияет" />
 
               <div className="pt-4 border-t border-ink-100">
@@ -185,7 +185,7 @@ export default function PostcardCalculator({ serviceId }: { serviceId?: number }
                 <PillsField label="Фольгирование" values={["Нет", "Да"]} value={foil} onChange={(v) => setFoil(v as YesNo)} hint={foil === "Да" ? `+${calc.foilUnit} ₽/шт (${sides === "Двусторонняя" ? "двустороннее" : "одностороннее"})` : undefined} />
               </div>
               <div className="pt-4 border-t border-ink-100">
-                <QuantityField presets={QTY_PRESETS} value={quantity} onChange={setQuantity} min={MIN_QTY} step={10} hint={`Минимальный заказ — ${MIN_QTY} шт. Цена за штуку — по ближайшему нижнему тиражу (50 / 100 / 200).`} />
+                <QuantityField presets={QTY_PRESETS} value={quantity} onChange={setQuantity} min={MIN_QTY} step={10} />
               </div>
               <div className="pt-4 border-t border-ink-100">
                 <PillsField label="Доставка" values={DELIVERY_VALUES} value={delivery} onChange={(v) => setDelivery(v as Delivery)} />
@@ -208,7 +208,7 @@ export default function PostcardCalculator({ serviceId }: { serviceId?: number }
                   <p className="mt-1 font-heading text-3xl font-bold text-ink-900 tabular tracking-tight">{fmt(calc.grandTotal)}&nbsp;₽</p>
                 </div>
                 <button onClick={() => setCheckoutOpen(true)} className="mt-4 w-full h-12 rounded-lg flex items-center justify-center gap-2 font-semibold text-[14px] bg-amber-500 text-white hover:bg-amber-600 transition-colors">Оформить заказ</button>
-                <p className="mt-3 text-[11px] text-ink-500 leading-relaxed">После оформления менеджер проверит макет и пришлёт <strong>QR-код для оплаты</strong>.</p>
+                <p className="mt-3 text-[11px] text-ink-500 leading-relaxed">После оформления менеджер проверит макет и свяжется для подтверждения и оплаты.</p>
               </div>
             </div>
           </div>

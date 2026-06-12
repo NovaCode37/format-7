@@ -1,24 +1,34 @@
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
-import { api } from "@/lib/api";
+import { api, type CartItem } from "@/lib/api";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Trash2, ShoppingBag } from "lucide-react";
+import { Trash2, ShoppingBag } from "@/lib/icons";
 import { useState } from "react";
 import { useToast } from "@/components/Toast";
 
+function parseOptions(raw: string): Record<string, any> {
+  try {
+    const o = typeof raw === "string" && raw ? JSON.parse(raw) : {};
+    return o && typeof o === "object" ? o : {};
+  } catch {
+    return {};
+  }
+}
+
 export default function CartPage() {
   const { user, token, cart, cartCount, removeFromCart, refreshCart } = useAuth();
-  const router = useRouter();
   const toast = useToast();
   const [orderLoading, setOrderLoading] = useState(false);
-  const [orderResult, setOrderResult] = useState<{ number: string; paymentToken: string } | null>(null);
+  const [comment, setComment] = useState("");
+  const [orderResult, setOrderResult] = useState<{ number: string } | null>(null);
+
+  const total = cart.reduce((s, c) => s + (c.price || 0) * (c.quantity || 1), 0);
 
   const emptyShell = (heading: string, sub: string, cta: React.ReactNode) => (
     <div className="bg-ink-50 border-t border-ink-200 min-h-[60vh] py-16 sm:py-24">
       <div className="container-page max-w-xl mx-auto text-center">
-        <ShoppingBag size={36} strokeWidth={1.5} className="mx-auto mb-6 text-ink-300" />
+        <ShoppingBag size={36} strokeWidth={2} className="mx-auto mb-6 text-ink-300" />
         <h1 className="h-section mb-3">{heading}</h1>
         <p className="text-ink-500 mb-8">{sub}</p>
         {cta}
@@ -29,7 +39,7 @@ export default function CartPage() {
   if (!user || !token) {
     return emptyShell(
       "Корзина",
-      "Войдите, чтобы добавлять услуги в корзину.",
+      "Войдите, чтобы оформить заказ.",
       <Link href="/login" className="btn-primary">Войти</Link>,
     );
   }
@@ -41,17 +51,13 @@ export default function CartPage() {
           <p className="eyebrow mb-4">Готово</p>
           <h1 className="h-display mb-4">Заказ оформлен.</h1>
           <p className="text-ink-500 mb-2">Номер вашего заказа:</p>
-          <p className="font-heading text-3xl font-semibold text-ink-900 tabular mb-8">{orderResult.number}</p>
+          <p className="font-heading text-3xl font-semibold text-ink-900 tabular mb-6">{orderResult.number}</p>
+          <p className="text-ink-500 mb-8">
+            Менеджер свяжется с вами для подтверждения макета и оплаты. Статус заказа — в личном кабинете.
+          </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link
-              href={`/orders/${orderResult.number}/pay${orderResult.paymentToken ? `?pt=${encodeURIComponent(orderResult.paymentToken)}` : ""}`}
-              className="btn-primary"
-            >
-              Оплатить онлайн (СБП)
-            </Link>
-            <Link href="/order-status" className="btn-secondary">
-              Проверить статус
-            </Link>
+            <Link href="/profile" className="btn-primary">Мои заказы</Link>
+            <Link href="/catalog" className="btn-secondary">Продолжить покупки</Link>
           </div>
         </div>
       </div>
@@ -61,27 +67,50 @@ export default function CartPage() {
   if (cart.length === 0) {
     return emptyShell(
       "Корзина пуста",
-      "Добавьте услуги из каталога или конструктора.",
-      <Link href="/" className="btn-primary">На главную</Link>,
+      "Добавьте услуги из каталога — рассчитайте товар в калькуляторе и нажмите «Добавить в корзину».",
+      <Link href="/catalog" className="btn-primary">В каталог</Link>,
     );
   }
 
   const handleOrder = async () => {
     setOrderLoading(true);
     try {
+      const fileIds: number[] = [];
+      const items = cart.map((c) => {
+        const opts = parseOptions(c.options);
+        if (opts._fileId) {
+          fileIds.push(Number(opts._fileId));
+          delete opts._fileId;
+        }
+        return { service_id: c.service_id, quantity: c.quantity, price: c.price || 0, options: opts };
+      });
       const order = await api.createOrder({
         customer_name: user.name,
         customer_email: user.email,
         customer_phone: user.phone || "",
-        items: cart.map(c => ({ service_id: c.service_id, quantity: c.quantity, price: 0 })),
+        comment: comment.trim(),
+        items,
+        file_ids: fileIds,
       }, token);
-      setOrderResult({ number: order.order_number, paymentToken: order.payment_token || "" });
+      setOrderResult({ number: order.order_number });
       await refreshCart();
     } catch (err: any) {
       toast.error(err.message || "Ошибка оформления заказа");
     } finally {
       setOrderLoading(false);
     }
+  };
+
+  const itemTitle = (c: CartItem) => {
+    const opts = parseOptions(c.options);
+    return opts.Товар || c.service?.name || "Позиция";
+  };
+  const itemSpecs = (c: CartItem) => {
+    const opts = parseOptions(c.options);
+    return Object.entries(opts)
+      .filter(([k]) => k !== "Товар" && !k.startsWith("_"))
+      .map(([k, v]) => `${k}: ${v}`)
+      .join(" · ");
   };
 
   return (
@@ -103,35 +132,45 @@ export default function CartPage() {
         <div className="col-span-12 lg:col-span-8">
           <ul className="border border-ink-200 rounded-md overflow-hidden divide-y divide-ink-200">
             {cart.map((item) => (
-              <li key={item.id} className="flex items-center gap-4 bg-white px-5 py-4">
-                <span
-                  aria-hidden="true"
-                  className="grid place-items-center w-11 h-11 rounded-md bg-ink-100 text-ink-700 font-heading text-lg font-semibold shrink-0"
-                >
-                  {item.service.name.charAt(0).toUpperCase()}
-                </span>
+              <li key={item.id} className="flex items-start gap-4 bg-white px-5 py-4">
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-medium text-ink-900 truncate">{item.service.name}</h3>
-                  <p className="text-[12px] text-ink-500 tabular">Кол-во: {item.quantity}</p>
-                  {item.note && <p className="text-[12px] text-ink-400 mt-0.5">{item.note}</p>}
+                  <h3 className="text-sm font-semibold text-ink-900">{itemTitle(item)}</h3>
+                  {itemSpecs(item) && (
+                    <p className="text-[12px] text-ink-500 mt-0.5 leading-relaxed">{itemSpecs(item)}</p>
+                  )}
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-sm font-semibold text-ink-900 tabular">{(item.price || 0).toLocaleString("ru-RU")} ₽</p>
                 </div>
                 <button
                   onClick={() => removeFromCart(item.id)}
                   className="grid place-items-center w-8 h-8 rounded-md text-ink-400 hover:text-red-600 hover:bg-red-50 transition-colors shrink-0"
                   title="Удалить"
                 >
-                  <Trash2 size={15} strokeWidth={1.75} />
+                  <Trash2 size={15} strokeWidth={2} />
                 </button>
               </li>
             ))}
           </ul>
+
+          <textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="Комментарий к заказу (опц.)"
+            rows={3}
+            className="input mt-4 w-full py-2.5 resize-none"
+          />
         </div>
 
         <aside className="col-span-12 lg:col-span-4 lg:sticky lg:top-24 lg:self-start">
           <div className="card p-6 space-y-4">
             <div className="flex items-baseline justify-between">
-              <span className="eyebrow">Итого позиций</span>
-              <span className="font-heading text-lg font-semibold text-ink-900 tabular">{cartCount}</span>
+              <span className="eyebrow">Позиций</span>
+              <span className="font-heading text-base font-semibold text-ink-900 tabular">{cart.length}</span>
+            </div>
+            <div className="flex items-baseline justify-between border-t border-ink-100 pt-4">
+              <span className="eyebrow">Итого</span>
+              <span className="font-heading text-2xl font-semibold text-ink-900 tabular">{total.toLocaleString("ru-RU")} ₽</span>
             </div>
             <button
               onClick={handleOrder}
@@ -140,10 +179,10 @@ export default function CartPage() {
             >
               {orderLoading ? "Оформляем…" : "Оформить заказ"}
             </button>
-            <Link
-              href="/"
-              className="btn w-full text-center"
-            >
+            <p className="text-[11px] text-ink-500 text-center">
+              Менеджер свяжется для подтверждения и оплаты.
+            </p>
+            <Link href="/catalog" className="btn w-full text-center">
               Продолжить покупки
             </Link>
           </div>

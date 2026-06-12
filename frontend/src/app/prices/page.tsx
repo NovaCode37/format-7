@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { ArrowRight, Search } from "lucide-react";
+import { ArrowRight, Search } from "@/lib/icons";
 import { PRICE_CATEGORIES, PRICE_GROUPS, type PriceCategory, type PriceTable } from "@/lib/prices";
 import Reveal, { Stagger, StaggerItem, DrawLine } from "@/components/Reveal";
 
@@ -73,7 +73,7 @@ function CategoryCard({ cat }: { cat: PriceCategory }) {
           className="hidden sm:inline-flex items-center gap-1.5 text-[12px] font-medium text-ink-500 hover:text-brand transition-colors shrink-0"
         >
           Рассчитать
-          <ArrowRight size={12} strokeWidth={1.75} />
+          <ArrowRight size={12} strokeWidth={2} />
         </Link>
       </div>
 
@@ -172,7 +172,7 @@ export default function PricesPage() {
             <div className="relative w-full sm:w-auto sm:min-w-[280px]">
               <Search
                 size={15}
-                strokeWidth={1.75}
+                strokeWidth={2}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-500 pointer-events-none"
               />
               <input
@@ -256,7 +256,7 @@ export default function PricesPage() {
             <div className="flex gap-3">
               <Link href="/calculator" className="btn-primary btn-sm">
                 Калькулятор
-                <ArrowRight size={14} strokeWidth={1.75} />
+                <ArrowRight size={14} strokeWidth={2} />
               </Link>
               <Link href="/designer" className="btn-secondary btn-sm">
                 Конструктор

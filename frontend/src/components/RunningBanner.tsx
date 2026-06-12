@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@/lib/icons";
 import { IMG } from "@/lib/images";
 import Reveal from "./Reveal";
 
@@ -44,12 +44,6 @@ export default function RunningBanner() {
                   Каталог услуг
                   <ArrowRight size={16} strokeWidth={2} />
                 </Link>
-                <Link
-                  href="/prices"
-                  className="btn btn-lg bg-transparent text-ink-600 border border-ink-200 hover:bg-ink-50 hover:border-ink-300 hover:text-ink-900"
-                >
-                  Прайс-лист
-                </Link>
               </div>
             </Reveal>
           </div>
@@ -59,7 +53,7 @@ export default function RunningBanner() {
               <div className="relative w-full h-[80%] grid grid-cols-2 grid-rows-3 gap-3">
                 <div className="col-span-1 row-span-2 rounded-2xl overflow-hidden">
                   <img
-                    src={IMG.prodBusinessCard}
+                    src={IMG.businessCardsStack}
                     alt="Визитки"
                     className="w-full h-full object-cover"
                     loading="eager"

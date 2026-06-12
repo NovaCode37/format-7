@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { Upload, FileCheck2, Truck, Package, Info } from "lucide-react";
+import { Upload, FileCheck2, Truck, Package, Info } from "@/lib/icons";
 import {
   PillsField, QuantityField, BreakdownRow, CheckoutModal,
   DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
@@ -106,6 +106,7 @@ export default function FlipCalendarCalculator({ serviceId }: { serviceId?: numb
               <div className="rounded-xl border border-ink-200 bg-ink-50 p-4 text-[12px] text-ink-600 space-y-2">
                 <p className="flex items-start gap-2"><Info size={13} className="mt-0.5 shrink-0" /> Скрепление на металлическую белую пружину + ригель для подвеса.</p>
                 <p>Блок — мелованная бумага 120 г/м² матовая или 170 г/м² глянцевая.</p>
+                <p>Размер готового изделия может отличаться от стандартного на ±2 мм.</p>
                 <p className="flex items-center gap-1.5"><Truck size={13} /> Доставка по Тюмени — 700 ₽.</p>
                 <p className="flex items-center gap-1.5"><Package size={13} /> Возможна отправка СДЭК наложенным платежом по РФ.</p>
               </div>
@@ -124,7 +125,7 @@ export default function FlipCalendarCalculator({ serviceId }: { serviceId?: numb
                 <PillsField label="Цвет пружины" values={["Белый", "Золотистый", "Чёрный"]} value={springColor} onChange={(v) => setSpringColor(v as SpringColor)} hint="на цену не влияет" />
               </div>
               <div className="pt-4 border-t border-ink-100">
-                <QuantityField presets={QTY_PRESETS} value={quantity} onChange={setQuantity} min={1} hint="Цена за штуку — по ближайшему нижнему тиражу прайса (1 / 5 / 10)." />
+                <QuantityField presets={QTY_PRESETS} value={quantity} onChange={setQuantity} min={1} />
               </div>
               <div className="pt-4 border-t border-ink-100">
                 <PillsField label="Доставка" values={DELIVERY_VALUES} value={delivery} onChange={(v) => setDelivery(v as Delivery)} />
@@ -144,7 +145,7 @@ export default function FlipCalendarCalculator({ serviceId }: { serviceId?: numb
                   <p className="mt-1 font-heading text-3xl font-bold text-ink-900 tabular tracking-tight">{fmt(calc.grandTotal)}&nbsp;₽</p>
                 </div>
                 <button onClick={() => setCheckoutOpen(true)} className="mt-4 w-full h-12 rounded-lg flex items-center justify-center gap-2 font-semibold text-[14px] bg-amber-500 text-white hover:bg-amber-600 transition-colors">Оформить заказ</button>
-                <p className="mt-3 text-[11px] text-ink-500 leading-relaxed">После оформления менеджер проверит макет и пришлёт <strong>QR-код для оплаты</strong>.</p>
+                <p className="mt-3 text-[11px] text-ink-500 leading-relaxed">После оформления менеджер проверит макет и свяжется для подтверждения и оплаты.</p>
               </div>
             </div>
           </div>

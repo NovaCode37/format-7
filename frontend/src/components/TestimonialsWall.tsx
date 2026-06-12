@@ -1,6 +1,6 @@
 "use client";
 
-import { Star } from "lucide-react";
+import { Star } from "@/lib/icons";
 import Reveal from "./Reveal";
 
 const REVIEWS = [

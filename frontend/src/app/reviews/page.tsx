@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { api, type Review } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { Star } from "lucide-react";
+import { Star } from "@/lib/icons";
 
 export default function ReviewsPage() {
   const { user, token } = useAuth();
@@ -126,7 +126,7 @@ export default function ReviewsPage() {
                     >
                       <Star
                         size={22}
-                        strokeWidth={1.5}
+                        strokeWidth={2}
                         className={v <= rating ? "text-ink-900" : "text-ink-300"}
                         fill={v <= rating ? "currentColor" : "none"}
                       />
@@ -189,7 +189,7 @@ export default function ReviewsPage() {
                         <Star
                           key={v}
                           size={14}
-                          strokeWidth={1.5}
+                          strokeWidth={2}
                           className={v <= r.rating ? "text-ink-900" : "text-ink-300"}
                           fill={v <= r.rating ? "currentColor" : "none"}
                         />

@@ -24,6 +24,9 @@ class Service(Base):
     description = Column(Text, default="")
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
     order = Column(Integer, default=0)
+    image = Column(String(500), default="")
+    price_from = Column(Integer, default=0)
+    is_active = Column(Boolean, default=True, nullable=False)
 
     category = relationship("Category", back_populates="services")
 
@@ -120,6 +123,8 @@ class CartItem(Base):
     service_id = Column(Integer, ForeignKey("services.id"), nullable=False)
     quantity = Column(Integer, default=1)
     note = Column(Text, default="")
+    price = Column(Float, default=0)
+    options = Column(Text, default="")
 
     user = relationship("User", back_populates="cart_items")
     service = relationship("Service")

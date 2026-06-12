@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@/lib/icons";
 import { IMG } from "@/lib/images";
 import Reveal, { Stagger, StaggerItem, DrawLine } from "./Reveal";
 
@@ -126,7 +126,7 @@ export default function ProductShowcase() {
                     Подробнее и&nbsp;заказать
                     <ArrowRight
                       size={15}
-                      strokeWidth={1.75}
+                      strokeWidth={2}
                       className="transition-transform group-hover:translate-x-0.5"
                     />
                   </span>

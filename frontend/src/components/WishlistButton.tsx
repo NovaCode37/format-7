@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Heart } from "lucide-react";
+import { Heart } from "@/lib/icons";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 
@@ -55,7 +55,7 @@ export default function WishlistButton({ serviceId, className = "" }: { serviceI
     >
       <Heart
         size={16}
-        strokeWidth={1.75}
+        strokeWidth={2}
         className={in_ ? "fill-red-500 text-red-500" : ""}
       />
     </button>

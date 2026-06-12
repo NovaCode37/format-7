@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  Minus, Plus, X, QrCode, CheckCircle2, Phone, LayoutTemplate, ArrowRight, Palette,
-} from "lucide-react";
+  Minus, Plus, X, ShoppingCart, LayoutTemplate, ArrowRight, Palette,
+} from "@/lib/icons";
 import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
+import { useRouter } from "next/navigation";
 import { useToast } from "../Toast";
 
 export const fmt = (n: number) => n.toLocaleString("ru-RU");
@@ -34,6 +36,8 @@ export function DesignBriefCard({ product, children }: { product?: string; child
 }
 
 export function TemplateCatalogCard() {
+  return null;
+
   return (
     <Link
       href="/catalog"
@@ -320,59 +324,37 @@ export function CheckoutModal({
   onClose: () => void;
 }) {
   const toast = useToast();
-  const [step, setStep] = useState<"form" | "done">("form");
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [address, setAddress] = useState("");
+  const { token } = useAuth();
+  const router = useRouter();
   const [comment, setComment] = useState("");
-  const [orderNumber, setOrderNumber] = useState("");
-  const [sending, setSending] = useState(false);
+  const [adding, setAdding] = useState(false);
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim() || !phone.trim() || !email.trim()) {
-      toast.error("Укажите имя, телефон и email");
+  const addToCartAndGo = async () => {
+    if (!token) {
+      toast.error("Войдите, чтобы оформить заказ");
+      onClose();
+      router.push("/login");
       return;
     }
-    const deliveryType = summary.delivery === "Самовывоз" ? "pickup" : "delivery";
-    if (deliveryType === "delivery" && !address.trim()) {
-      toast.error("Укажите адрес доставки");
-      return;
-    }
-
-    setSending(true);
+    setAdding(true);
     try {
-      const fullComment = [
-        `${summary.productLabel}`,
-        ...summary.lines,
-        `Итого: ${summary.total} ₽`,
-        `Адрес: ${address || "—"}`,
-        comment || "",
-      ].filter(Boolean).join(" | ");
-
-      const order = await api.createOrder({
-        customer_name: name,
-        customer_email: email,
-        customer_phone: phone,
-        comment: fullComment,
-        items: [{
-          service_id: serviceId || 0,
-          quantity: 1,
-          price: summary.total,
-          options: { product: summary.productLabel, ...summary.options, quantity: summary.quantity },
-        }],
-        delivery_type: deliveryType,
-        delivery_address: deliveryType === "delivery" ? address : "",
-        office_id: null,
-        file_ids: summary.fileId ? [summary.fileId] : [],
-      });
-      setOrderNumber(order.order_number);
-      setSending(false);
-      setStep("done");
+      const options: Record<string, any> = {
+        Товар: summary.productLabel,
+        ...summary.options,
+        Тираж: summary.quantity,
+        Доставка: summary.delivery,
+      };
+      if (comment.trim()) options.Комментарий = comment.trim();
+      if (summary.fileId) options._fileId = summary.fileId;
+      const note = [summary.productLabel, ...summary.lines].filter(Boolean).join(" · ");
+      await api.addToCart(serviceId || 0, 1, { price: summary.total, options, note }, token);
+      toast.success("Добавлено в корзину");
+      onClose();
+      router.push("/cart");
     } catch (e: any) {
-      setSending(false);
-      toast.error(e?.message || "Не удалось оформить заказ");
+      toast.error(e?.message || "Не удалось добавить в корзину");
+    } finally {
+      setAdding(false);
     }
   };
 
@@ -396,80 +378,39 @@ export function CheckoutModal({
           <X size={16} />
         </button>
 
-        {step === "form" ? (
-          <form onSubmit={submit}>
-            <h3 className="font-heading text-xl font-bold text-ink-900">Оформление заказа</h3>
-            <p className="mt-1 text-sm text-ink-600">
-              Менеджер свяжется с вами, проверит макет и пришлёт QR-код для оплаты.
-            </p>
+        <h3 className="font-heading text-xl font-bold text-ink-900">Добавить в корзину</h3>
+        <p className="mt-1 text-sm text-ink-600">
+          Товар попадёт в корзину — там вы оформите заказ. Менеджер свяжется для подтверждения и оплаты.
+        </p>
 
-            <div className="mt-4 rounded-lg bg-ink-50 border border-ink-200 p-3 text-[12px] text-ink-700 space-y-0.5">
-              <p className="font-medium text-ink-900">{summary.productLabel}</p>
-              {summary.lines.map((l, i) => <p key={i}>{l}</p>)}
-              <p className="pt-1 font-semibold text-ink-900">Итого: {summary.total.toLocaleString("ru-RU")} ₽</p>
-            </div>
+        <div className="mt-4 rounded-lg bg-ink-50 border border-ink-200 p-3 text-[12px] text-ink-700 space-y-0.5">
+          <p className="font-medium text-ink-900">{summary.productLabel}</p>
+          {summary.lines.map((l, i) => <p key={i}>{l}</p>)}
+          <p className="pt-1 font-semibold text-ink-900">Итого: {summary.total.toLocaleString("ru-RU")} ₽</p>
+        </div>
 
-            <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ваше имя *" className="input h-11" required />
-              <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Телефон *" className="input h-11 tabular" required />
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email (для чека)" className="input h-11 sm:col-span-2" />
-              <input
-                value={address} onChange={(e) => setAddress(e.target.value)}
-                placeholder={summary.delivery === "Самовывоз" ? "Офис самовывоза (опц.)" : "Адрес доставки"}
-                className="input h-11 sm:col-span-2"
-              />
-              <textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Комментарий / пожелания к макету (опц.)" rows={3} className="input sm:col-span-2 py-2 resize-none" />
-            </div>
+        <textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder="Комментарий / пожелания к макету (опц.)"
+          rows={2}
+          className="input mt-4 w-full py-2 resize-none"
+        />
 
-            <button
-              type="submit"
-              disabled={sending}
-              className="mt-5 w-full h-11 rounded-lg flex items-center justify-center gap-2 font-semibold text-[14px] bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-60 transition-colors"
-            >
-              {sending ? "Отправляем…" : "Передать менеджеру"}
-            </button>
+        <button
+          type="button"
+          onClick={addToCartAndGo}
+          disabled={adding}
+          className="mt-4 w-full h-11 rounded-lg flex items-center justify-center gap-2 font-semibold text-[14px] bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-60 transition-colors"
+        >
+          <ShoppingCart size={16} />
+          {adding ? "Добавляем…" : "Добавить в корзину"}
+        </button>
 
-            <p className="mt-3 text-[11px] text-ink-500 text-center">
-              Нажимая кнопку, вы соглашаетесь с{" "}
-              <Link href="/legal/privacy" className="text-brand hover:underline">политикой обработки данных</Link>
-            </p>
-          </form>
-        ) : (
-          <div>
-            <div className="grid place-items-center w-14 h-14 rounded-full bg-emerald-100 text-emerald-700 mx-auto">
-              <CheckCircle2 size={26} />
-            </div>
-            <h3 className="mt-4 font-heading text-xl font-bold text-ink-900 text-center">Заказ принят</h3>
-            <p className="mt-2 text-sm text-ink-600 text-center">
-              Менеджер проверит макет и пришлёт <strong>QR-код для оплаты</strong> на {phone}
-              {email ? <> и {email}</> : null}. После оплаты заказ уйдёт в работу.
-            </p>
-            {!!orderNumber && (
-              <p className="mt-1 text-[12px] text-ink-500 text-center">
-                Номер заказа: <span className="font-semibold text-ink-900">{orderNumber}</span>
-              </p>
-            )}
-
-            <div className="mt-5 rounded-lg border border-ink-200 bg-ink-50 p-4 flex items-center gap-3">
-              <span className="grid place-items-center w-11 h-11 rounded-md bg-white border border-ink-200 text-ink-700">
-                <QrCode size={22} />
-              </span>
-              <div className="text-[12px] text-ink-700">
-                <p className="font-semibold text-ink-900">Оплата по QR-коду СБП</p>
-                <p>Ссылка придёт после проверки макета менеджером</p>
-              </div>
-            </div>
-
-            <div className="mt-5 flex gap-2">
-              <a href="tel:+79324759511" className="flex-1 h-11 rounded-lg flex items-center justify-center gap-2 border border-ink-200 text-ink-900 text-[13px] font-medium hover:bg-ink-50">
-                <Phone size={14} /> Позвонить
-              </a>
-              <button onClick={onClose} className="flex-1 h-11 rounded-lg bg-ink-900 text-white text-[13px] font-medium hover:bg-ink-800">
-                Готово
-              </button>
-            </div>
-          </div>
-        )}
+        <p className="mt-3 text-[11px] text-ink-500 text-center">
+          Нажимая кнопку, вы соглашаетесь с{" "}
+          <Link href="/legal/privacy" className="text-brand hover:underline">политикой обработки данных</Link>
+        </p>
       </div>
     </div>
   );

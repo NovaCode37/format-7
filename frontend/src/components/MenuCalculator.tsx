@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   Upload, Minus, Plus, X, FileCheck2, QrCode, Truck, Package,
   CheckCircle2, Phone, Info, Palette,
-} from "lucide-react";
+} from "@/lib/icons";
 import { api } from "@/lib/api";
 import { useToast } from "./Toast";
 
@@ -50,7 +50,7 @@ const DELIVERY_PRICE: Record<Delivery, number> = {
   "СДЭК (наложенный платёж)": 0,
 };
 
-const QTY_PRESETS = [1, 5, 10, 25, 50, 100];
+const QTY_PRESETS = [10, 50, 100];
 const SHEET_PRESETS = [1, 2, 3, 4, 5, 6, 8, 10, 12];
 
 export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
@@ -215,6 +215,7 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
               </div>
 
               <div className="rounded-xl border border-ink-200 bg-ink-50 p-4 text-[12px] text-ink-600 space-y-2">
+                <p>Размер готового изделия может отличаться от стандартного на ±2 мм.</p>
                 <p className="flex items-center gap-1.5">
                   <Truck size={13} /> Доставка по Тюмени — 700 ₽.
                 </p>
@@ -237,7 +238,7 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
 
               <PillsField
                 label="Сторона печати"
-                values={["Односторонняя", "Двусторонняя"]}
+                values={["Двусторонняя", "Односторонняя"]}
                 value={sides}
                 onChange={(v) => setSides(v as Sides)}
               />
@@ -445,7 +446,7 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
                 </button>
 
                 <p className="mt-3 text-[11px] text-ink-500 leading-relaxed">
-                  После оформления менеджер проверит макет и пришлёт <strong>QR-код для оплаты</strong>.
+                  После оформления менеджер проверит макет и свяжется для подтверждения и оплаты.
                 </p>
               </div>
             </div>
@@ -664,7 +665,7 @@ function CheckoutModal({
         {step === "form" ? (
           <form onSubmit={submit}>
             <h3 className="font-heading text-xl font-bold text-ink-900">Оформление заказа</h3>
-            <p className="mt-1 text-sm text-ink-600">Менеджер проверит макет и пришлёт QR-код для оплаты.</p>
+            <p className="mt-1 text-sm text-ink-600">Менеджер проверит макет и свяжется для оплаты.</p>
 
             <div className="mt-4 rounded-lg bg-ink-50 border border-ink-200 p-3 text-[12px] text-ink-700 space-y-0.5">
               <p>{summary.material} · {summary.sides} · {summary.sheets} л. · {summary.quantity} экз.</p>
@@ -705,7 +706,7 @@ function CheckoutModal({
             </div>
             <h3 className="mt-4 font-heading text-xl font-bold text-ink-900 text-center">Заказ принят</h3>
             <p className="mt-2 text-sm text-ink-600 text-center">
-              Менеджер проверит макет и пришлёт <strong>QR-код для оплаты</strong> на {phone}
+              Менеджер проверит макет и свяжется для оплаты по телефону {phone}
               {email ? <> и {email}</> : null}.
             </p>
             {!!orderNumber && (
@@ -719,8 +720,8 @@ function CheckoutModal({
                 <QrCode size={22} />
               </span>
               <div className="text-[12px] text-ink-700">
-                <p className="font-semibold text-ink-900">Оплата по QR-коду СБП</p>
-                <p>Ссылка придёт после проверки макета менеджером</p>
+                <p className="font-semibold text-ink-900">Оплата по согласованию</p>
+                <p>Менеджер согласует способ оплаты после проверки макета</p>
               </div>
             </div>
 

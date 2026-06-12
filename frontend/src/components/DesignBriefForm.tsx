@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ArrowRight } from "@/lib/icons";
 import {
-  Upload, X, FileCheck2, CheckCircle2, Phone, QrCode, Palette,
+  Upload, X, FileCheck2, CheckCircle2, Phone, Palette,
   Type, Image as ImageIcon, PenLine, Layers, AlignVerticalJustifyCenter, Wand2,
-} from "lucide-react";
+} from "@/lib/icons";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { useToast } from "./Toast";
@@ -20,11 +22,31 @@ const PRODUCTS = [
   "Широкоформатная печать", "Другое",
 ];
 
+const PRODUCT_SLUG: Record<string, string> = {
+  "Визитки": "визитки",
+  "Листовки": "листовки",
+  "Флаеры": "флаеры",
+  "Буклеты": "буклеты",
+  "Открытки": "открытки",
+  "Наклейки и стикеры": "наклейки",
+  "Карманные календари": "карманные-календари",
+  "Настольный календарь-домик": "настольный-календарь-домик",
+  "Плакатный календарь": "плакатный-календарь",
+  "Перекидной настенный календарь": "перекидной-календарь",
+  "Квартальный календарь": "квартальный-календарь",
+  "Блокноты": "блокноты",
+  "Меню для кафе": "меню-для-кафе",
+  "Грамоты и дипломы": "грамоты-и-дипломы",
+  "Конверты": "конверты",
+  "Печать фотографий": "печать-фотографий",
+};
+
 type FileEntry = { file: File; id: number | null };
 
 export default function DesignBriefForm({ onUseConstructor }: { onUseConstructor?: () => void }) {
   const { user, token } = useAuth();
   const toast = useToast();
+  const router = useRouter();
 
   const [product, setProduct] = useState<string>(PRODUCTS[0]);
   const [orientation, setOrientation] = useState<"Вертикальный" | "Горизонтальный">("Вертикальный");
@@ -97,7 +119,7 @@ export default function DesignBriefForm({ onUseConstructor }: { onUseConstructor
 
       const order = await api.createOrder({
         customer_name: name,
-        customer_email: user?.email || "design@format7.ru",
+        customer_email: user?.email || "Format7-tmn@yandex.ru",
         customer_phone: phone,
         comment,
         items: [{ service_id: 0, quantity: 1, price: 0, options: { product: `Бриф на дизайн: ${product}`, ...options } }],
@@ -126,16 +148,26 @@ export default function DesignBriefForm({ onUseConstructor }: { onUseConstructor
           <p className="mt-1 text-[13px] text-ink-500">Номер заявки: <span className="font-semibold text-ink-900">{orderNumber}</span></p>
 
           <div className="mt-6 rounded-lg border border-ink-200 bg-ink-50 p-4 flex items-center gap-3 text-left">
-            <span className="grid place-items-center w-11 h-11 rounded-md bg-white border border-ink-200 text-ink-700"><QrCode size={22} /></span>
+            <span className="grid place-items-center w-11 h-11 rounded-md bg-white border border-ink-200 text-ink-700"><Phone size={22} /></span>
             <div className="text-[12px] text-ink-700">
               <p className="font-semibold text-ink-900">Оплата после согласования</p>
-              <p>QR-код для оплаты придёт после утверждения концепции макета.</p>
+              <p>Менеджер согласует стоимость и способ оплаты после утверждения концепции макета.</p>
             </div>
           </div>
 
-          <div className="mt-6 flex gap-2 justify-center">
-            <a href="tel:+79324759511" className="h-11 px-5 rounded-lg flex items-center justify-center gap-2 border border-ink-200 text-ink-900 text-[13px] font-medium hover:bg-ink-50"><Phone size={14} /> Позвонить</a>
-            <button onClick={() => setOrderNumber(null)} className="h-11 px-5 rounded-lg bg-ink-900 text-white text-[13px] font-medium hover:bg-ink-800">Новый бриф</button>
+          <div className="mt-6 flex flex-col gap-2">
+            <button
+              onClick={() => router.push(PRODUCT_SLUG[product] ? `/services/${PRODUCT_SLUG[product]}` : "/catalog")}
+              className="h-11 px-5 rounded-lg bg-amber-500 text-white text-[14px] font-semibold hover:bg-amber-600 transition-colors flex items-center justify-center gap-2"
+            >
+              Перейти к заказу печати
+              <ArrowRight size={15} strokeWidth={2} />
+            </button>
+            <div className="flex gap-2 justify-center">
+              <button onClick={() => router.push("/profile")} className="h-11 px-5 rounded-lg border border-ink-200 text-ink-700 text-[13px] font-medium hover:bg-ink-50">Мои заказы</button>
+              <a href="tel:+79324759511" className="h-11 px-5 rounded-lg flex items-center justify-center gap-2 border border-ink-200 text-ink-900 text-[13px] font-medium hover:bg-ink-50"><Phone size={14} /> Позвонить</a>
+              <button onClick={() => setOrderNumber(null)} className="h-11 px-5 rounded-lg border border-ink-200 text-ink-700 text-[13px] font-medium hover:bg-ink-50">Новый бриф</button>
+            </div>
           </div>
         </div>
       </section>

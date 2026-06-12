@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
-import { Search, ArrowRight } from "lucide-react";
-import { IMG } from "@/lib/images";
+import { Search, ArrowRight, Loader2, ImageOff } from "@/lib/icons";
+import { api, resolveImageUrl, type Category } from "@/lib/api";
 
 type CatalogItem = {
   title: string;
@@ -13,41 +13,41 @@ type CatalogItem = {
   group: string;
 };
 
-const ALL_SERVICES: CatalogItem[] = [
-
-  { title: "Копирование и печать",     slug: "копирование-и-печать-документов", image: IMG.prodDocs,        from: "от 6 ₽",   group: "Печать документов" },
-  { title: "Сканирование",             slug: "сканирование-документов",          image: IMG.prodScan,        from: "от 10 ₽",  group: "Печать документов" },
-  { title: "Ламинирование",            slug: "ламинирование",                    image: IMG.prodLamination,         from: "от 50 ₽",  group: "Печать документов" },
-  { title: "Брошюровка и переплёт",    slug: "переплёт-и-брошюровка",            image: IMG.prodBinding,          from: "от 120 ₽", group: "Печать документов" },
-
-  { title: "Визитки",                  slug: "визитки",                          image: IMG.prodBusinessCard, from: "от 500 ₽", group: "Полиграфия" },
-  { title: "Листовки",                 slug: "листовки",                         image: IMG.prodLeaflets,              from: "от 300 ₽", group: "Полиграфия" },
-  { title: "Флаеры",                   slug: "флаеры",                           image: IMG.prodFlyers,        from: "от 300 ₽", group: "Полиграфия" },
-  { title: "Буклеты",                  slug: "буклеты",                          image: IMG.prodBuklety,          from: "от 800 ₽", group: "Полиграфия" },
-  { title: "Открытки",                 slug: "открытки",                         image: IMG.prodPostcard,       from: "от 400 ₽", group: "Полиграфия" },
-  { title: "Карманные календари",      slug: "карманные-календари",              image: IMG.prodPocketCal,        from: "от 18 ₽",  group: "Календари" },
-  { title: "Настольный календарь-домик", slug: "настольный-календарь-домик",     image: IMG.prodDeskCal,        from: "от 100 ₽", group: "Календари" },
-  { title: "Плакатный календарь",      slug: "плакатный-календарь",              image: IMG.prodPosterCal,         from: "от 230 ₽", group: "Календари" },
-  { title: "Перекидной настенный календарь", slug: "перекидной-календарь",       image: IMG.prodFlipCal,         from: "от 730 ₽", group: "Календари" },
-  { title: "Квартальный календарь",    slug: "квартальный-календарь",            image: IMG.prodQuarterly,        from: "от 300 ₽", group: "Календари" },
-  { title: "Наклейки и стикеры",       slug: "наклейки",                         image: IMG.prodStickers,           from: "от 200 ₽", group: "Полиграфия" },
-  { title: "Меню для кафе",            slug: "меню-для-кафе",                    image: IMG.prodMenu,         from: "от 600 ₽", group: "Полиграфия" },
-  { title: "Блокноты",                 slug: "блокноты",                         image: IMG.prodNotebook,        from: "от 400 ₽", group: "Полиграфия" },
-  { title: "Конверты",                 slug: "конверты",                         image: IMG.prodEnvelopes,  from: "от 16 ₽",  group: "Полиграфия" },
-  { title: "Грамоты и дипломы",        slug: "грамоты-и-дипломы",                image: IMG.prodDiploma,         from: "от 55 ₽",  group: "Полиграфия" },
-  { title: "Печать фотографий",        slug: "печать-фотографий",                image: IMG.prodPhoto,           from: "от 22 ₽",  group: "Печать фото" },
-];
-
 export default function CatalogPage() {
   const [query, setQuery] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.getCategories()
+      .then(setCategories)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const all: CatalogItem[] = useMemo(() => {
+    const out: CatalogItem[] = [];
+    for (const c of categories) {
+      for (const s of c.services) {
+        out.push({
+          title: s.name,
+          slug: s.slug,
+          image: s.image,
+          from: s.price_from ? `от ${s.price_from} ₽` : "",
+          group: c.name,
+        });
+      }
+    }
+    return out;
+  }, [categories]);
 
   const items = useMemo(() => {
-    if (!query.trim()) return ALL_SERVICES;
+    if (!query.trim()) return all;
     const q = query.toLowerCase();
-    return ALL_SERVICES.filter(
+    return all.filter(
       (s) => s.title.toLowerCase().includes(q) || s.group.toLowerCase().includes(q)
     );
-  }, [query]);
+  }, [query, all]);
 
   return (
     <div className="bg-white">
@@ -64,7 +64,7 @@ export default function CatalogPage() {
           <div className="mt-6 max-w-md relative">
             <Search
               size={15}
-              strokeWidth={1.75}
+              strokeWidth={2}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400 pointer-events-none"
             />
             <input
@@ -79,9 +79,13 @@ export default function CatalogPage() {
       </section>
 
       <section className="container-page py-10 sm:py-14">
-        {items.length === 0 ? (
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <Loader2 className="animate-spin text-ink-400" size={26} />
+          </div>
+        ) : items.length === 0 ? (
           <p className="text-center text-ink-500 py-20">
-            Ничего не найдено по запросу «{query}»
+            {query ? `Ничего не найдено по запросу «${query}»` : "Каталог пуст"}
           </p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
@@ -92,13 +96,19 @@ export default function CatalogPage() {
                 className="group flex flex-col overflow-hidden rounded-xl border border-ink-200 bg-white hover:border-brand hover:shadow-card transition-all duration-200"
               >
                 <div className="relative aspect-[4/3] overflow-hidden bg-ink-100">
-                  <img
-                    src={p.image}
-                    alt=""
-                    aria-hidden="true"
-                    loading="lazy"
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
+                  {p.image ? (
+                    <img
+                      src={resolveImageUrl(p.image)}
+                      alt=""
+                      aria-hidden="true"
+                      loading="lazy"
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 grid place-items-center text-ink-300">
+                      <ImageOff size={22} />
+                    </div>
+                  )}
                   <span className="absolute top-2.5 left-2.5 inline-flex items-center rounded-md bg-white/90 backdrop-blur-sm px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-700">
                     {p.group}
                   </span>

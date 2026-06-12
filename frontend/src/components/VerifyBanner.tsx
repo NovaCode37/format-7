@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MailWarning, X } from "lucide-react";
+import { MailWarning, X } from "@/lib/icons";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import { useToast } from "./Toast";

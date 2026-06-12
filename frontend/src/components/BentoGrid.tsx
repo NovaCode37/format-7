@@ -9,7 +9,7 @@ import {
   Package2,
   Clock,
   ArrowUpRight,
-} from "lucide-react";
+} from "@/lib/icons";
 import { IMG } from "@/lib/images";
 import Reveal, { Stagger, StaggerItem, ScaleIn, CountUp } from "./Reveal";
 
@@ -47,7 +47,7 @@ export default function BentoGrid() {
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
                 <span className="grid place-items-center w-10 h-10 rounded-md bg-white/10 border border-white/15">
-                  <PenTool size={18} strokeWidth={1.75} />
+                  <PenTool size={18} strokeWidth={2} />
                 </span>
                 <span className="text-[12px] uppercase tracking-[0.18em] text-white/70">
                   Хит&nbsp;· Онлайн-конструктор
@@ -55,7 +55,7 @@ export default function BentoGrid() {
               </div>
               <ArrowUpRight
                 size={20}
-                strokeWidth={1.5}
+                strokeWidth={2}
                 className="text-white/60 group-hover:text-white transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
               />
             </div>
@@ -95,13 +95,13 @@ export default function BentoGrid() {
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
                 <span className="grid place-items-center w-10 h-10 rounded-md bg-ink-100 border border-ink-200">
-                  <Calculator size={18} strokeWidth={1.75} className="text-ink-700" />
+                  <Calculator size={18} strokeWidth={2} className="text-ink-700" />
                 </span>
                 <span className="eyebrow">Калькулятор</span>
               </div>
               <ArrowUpRight
                 size={20}
-                strokeWidth={1.5}
+                strokeWidth={2}
                 className="text-ink-400 group-hover:text-ink-900 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
               />
             </div>
@@ -131,7 +131,7 @@ export default function BentoGrid() {
             <StaggerItem key={label} className="bg-white p-6 sm:p-8 flex flex-col gap-3">
               <Icon
                 size={20}
-                strokeWidth={1.5}
+                strokeWidth={2}
                 className="text-ink-500"
                 aria-hidden="true"
               />

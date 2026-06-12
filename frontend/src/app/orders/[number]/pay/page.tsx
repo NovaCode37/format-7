@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
-import { CheckCircle2, Loader2, Copy, Smartphone, ArrowRight, CreditCard } from "lucide-react";
+import { CheckCircle2, Loader2, Copy, Smartphone, ArrowRight, CreditCard } from "@/lib/icons";
 import { api, type PaymentInfo } from "@/lib/api";
 import Reveal, { ScaleIn } from "@/components/Reveal";
 import { useToast } from "@/components/Toast";
@@ -91,7 +91,7 @@ export default function PaymentPage() {
   if (loading) {
     return (
       <div className="bg-white min-h-[60vh] flex items-center justify-center">
-        <Loader2 className="animate-spin text-ink-400" size={28} strokeWidth={1.5} />
+        <Loader2 className="animate-spin text-ink-400" size={28} strokeWidth={2} />
       </div>
     );
   }
@@ -158,7 +158,7 @@ export default function PaymentPage() {
                     <div className="flex gap-3">
                       <Link href="/profile" className="btn-primary btn-sm">
                         Мои заказы
-                        <ArrowRight size={14} strokeWidth={1.75} />
+                        <ArrowRight size={14} strokeWidth={2} />
                       </Link>
                       <Link href="/" className="btn-secondary btn-sm">
                         На главную
@@ -168,7 +168,7 @@ export default function PaymentPage() {
                 ) : (
                   <div className="flex flex-col items-center">
                     <div className="mb-6 flex items-center gap-2 text-[12px] uppercase tracking-[0.16em] text-ink-500">
-                      <Smartphone size={14} strokeWidth={1.75} />
+                      <Smartphone size={14} strokeWidth={2} />
                       Оплата через СБП
                     </div>
                     <div className="bg-white p-4 border border-ink-200 rounded-md">
@@ -185,7 +185,7 @@ export default function PaymentPage() {
                       и&nbsp;наведите камеру на&nbsp;код.
                     </p>
                     <div className="mt-2 flex items-center gap-2 text-[12px] text-ink-500">
-                      <Loader2 size={12} className="animate-spin" strokeWidth={1.75} />
+                      <Loader2 size={12} className="animate-spin" strokeWidth={2} />
                       Ожидаем оплату…
                     </div>
                   </div>
@@ -231,7 +231,7 @@ export default function PaymentPage() {
                     disabled={initiating}
                     className="btn-primary btn-sm w-full cursor-pointer disabled:opacity-60"
                   >
-                    <CreditCard size={14} strokeWidth={1.75} />
+                    <CreditCard size={14} strokeWidth={2} />
                     {initiating ? "Переход…" : "Оплатить картой"}
                   </button>
                 </div>
@@ -250,7 +250,7 @@ export default function PaymentPage() {
                     onClick={handleCopy}
                     className="btn-secondary btn-sm w-full cursor-pointer"
                   >
-                    <Copy size={14} strokeWidth={1.75} />
+                    <Copy size={14} strokeWidth={2} />
                     {copied ? "Скопировано ✓" : "Скопировать данные"}
                   </button>
                 </div>

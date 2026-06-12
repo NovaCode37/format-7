@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "@/lib/icons";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 

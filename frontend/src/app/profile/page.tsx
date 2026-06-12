@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { api, type Order } from "@/lib/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Pencil, KeyRound, X, FileDown, XCircle, ChevronDown, Save, LogOut, Heart } from "lucide-react";
+import { Pencil, KeyRound, X, FileDown, XCircle, ChevronDown, Save, LogOut, Heart } from "@/lib/icons";
 import ProfileSettings from "@/components/ProfileSettings";
 import { useToast } from "@/components/Toast";
 
@@ -115,7 +115,6 @@ export default function ProfilePage() {
               <p className="mt-4 text-ink-500">{user.email}{user.phone ? ` · ${user.phone}` : ""}</p>
               {user.email_verified === false && (
                 <div className="mt-4 border border-amber-200 bg-amber-50 rounded-md px-4 py-3 text-[13px] text-amber-900 flex items-start gap-3">
-                  <span>⚠</span>
                   <div className="flex-1">
                     Email не подтверждён. Мы отправили письмо при регистрации —
                     проверьте «Входящие» и&nbsp;«Спам».{" "}
@@ -136,28 +135,28 @@ export default function ProfilePage() {
             </div>
             <div className="col-span-12 lg:col-span-5 flex flex-wrap items-start gap-2 lg:justify-end">
               <Link href="/wishlist" className="btn btn-sm">
-                <Heart size={13} strokeWidth={1.75} />
+                <Heart size={13} strokeWidth={2} />
                 Избранное
               </Link>
               <button
                 onClick={() => setEditOpen(true)}
                 className="btn btn-sm"
               >
-                <Pencil size={13} strokeWidth={1.75} />
+                <Pencil size={13} strokeWidth={2} />
                 Изменить
               </button>
               <button
                 onClick={() => setPwdOpen(true)}
                 className="btn btn-sm"
               >
-                <KeyRound size={13} strokeWidth={1.75} />
+                <KeyRound size={13} strokeWidth={2} />
                 Пароль
               </button>
               <button
                 onClick={() => { logout(); router.push("/"); }}
                 className="btn btn-sm text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
               >
-                <LogOut size={13} strokeWidth={1.75} />
+                <LogOut size={13} strokeWidth={2} />
                 Выйти
               </button>
             </div>
@@ -211,7 +210,7 @@ export default function ProfilePage() {
                     </div>
                     <ChevronDown
                       size={16}
-                      strokeWidth={1.75}
+                      strokeWidth={2}
                       className={`text-ink-400 transition-transform shrink-0 ${expanded ? "rotate-180" : ""}`}
                     />
                   </button>
@@ -266,7 +265,7 @@ export default function ProfilePage() {
                               rel="noreferrer"
                               className="flex items-center gap-2.5 text-[13px] bg-white border border-ink-200 rounded-md px-4 py-2.5 hover:border-ink-400 hover:text-brand transition-colors"
                             >
-                              <FileDown size={14} strokeWidth={1.75} className="text-ink-500 shrink-0" />
+                              <FileDown size={14} strokeWidth={2} className="text-ink-500 shrink-0" />
                               <span className="truncate flex-1">{f.original_name}</span>
                               <span className="text-[11px] text-ink-400 tabular shrink-0">{(f.size / 1024).toFixed(1)}&nbsp;КБ</span>
                             </a>
@@ -301,7 +300,7 @@ export default function ProfilePage() {
                             onClick={() => handleCancelOrder(o.order_number)}
                             className="btn btn-sm text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
                           >
-                            <XCircle size={13} strokeWidth={1.75} />
+                            <XCircle size={13} strokeWidth={2} />
                             Отменить заказ
                           </button>
                         )}
@@ -327,7 +326,7 @@ export default function ProfilePage() {
           </Field>
           {eError && <p className="text-[13px] text-red-600">{eError}</p>}
           <button onClick={handleSaveProfile} disabled={eSaving} className="btn-primary w-full disabled:opacity-60 disabled:cursor-not-allowed">
-            <Save size={14} strokeWidth={1.75} />
+            <Save size={14} strokeWidth={2} />
             {eSaving ? "Сохраняем…" : "Сохранить"}
           </button>
         </Modal>
@@ -350,7 +349,7 @@ export default function ProfilePage() {
             </p>
           )}
           <button onClick={handleChangePwd} disabled={pwdSaving} className="btn-primary w-full disabled:opacity-60 disabled:cursor-not-allowed">
-            <Save size={14} strokeWidth={1.75} />
+            <Save size={14} strokeWidth={2} />
             {pwdSaving ? "Сохраняем…" : "Сменить пароль"}
           </button>
         </Modal>
@@ -381,7 +380,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
             onClick={onClose}
             className="grid place-items-center w-8 h-8 rounded-md text-ink-500 hover:bg-ink-100 hover:text-ink-900 transition-colors"
           >
-            <X size={16} strokeWidth={1.75} />
+            <X size={16} strokeWidth={2} />
           </button>
         </div>
         {children}

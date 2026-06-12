@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   Upload, Minus, Plus, X, FileCheck2, QrCode, Truck, Package,
   CheckCircle2, Phone, Info,
-} from "lucide-react";
+} from "@/lib/icons";
 import { api } from "@/lib/api";
 import { useToast } from "./Toast";
 
@@ -379,7 +379,7 @@ export default function BindingCalculator({ serviceId }: { serviceId?: number })
                 </button>
 
                 <p className="mt-3 text-[11px] text-ink-500 leading-relaxed">
-                  После оформления менеджер проверит макет и пришлёт <strong>QR-код для оплаты</strong> на указанные контакты.
+                  После оформления менеджер проверит макет и свяжется для подтверждения и оплаты.
                 </p>
               </div>
             </div>
@@ -595,7 +595,7 @@ function CheckoutModal({
           <form onSubmit={submit}>
             <h3 className="font-heading text-xl font-bold text-ink-900">Оформление заказа</h3>
             <p className="mt-1 text-sm text-ink-600">
-              Менеджер свяжется с вами, проверит макет и пришлёт QR-код для оплаты.
+              Менеджер свяжется для подтверждения и оплаты.
             </p>
 
             <div className="mt-4 rounded-lg bg-ink-50 border border-ink-200 p-3 text-[12px] text-ink-700 space-y-0.5">
@@ -633,7 +633,7 @@ function CheckoutModal({
             </div>
             <h3 className="mt-4 font-heading text-xl font-bold text-ink-900 text-center">Заказ принят</h3>
             <p className="mt-2 text-sm text-ink-600 text-center">
-              Менеджер проверит макет и пришлёт <strong>QR-код для оплаты</strong> на {phone}
+              Менеджер проверит макет и свяжется для оплаты по телефону {phone}
               {email ? <> и {email}</> : null}. После оплаты заказ уйдёт в работу.
             </p>
             {!!orderNumber && (
@@ -647,8 +647,8 @@ function CheckoutModal({
                 <QrCode size={22} />
               </span>
               <div className="text-[12px] text-ink-700">
-                <p className="font-semibold text-ink-900">Оплата по QR-коду СБП</p>
-                <p>Ссылка придёт после проверки макета менеджером</p>
+                <p className="font-semibold text-ink-900">Оплата по согласованию</p>
+                <p>Менеджер согласует способ оплаты после проверки макета</p>
               </div>
             </div>
 

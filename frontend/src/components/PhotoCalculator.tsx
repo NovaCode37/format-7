@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { Upload, FileCheck2, Truck, Package, Info } from "lucide-react";
+import { Upload, FileCheck2, Truck, Package, Info } from "@/lib/icons";
 import {
   PillsField, QuantityField, BreakdownRow, CheckoutModal,
   DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
@@ -178,7 +178,7 @@ export default function PhotoCalculator({ serviceId }: { serviceId?: number }) {
                   <p className="mt-1 font-heading text-3xl font-bold text-ink-900 tabular tracking-tight">{fmt(calc.grandTotal)}&nbsp;₽</p>
                 </div>
                 <button onClick={() => setCheckoutOpen(true)} className="mt-4 w-full h-12 rounded-lg flex items-center justify-center gap-2 font-semibold text-[14px] bg-amber-500 text-white hover:bg-amber-600 transition-colors">Оформить заказ</button>
-                <p className="mt-3 text-[11px] text-ink-500 leading-relaxed">После оформления менеджер проверит файлы и пришлёт <strong>QR-код для оплаты</strong>.</p>
+                <p className="mt-3 text-[11px] text-ink-500 leading-relaxed">После оформления менеджер проверит файлы и свяжется для подтверждения и оплаты.</p>
               </div>
             </div>
           </div>

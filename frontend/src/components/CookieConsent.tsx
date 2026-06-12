@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { X, Cookie } from "lucide-react";
+import { X, Cookie } from "@/lib/icons";
 
 const KEY = "f7_consent";
 
@@ -32,7 +32,7 @@ export default function CookieConsent() {
     >
       <div className="bg-white border border-ink-200 rounded-lg shadow-xl p-5">
         <div className="flex items-start gap-3">
-          <Cookie size={20} strokeWidth={1.75} className="text-brand shrink-0 mt-0.5" />
+          <Cookie size={20} strokeWidth={2} className="text-brand shrink-0 mt-0.5" />
           <div className="flex-1">
             <h3 className="font-heading text-[15px] font-semibold text-ink-900 mb-1.5">
               Используем cookies
@@ -67,7 +67,7 @@ export default function CookieConsent() {
             aria-label="Закрыть"
             className="text-ink-400 hover:text-ink-900 cursor-pointer"
           >
-            <X size={16} strokeWidth={1.75} />
+            <X size={16} strokeWidth={2} />
           </button>
         </div>
       </div>

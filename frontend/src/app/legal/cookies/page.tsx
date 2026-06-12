@@ -48,7 +48,7 @@ export default function CookiesPage() {
 
       <h2>Контакт</h2>
       <p>
-        Вопросы по обработке cookies — <a href="mailto:privacy@format7.ru">privacy@format7.ru</a>.
+        Вопросы по обработке cookies — <a href="mailto:Format7-tmn@yandex.ru">Format7-tmn@yandex.ru</a>.
       </p>
     </>
   );

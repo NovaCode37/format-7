@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Copy, ScanLine, Layers, BookOpen, ArrowUpRight } from "lucide-react";
+import { Copy, ScanLine, Layers, BookOpen, ArrowUpRight } from "@/lib/icons";
 import Reveal, { Stagger, StaggerItem } from "./Reveal";
 
 const SERVICES = [
@@ -64,7 +64,7 @@ export default function ServicesGrid() {
                 className="group flex items-start gap-4 p-6 rounded-xl bg-white border border-ink-200 hover:border-brand/30 hover:shadow-card transition-all duration-200 h-full"
               >
                 <span className="shrink-0 w-11 h-11 rounded-lg bg-brand-light grid place-items-center">
-                  <s.icon size={20} strokeWidth={1.75} className="text-brand" />
+                  <s.icon size={20} strokeWidth={2} className="text-brand" />
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
@@ -73,7 +73,7 @@ export default function ServicesGrid() {
                     </h3>
                     <ArrowUpRight
                       size={16}
-                      strokeWidth={1.75}
+                      strokeWidth={2}
                       className="text-ink-400 group-hover:text-brand shrink-0 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                     />
                   </div>

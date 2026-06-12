@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { Upload, FileCheck2, Truck, Package, Palette, LayoutTemplate } from "lucide-react";
+import { Upload, FileCheck2, Truck, Package, Palette, LayoutTemplate } from "@/lib/icons";
 import {
   PillsField, QuantityField, TrackCard, BreakdownRow, CheckoutModal, DesignBriefCard,
   TemplateCatalogCard, DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
@@ -21,7 +21,7 @@ const LEAFLET_SLUGS = ["листовки", "листовка"];
 
 const QTY_TIERS = [100, 200, 500, 1000] as const;
 type Tier = (typeof QTY_TIERS)[number];
-const QTY_PRESETS = [100, 200, 500, 1000, 2000, 5000];
+const QTY_PRESETS = [100, 200, 500, 1000];
 const MIN_QTY = 100;
 
 const PRICE: Record<Format, Record<Mode, Record<Tier, number>>> = {
@@ -65,7 +65,7 @@ const LAMINATION_BY_FORMAT: Record<Format, number> = {
   "А3 (297×420 мм)": 100,
 };
 const ROUNDING_PER_UNIT = 2;
-const DESIGN_FEE = 1000;
+const DESIGN_FEE = 1500;
 
 function modeKey(color: Color, sides: Sides): Mode {
   const isColor = color === "Цветная";
@@ -84,9 +84,8 @@ export default function LeafletCalculator({ serviceId }: { serviceId?: number })
   const [track, setTrack] = useState<Track>("upload");
   const [format, setFormat] = useState<Format>("А5 (148×210 мм)");
   const [orientation, setOrientation] = useState<Orientation>("Вертикальная");
-  const [material, setMaterial] = useState<Material>("80");
   const [color, setColor] = useState<Color>("Цветная");
-  const [sides, setSides] = useState<Sides>("Односторонняя");
+  const [sides, setSides] = useState<Sides>("Двусторонняя");
   const [rounding, setRounding] = useState<YesNo>("Нет");
   const [lamination, setLamination] = useState<YesNo>("Нет");
   const [quantity, setQuantity] = useState<number>(500);
@@ -94,7 +93,6 @@ export default function LeafletCalculator({ serviceId }: { serviceId?: number })
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const mode = useMemo(() => modeKey(color, sides), [color, sides]);
-  const materialByRequest = material === "170";
 
   const calc = useMemo(() => {
     const printUnit = tierValue(QTY_TIERS, PRICE[format][mode], quantity);
@@ -112,16 +110,15 @@ export default function LeafletCalculator({ serviceId }: { serviceId?: number })
     productLabel: "Листовки",
     lines: [
       `${format} · ${orientation} · ${color} · ${sides} (${mode}) · ${quantity} шт.`,
-      `Плотность бумаги: ${material} г/м²` + (materialByRequest ? " — цена уточняется у менеджера" : ""),
+      "Бумага: глянцевая 170 г/м²",
       rounding === "Да" ? "Скругление углов" : null,
       lamination === "Да" ? "Ламинация" : null,
-      track === "design" ? "Разработка макета дизайнером (1000 ₽)" : null,
+      track === "design" ? "Разработка макета дизайнером (1500 ₽)" : null,
       `Доставка: ${delivery}`,
     ].filter(Boolean) as string[],
     options: {
       track: track === "design" ? "Заказ дизайна" : "Загрузка макета",
-      format, orientation, material, color, sides, mode, rounding, lamination,
-      material_by_request: materialByRequest,
+      format, orientation, color, sides, mode, rounding, lamination,
       design_fee: calc.designTotal, delivery, file: uploadedFile?.name || "—",
     },
     delivery,
@@ -142,10 +139,9 @@ export default function LeafletCalculator({ serviceId }: { serviceId?: number })
           </p>
         </div>
 
-        <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <TrackCard active={track === "template"} onClick={() => setTrack("template")} icon={<LayoutTemplate size={18} />} title="Каталог шаблонов" hint="Готовые макеты" />
+        <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-2">
           <TrackCard active={track === "upload"} onClick={() => setTrack("upload")} icon={<Upload size={18} />} title="Загрузить ваш макет" hint="У вас уже есть готовый файл" />
-          <TrackCard active={track === "design"} onClick={() => setTrack("design")} icon={<Palette size={18} />} title="Заказ дизайна" hint="Разработка 1 000 ₽" />
+          <TrackCard active={track === "design"} onClick={() => setTrack("design")} icon={<Palette size={18} />} title="Заказ дизайна" hint="Разработка 1 500 ₽" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -167,13 +163,13 @@ export default function LeafletCalculator({ serviceId }: { serviceId?: number })
                       </div>
                     </div>
                     {uploadedFile && <p className="mt-2 text-[12px] text-emerald-700 break-all">{uploadedFile.name}</p>}
-                    <p className="mt-3 text-[11px] text-ink-500">Размер готового изделия может отличаться от стандарта ±2 мм.</p>
+                    <p className="mt-3 text-[11px] text-ink-500">Печать на глянцевой бумаге плотностью 170 г/м². Размер изделия может отличаться от стандарта на ±2 мм.</p>
                   </button>
                   <input ref={fileInputRef} type="file" hidden accept=".pdf,.jpg,.jpeg,.png,.ai,.cdr,.eps,.tiff,.psd" onChange={(e) => handleUpload(e.target.files)} />
                 </>
               ) : (
                 <DesignBriefCard product="Листовки">
-                  <p className="text-[12px] text-ink-700 mb-1.5">Стоимость — <strong>1 000 ₽</strong>. В цену включены <strong>2 доработки</strong>.</p>
+                  <p className="text-[12px] text-ink-700 mb-1.5">Стоимость — <strong>1 500 ₽</strong>. В цену включены <strong>2 доработки</strong>.</p>
                   <p className="text-[12px] text-ink-700">Каждая последующая правка — <strong>+100 ₽</strong>.</p>
                 </DesignBriefCard>
               )}
@@ -189,9 +185,8 @@ export default function LeafletCalculator({ serviceId }: { serviceId?: number })
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
               <PillsField label="Формат" values={["А7 (74×105 мм)", "А6 (105×148 мм)", "А5 (148×210 мм)", "А4 (210×297 мм)", "А3 (297×420 мм)"]} value={format} onChange={(v) => setFormat(v as Format)} />
               <PillsField label="Ориентация" values={["Горизонтальная", "Вертикальная"]} value={orientation} onChange={(v) => setOrientation(v as Orientation)} hint="на цену не влияет" />
-              <PillsField label="Плотность бумаги, г/м²" values={["80", "170"]} value={material} onChange={(v) => setMaterial(v as Material)} hint={materialByRequest ? "цифровая — цена уточняется" : undefined} />
               <PillsField label="Цветность" values={["Цветная", "Чёрно-белая"]} value={color} onChange={(v) => setColor(v as Color)} />
-              <PillsField label="Стороны печати" values={["Односторонняя", "Двусторонняя"]} value={sides} onChange={(v) => setSides(v as Sides)} hint={`режим ${mode}`} />
+              <PillsField label="Стороны печати" values={["Двусторонняя", "Односторонняя"]} value={sides} onChange={(v) => setSides(v as Sides)} hint={`режим ${mode}`} />
 
               <div className="pt-4 border-t border-ink-100">
                 <PillsField label="Скругление углов" values={["Нет", "Да"]} value={rounding} onChange={(v) => setRounding(v as YesNo)} hint={rounding === "Да" ? `+${ROUNDING_PER_UNIT} ₽/шт` : undefined} />
@@ -216,14 +211,13 @@ export default function LeafletCalculator({ serviceId }: { serviceId?: number })
                 {calc.roundTotal > 0 && <BreakdownRow label="Скругление углов" hint={`${quantity} × ${ROUNDING_PER_UNIT} ₽`} value={`${fmt(calc.roundTotal)} ₽`} />}
                 {calc.lamTotal > 0 && <BreakdownRow label="Ламинация" hint={`${quantity} × ${calc.lamUnit} ₽`} value={`${fmt(calc.lamTotal)} ₽`} />}
                 {calc.designTotal > 0 && <BreakdownRow label="Разработка макета" hint="2 доработки в стоимости" value={`${fmt(calc.designTotal)} ₽`} />}
-                {materialByRequest && <BreakdownRow label="Бумага 170 г/м²" hint="доплата уточняется" value="по запросу" />}
                 <BreakdownRow label="Доставка" hint={delivery === "СДЭК (наложенный платёж)" ? "оплачивает получатель" : undefined} value={calc.deliveryTotal ? `${fmt(calc.deliveryTotal)} ₽` : "—"} />
                 <div className="mt-3 pt-3 border-t border-ink-200">
                   <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500">Итого</p>
                   <p className="mt-1 font-heading text-3xl font-bold text-ink-900 tabular tracking-tight">{fmt(calc.grandTotal)}&nbsp;₽</p>
                 </div>
                 <button onClick={() => setCheckoutOpen(true)} className="mt-4 w-full h-12 rounded-lg flex items-center justify-center gap-2 font-semibold text-[14px] bg-amber-500 text-white hover:bg-amber-600 transition-colors">Оформить заказ</button>
-                <p className="mt-3 text-[11px] text-ink-500 leading-relaxed">После оформления менеджер проверит макет и пришлёт <strong>QR-код для оплаты</strong>.</p>
+                <p className="mt-3 text-[11px] text-ink-500 leading-relaxed">После оформления менеджер проверит макет и свяжется для подтверждения и оплаты.</p>
               </div>
             </div>
           </div>

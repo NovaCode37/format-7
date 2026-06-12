@@ -58,7 +58,7 @@ export default function PrivacyPage() {
       <p>
         Пользователь имеет право получать сведения об обработке своих данных, требовать их уточнения,
         блокирования, удаления, отзывать согласие. Обращения направляются на{" "}
-        <a href="mailto:privacy@format7.ru">privacy@format7.ru</a>.
+        <a href="mailto:Format7-tmn@yandex.ru">Format7-tmn@yandex.ru</a>.
       </p>
 
       <h2>8. Передача третьим лицам</h2>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { Upload, FileCheck2, Truck, Package, Palette } from "lucide-react";
+import { Upload, FileCheck2, Truck, Package, Palette } from "@/lib/icons";
 import {
   PillsField, QuantityField, TrackCard, BreakdownRow, CheckoutModal, DesignBriefCard,
   DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
@@ -119,6 +119,7 @@ export default function CalendarCalculator({ serviceId }: { serviceId?: number }
               <div className="rounded-xl border border-ink-200 bg-ink-50 p-4 text-[12px] text-ink-600 space-y-2">
                 <p><strong className="text-ink-900">Формат:</strong> А3 (297×420 мм), бумага 200 г/м².</p>
                 <p>Полноцветная односторонняя печать. Цена тиража действует на 1 вид макета.</p>
+                <p>Размер готового изделия может отличаться от стандартного на ±2 мм.</p>
                 <p className="flex items-center gap-1.5"><Truck size={13} /> Доставка по Тюмени — 700 ₽.</p>
                 <p className="flex items-center gap-1.5"><Package size={13} /> Возможна отправка СДЭК наложенным платежом по РФ.</p>
               </div>
@@ -133,7 +134,7 @@ export default function CalendarCalculator({ serviceId }: { serviceId?: number }
               <PillsField label="Ламинация" values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? "цена по таблице с ламинацией" : undefined} />
 
               <div className="pt-4 border-t border-ink-100">
-                <QuantityField presets={QTY_PRESETS} value={quantity} onChange={setQuantity} min={1} hint="Цена за штуку — по ближайшему нижнему тиражу прайса (1 / 5 / 10 / 30 / 50)." />
+                <QuantityField presets={QTY_PRESETS} value={quantity} onChange={setQuantity} min={1} />
               </div>
 
               <div className="pt-4 border-t border-ink-100">
@@ -159,7 +160,7 @@ export default function CalendarCalculator({ serviceId }: { serviceId?: number }
                 <button onClick={() => setCheckoutOpen(true)} className="mt-4 w-full h-12 rounded-lg flex items-center justify-center gap-2 font-semibold text-[14px] bg-amber-500 text-white hover:bg-amber-600 transition-colors">
                   Оформить заказ
                 </button>
-                <p className="mt-3 text-[11px] text-ink-500 leading-relaxed">После оформления менеджер проверит макет и пришлёт <strong>QR-код для оплаты</strong>.</p>
+                <p className="mt-3 text-[11px] text-ink-500 leading-relaxed">После оформления менеджер проверит макет и свяжется для подтверждения и оплаты.</p>
               </div>
             </div>
           </div>

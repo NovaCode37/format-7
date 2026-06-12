@@ -11,6 +11,7 @@ from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Header, R
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response, RedirectResponse
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.datastructures import MutableHeaders
 from sqlalchemy.orm import Session
 from database import get_db, engine, Base
 from models import (
@@ -18,6 +19,7 @@ from models import (
     TabGroup,
     SectionBlock,
     Service,
+    Category,
     Office,
     User,
     CartItem,
@@ -78,6 +80,10 @@ from schemas import (
     RefundIn,
     RefundOut,
     AdminAuditOut,
+    CategoryOut,
+    ServiceAdminIn,
+    CategoryAdminIn,
+    OfficeAdminIn,
     WishlistItemOut,
     WishlistAddIn,
     SavedAddressIn,
@@ -134,8 +140,21 @@ if _sentry_dsn:
 Base.metadata.create_all(bind=engine)
 
 def _auto_migrate():
-    if not engine.url.get_backend_name().startswith("sqlite"):
-        log.info("auto-migrate skipped (non-sqlite backend); use alembic instead")
+    backend_name = engine.url.get_backend_name()
+    if backend_name.startswith("postgresql"):
+        with engine.connect() as conn:
+            for sql in (
+                "ALTER TABLE services ADD COLUMN IF NOT EXISTS image VARCHAR(500) DEFAULT ''",
+                "ALTER TABLE services ADD COLUMN IF NOT EXISTS price_from INTEGER DEFAULT 0",
+                "ALTER TABLE services ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE NOT NULL",
+                "ALTER TABLE cart_items ADD COLUMN IF NOT EXISTS price DOUBLE PRECISION DEFAULT 0",
+                "ALTER TABLE cart_items ADD COLUMN IF NOT EXISTS options TEXT DEFAULT ''",
+            ):
+                conn.exec_driver_sql(sql)
+            conn.commit()
+        return
+    if not backend_name.startswith("sqlite"):
+        log.info("auto-migrate skipped (unknown backend); use alembic instead")
         return
     with engine.connect() as conn:
         from sqlalchemy import text
@@ -185,6 +204,20 @@ def _auto_migrate():
 
         if "options" not in cols("order_items"):
             conn.exec_driver_sql("ALTER TABLE order_items ADD COLUMN options TEXT DEFAULT ''")
+
+        service_cols = cols("services")
+        if "image" not in service_cols:
+            conn.exec_driver_sql("ALTER TABLE services ADD COLUMN image VARCHAR(500) DEFAULT ''")
+        if "price_from" not in service_cols:
+            conn.exec_driver_sql("ALTER TABLE services ADD COLUMN price_from INTEGER DEFAULT 0")
+        if "is_active" not in service_cols:
+            conn.exec_driver_sql("ALTER TABLE services ADD COLUMN is_active BOOLEAN DEFAULT 1 NOT NULL")
+
+        cart_cols = cols("cart_items")
+        if "price" not in cart_cols:
+            conn.exec_driver_sql("ALTER TABLE cart_items ADD COLUMN price FLOAT DEFAULT 0")
+        if "options" not in cart_cols:
+            conn.exec_driver_sql("ALTER TABLE cart_items ADD COLUMN options TEXT DEFAULT ''")
         conn.commit()
 
 try:
@@ -242,19 +275,31 @@ MAX_FILES_PER_ANONYMOUS = 5
 
 app = FastAPI(title="Format7 API", version="1.1.0")
 
-class SecurityHeadersMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        resp: Response = await call_next(request)
-        resp.headers.setdefault("X-Content-Type-Options", "nosniff")
-        resp.headers.setdefault("X-Frame-Options", "DENY")
-        resp.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
-        resp.headers.setdefault("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
-        if request.url.scheme == "https":
-            resp.headers.setdefault(
-                "Strict-Transport-Security",
-                "max-age=63072000; includeSubDomains",
-            )
-        return resp
+class SecurityHeadersMiddleware:
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        async def send_wrapper(message):
+            if message["type"] == "http.response.start":
+                headers = MutableHeaders(scope=message)
+                headers.setdefault("X-Content-Type-Options", "nosniff")
+                headers.setdefault("X-Frame-Options", "DENY")
+                headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+                headers.setdefault("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
+                if scope.get("scheme") == "https":
+                    headers.setdefault(
+                        "Strict-Transport-Security",
+                        "max-age=63072000; includeSubDomains",
+                    )
+            await send(message)
+
+        await self.app(scope, receive, send_wrapper)
 
 app.add_middleware(SecurityHeadersMiddleware)
 
@@ -283,7 +328,7 @@ app.add_middleware(
     allow_origins=_allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "X-Payment-Token"],
+    allow_headers=["Authorization", "Content-Type", "X-Payment-Token", "Idempotency-Key"],
 )
 
 login_limit = make_limiter(key="login", limit=10, window=60)
@@ -331,7 +376,14 @@ def get_sections(db: Session = Depends(get_db)):
 
 @app.get("/api/services", response_model=list[ServiceOut])
 def get_services(db: Session = Depends(get_db)):
-    return db.query(Service).order_by(Service.order).all()
+    return db.query(Service).filter(Service.is_active.is_(True)).order_by(Service.order).all()
+
+@app.get("/api/categories", response_model=list[CategoryOut])
+def get_categories(db: Session = Depends(get_db)):
+    cats = db.query(Category).order_by(Category.order).all()
+    for c in cats:
+        c.services = [s for s in sorted(c.services, key=lambda x: x.order) if s.is_active]
+    return cats
 
 @app.get("/api/offices", response_model=list[OfficeOut])
 def get_offices(db: Session = Depends(get_db)):
@@ -691,17 +743,21 @@ def get_cart(user: User = Depends(require_user), db: Session = Depends(get_db)):
 
 @app.post("/api/cart", response_model=CartItemOut)
 def add_to_cart(data: CartItemIn, user: User = Depends(require_user), db: Session = Depends(get_db)):
-    service = db.query(Service).filter(Service.id == data.service_id).first()
-    if not service:
-        raise HTTPException(status_code=404, detail="Услуга не найдена")
-    existing = db.query(CartItem).filter(CartItem.user_id == user.id, CartItem.service_id == data.service_id).first()
-    if existing:
-        existing.quantity += data.quantity
-        existing.note = data.note or existing.note
-        db.commit()
-        db.refresh(existing)
-        return existing
-    item = CartItem(user_id=user.id, service_id=data.service_id, quantity=data.quantity, note=data.note)
+    sid = data.service_id
+    service = db.query(Service).filter(Service.id == sid).first() if sid else None
+    if service is None:
+        service = db.query(Service).order_by(Service.id).first()
+        if service is None:
+            raise HTTPException(status_code=503, detail="Каталог услуг недоступен")
+        sid = service.id
+    item = CartItem(
+        user_id=user.id,
+        service_id=sid,
+        quantity=data.quantity,
+        note=data.note,
+        price=max(data.price, 0),
+        options=json.dumps(data.options, ensure_ascii=False) if data.options else "",
+    )
     db.add(item)
     db.commit()
     db.refresh(item)
@@ -737,10 +793,18 @@ def create_order(
 
     if not data.items:
         raise HTTPException(status_code=400, detail="Нет товаров в заказе")
-    service_ids = {i.service_id for i in data.items}
-    existing_count = db.query(Service.id).filter(Service.id.in_(service_ids)).count()
-    if existing_count != len(service_ids):
-        raise HTTPException(status_code=400, detail="Услуга не найдена")
+
+    fallback_service = db.query(Service).order_by(Service.id).first()
+    if fallback_service is None:
+        raise HTTPException(status_code=503, detail="Каталог услуг недоступен")
+    requested_ids = {i.service_id for i in data.items if i.service_id and i.service_id >= 1}
+    existing_ids = (
+        {row[0] for row in db.query(Service.id).filter(Service.id.in_(requested_ids)).all()}
+        if requested_ids else set()
+    )
+
+    def resolve_sid(sid: int) -> int:
+        return sid if sid in existing_ids else fallback_service.id
     if data.delivery_type == "delivery" and not data.delivery_address.strip():
         raise HTTPException(status_code=400, detail="Укажите адрес доставки")
     if data.delivery_type == "pickup" and data.office_id:
@@ -769,7 +833,7 @@ def create_order(
         db.add(
             OrderItem(
                 order_id=order.id,
-                service_id=item.service_id,
+                service_id=resolve_sid(item.service_id),
                 quantity=item.quantity,
                 price=item.price,
                 options=json.dumps(item.options, ensure_ascii=False) if item.options else "",
@@ -1245,6 +1309,167 @@ def admin_stats(_: User = Depends(require_admin), db: Session = Depends(get_db))
         "revenue": float(revenue),
         "by_status": {k: int(v) for k, v in by_status.items()},
     }
+
+_IMAGE_EXT = {
+    "image/jpeg": "jpg", "image/jpg": "jpg", "image/png": "png",
+    "image/webp": "webp", "image/gif": "gif", "image/svg+xml": "svg",
+}
+_IMAGE_MEDIA = {
+    "jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png",
+    "webp": "image/webp", "gif": "image/gif", "svg": "image/svg+xml",
+}
+
+@app.post("/api/admin/upload-image")
+async def admin_upload_image(file: UploadFile = File(...), _: User = Depends(require_admin)):
+    ct = (file.content_type or "").lower()
+    ext = _IMAGE_EXT.get(ct)
+    if not ext:
+        raise HTTPException(status_code=400, detail="Только изображения: JPG, PNG, WEBP, GIF, SVG")
+    data = await file.read()
+    if len(data) > 8 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Файл больше 8 МБ")
+    stored_name = f"img_{uuid.uuid4().hex}.{ext}"
+    storage.save(stored_name, data, ct)
+    return {"url": f"/api/images/{stored_name}"}
+
+@app.get("/api/images/{name}")
+def serve_image(name: str):
+    if "/" in name or "\\" in name or ".." in name:
+        raise HTTPException(status_code=404, detail="Не найдено")
+    ext = name.rsplit(".", 1)[-1].lower() if "." in name else ""
+    media = _IMAGE_MEDIA.get(ext, "application/octet-stream")
+    stream = storage.open_stream(name)
+    if stream is None:
+        raise HTTPException(status_code=404, detail="Не найдено")
+    from fastapi.responses import StreamingResponse
+
+    def _iter():
+        try:
+            while True:
+                chunk = stream.read(65536)
+                if not chunk:
+                    break
+                yield chunk
+        finally:
+            try:
+                stream.close()
+            except Exception:
+                pass
+
+    return StreamingResponse(_iter(), media_type=media, headers={"Cache-Control": "public, max-age=86400"})
+
+@app.get("/api/admin/categories", response_model=list[CategoryOut])
+def admin_list_categories(_: User = Depends(require_admin), db: Session = Depends(get_db)):
+    return db.query(Category).order_by(Category.order).all()
+
+@app.post("/api/admin/categories", response_model=CategoryOut)
+def admin_create_category(data: CategoryAdminIn, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    if db.query(Category).filter(Category.slug == data.slug).first():
+        raise HTTPException(status_code=400, detail="Категория с таким slug уже существует")
+    c = Category(**data.model_dump())
+    db.add(c); db.commit(); db.refresh(c)
+    return c
+
+@app.patch("/api/admin/categories/{cat_id}", response_model=CategoryOut)
+def admin_update_category(cat_id: int, data: CategoryAdminIn, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    c = db.query(Category).filter(Category.id == cat_id).first()
+    if not c:
+        raise HTTPException(status_code=404, detail="Категория не найдена")
+    dup = db.query(Category).filter(Category.slug == data.slug, Category.id != cat_id).first()
+    if dup:
+        raise HTTPException(status_code=400, detail="Категория с таким slug уже существует")
+    for k, v in data.model_dump().items():
+        setattr(c, k, v)
+    db.commit(); db.refresh(c)
+    return c
+
+@app.delete("/api/admin/categories/{cat_id}")
+def admin_delete_category(cat_id: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    c = db.query(Category).filter(Category.id == cat_id).first()
+    if not c:
+        raise HTTPException(status_code=404, detail="Категория не найдена")
+    db.query(Service).filter(Service.category_id == cat_id).update({Service.category_id: None})
+    db.delete(c); db.commit()
+    return {"ok": True}
+
+@app.get("/api/admin/services", response_model=list[ServiceOut])
+def admin_list_services(_: User = Depends(require_admin), db: Session = Depends(get_db)):
+    return db.query(Service).order_by(Service.order, Service.id).all()
+
+@app.post("/api/admin/services", response_model=ServiceOut)
+def admin_create_service(data: ServiceAdminIn, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    if db.query(Service).filter(Service.slug == data.slug).first():
+        raise HTTPException(status_code=400, detail="Товар с таким slug уже существует")
+    s = Service(**data.model_dump())
+    db.add(s); db.commit(); db.refresh(s)
+    return s
+
+@app.patch("/api/admin/services/{sid}", response_model=ServiceOut)
+def admin_update_service(sid: int, data: ServiceAdminIn, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    s = db.query(Service).filter(Service.id == sid).first()
+    if not s:
+        raise HTTPException(status_code=404, detail="Товар не найден")
+    dup = db.query(Service).filter(Service.slug == data.slug, Service.id != sid).first()
+    if dup:
+        raise HTTPException(status_code=400, detail="Товар с таким slug уже существует")
+    for k, v in data.model_dump().items():
+        setattr(s, k, v)
+    db.commit(); db.refresh(s)
+    return s
+
+@app.delete("/api/admin/services/{sid}")
+def admin_delete_service(sid: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    s = db.query(Service).filter(Service.id == sid).first()
+    if not s:
+        raise HTTPException(status_code=404, detail="Товар не найден")
+    has_orders = db.query(OrderItem.id).filter(OrderItem.service_id == sid).first() is not None
+    db.query(CartItem).filter(CartItem.service_id == sid).delete()
+    if has_orders:
+        s.is_active = False
+        db.commit()
+        return {"ok": True, "soft": True}
+    db.delete(s); db.commit()
+    return {"ok": True, "soft": False}
+
+@app.get("/api/admin/offices", response_model=list[OfficeOut])
+def admin_list_offices(_: User = Depends(require_admin), db: Session = Depends(get_db)):
+    return db.query(Office).order_by(Office.id).all()
+
+@app.post("/api/admin/offices", response_model=OfficeOut)
+def admin_create_office(data: OfficeAdminIn, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    o = Office(**data.model_dump())
+    db.add(o); db.commit(); db.refresh(o)
+    return o
+
+@app.patch("/api/admin/offices/{oid}", response_model=OfficeOut)
+def admin_update_office(oid: int, data: OfficeAdminIn, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    o = db.query(Office).filter(Office.id == oid).first()
+    if not o:
+        raise HTTPException(status_code=404, detail="Офис не найден")
+    for k, v in data.model_dump().items():
+        setattr(o, k, v)
+    db.commit(); db.refresh(o)
+    return o
+
+@app.delete("/api/admin/offices/{oid}")
+def admin_delete_office(oid: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    o = db.query(Office).filter(Office.id == oid).first()
+    if not o:
+        raise HTTPException(status_code=404, detail="Офис не найден")
+    db.delete(o); db.commit()
+    return {"ok": True}
+
+@app.get("/api/admin/reviews", response_model=list[ReviewOut])
+def admin_list_reviews(_: User = Depends(require_admin), db: Session = Depends(get_db)):
+    return db.query(Review).order_by(Review.created_at.desc()).all()
+
+@app.delete("/api/admin/reviews/{rid}")
+def admin_delete_review(rid: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    r = db.query(Review).filter(Review.id == rid).first()
+    if not r:
+        raise HTTPException(status_code=404, detail="Отзыв не найден")
+    db.delete(r); db.commit()
+    return {"ok": True}
 
 @app.post("/api/subscribe", response_model=SubscribeOut, dependencies=[Depends(subscribe_limit)])
 def subscribe(data: SubscribeIn, db: Session = Depends(get_db)):

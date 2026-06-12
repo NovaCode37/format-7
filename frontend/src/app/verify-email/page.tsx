@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2 } from "@/lib/icons";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 
@@ -38,7 +38,7 @@ function VerifyEmailInner() {
         )}
         {state === "ok" && (
           <>
-            <CheckCircle2 className="mx-auto mb-4 text-emerald-600" size={48} strokeWidth={1.5} />
+            <CheckCircle2 className="mx-auto mb-4 text-emerald-600" size={48} strokeWidth={2} />
             <h1 className="h-section mb-3">Email подтверждён</h1>
             <p className="text-ink-600 mb-6">Спасибо! Теперь вы получаете уведомления о заказах.</p>
             <Link href="/profile" className="btn-primary">Мои заказы</Link>
@@ -46,7 +46,7 @@ function VerifyEmailInner() {
         )}
         {state === "error" && (
           <>
-            <XCircle className="mx-auto mb-4 text-red-600" size={48} strokeWidth={1.5} />
+            <XCircle className="mx-auto mb-4 text-red-600" size={48} strokeWidth={2} />
             <h1 className="h-section mb-3">Не удалось подтвердить</h1>
             <p className="text-ink-600 mb-6">{msg}</p>
             <Link href="/profile" className="btn-secondary">В профиль</Link>

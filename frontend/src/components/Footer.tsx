@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, MessageCircle } from "lucide-react";
+import { ArrowRight } from "@/lib/icons";
 import { api } from "@/lib/api";
 import Reveal, { Stagger, StaggerItem, DrawLine } from "./Reveal";
 
@@ -10,7 +10,7 @@ const COLUMNS = [
   {
     title: "Компания",
     links: [
-      { label: "О компании", href: "#" },
+      { label: "О компании", href: "/contacts" },
       { label: "Контакты", href: "/contacts" },
     ],
   },
@@ -107,7 +107,7 @@ export default function Footer() {
                   aria-label="Подписаться"
                   className="btn-dark btn-sm shrink-0"
                 >
-                  <ArrowRight size={15} strokeWidth={1.75} />
+                  <ArrowRight size={15} strokeWidth={2} />
                 </button>
               </div>
               {subMsg && (
@@ -172,7 +172,7 @@ export default function Footer() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 text-ink-700 hover:text-brand transition-colors"
                 >
-                  <MessageCircle size={14} strokeWidth={1.75} /> Написать в MAX
+                  <img src="/max-icon.png" alt="" className="w-4 h-4 rounded-[4px]" /> Написать в MAX
                 </a>
               </li>
               <li className="text-ink-600">г.&nbsp;Тюмень, ул.&nbsp;Широтная, д.&nbsp;113, к1 стр1, офис&nbsp;7</li>
@@ -187,13 +187,13 @@ export default function Footer() {
 
         <div className="mt-14 pt-6 border-t border-ink-200 flex flex-wrap items-center justify-between gap-3 text-[12px] text-ink-500">
           <div className="flex flex-wrap gap-x-6 gap-y-2">
-            <Link href="#" className="hover:text-ink-900 transition-colors">
+            <Link href="/legal/privacy" className="hover:text-ink-900 transition-colors">
               Политика конфиденциальности
             </Link>
-            <Link href="#" className="hover:text-ink-900 transition-colors">
+            <Link href="/legal/offer" className="hover:text-ink-900 transition-colors">
               Пользовательское соглашение
             </Link>
-            <Link href="#" className="hover:text-ink-900 transition-colors">
+            <Link href="/legal/cookies" className="hover:text-ink-900 transition-colors">
               Политика cookies
             </Link>
           </div>

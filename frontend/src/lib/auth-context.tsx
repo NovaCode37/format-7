@@ -78,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const addToCartFn = async (serviceId: number, quantity = 1) => {
     if (!token) throw new Error("Необходима авторизация");
-    await api.addToCart(serviceId, quantity);
+    await api.addToCart(serviceId, quantity, undefined, token);
     await refreshCart();
   };
 

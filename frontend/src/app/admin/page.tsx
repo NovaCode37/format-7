@@ -4,9 +4,13 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { api, type Order } from "@/lib/api";
-import { Loader2, Search, RefreshCw } from "lucide-react";
+import { Loader2, Search, RefreshCw } from "@/lib/icons";
 import Reveal from "@/components/Reveal";
 import { useToast } from "@/components/Toast";
+import AdminProducts from "@/components/admin/AdminProducts";
+import AdminCategories from "@/components/admin/AdminCategories";
+import AdminOffices from "@/components/admin/AdminOffices";
+import AdminReviews from "@/components/admin/AdminReviews";
 
 const STATUS_LABELS: Record<string, string> = {
   new: "Новый",
@@ -45,6 +49,7 @@ export default function AdminPage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
+  const [tab, setTab] = useState<"orders" | "products" | "categories" | "offices" | "reviews">("orders");
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -100,11 +105,39 @@ export default function AdminPage() {
         <div className="container-page py-10 sm:py-14">
           <Reveal>
             <p className="eyebrow mb-3">Администрирование</p>
-            <h1 className="h-display">Заказы</h1>
+            <h1 className="h-display">Управление</h1>
           </Reveal>
+          <div className="mt-6 flex gap-1">
+            {([["orders", "Заказы"], ["products", "Товары"], ["categories", "Категории"], ["offices", "Офисы"], ["reviews", "Отзывы"]] as const).map(([key, label]) => (
+              <button
+                key={key}
+                onClick={() => setTab(key)}
+                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors cursor-pointer ${
+                  tab === key ? "border-ink-900 text-ink-900" : "border-transparent text-ink-400 hover:text-ink-700"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
       </section>
 
+      {tab === "products" && token && (
+        <div className="container-page py-8"><AdminProducts token={token} /></div>
+      )}
+      {tab === "categories" && token && (
+        <div className="container-page py-8"><AdminCategories token={token} /></div>
+      )}
+      {tab === "offices" && token && (
+        <div className="container-page py-8"><AdminOffices token={token} /></div>
+      )}
+      {tab === "reviews" && token && (
+        <div className="container-page py-8"><AdminReviews token={token} /></div>
+      )}
+
+      {tab === "orders" && (
+      <>
       {stats && (
         <section className="border-b border-ink-200 bg-ink-50/50">
           <div className="container-page py-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -125,7 +158,7 @@ export default function AdminPage() {
       <section className="border-b border-ink-200">
         <div className="container-page py-5 flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-            <Search size={16} className="text-ink-400" strokeWidth={1.75} />
+            <Search size={16} className="text-ink-400" strokeWidth={2} />
             <input
               type="text"
               placeholder="Поиск: номер, имя, email, телефон"
@@ -151,7 +184,7 @@ export default function AdminPage() {
             disabled={loading}
             className="btn btn-sm cursor-pointer"
           >
-            <RefreshCw size={14} className={loading ? "animate-spin" : ""} strokeWidth={1.75} />
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} strokeWidth={2} />
             Обновить
           </button>
         </div>
@@ -223,6 +256,8 @@ export default function AdminPage() {
           </div>
         )}
       </div>
+      </>
+      )}
     </div>
   );
 }

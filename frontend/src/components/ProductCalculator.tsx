@@ -4,7 +4,7 @@ import { useMemo, useState, useRef } from "react";
 import Link from "next/link";
 import {
   ShoppingCart, Phone, Upload, Download, Minus, Plus, ChevronDown, Info, CheckCircle2, X,
-} from "lucide-react";
+} from "@/lib/icons";
 import { useAuth } from "@/lib/auth-context";
 import { useToast } from "./Toast";
 import { api } from "@/lib/api";

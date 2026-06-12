@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { api } from "@/lib/api";
-import { Search } from "lucide-react";
+import { Search } from "@/lib/icons";
 
 export default function OrderStatusPage() {
   const [orderNumber, setOrderNumber] = useState("");
@@ -75,7 +75,7 @@ export default function OrderStatusPage() {
                     disabled={loading}
                     className="btn-primary shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    <Search size={15} strokeWidth={1.75} />
+                    <Search size={15} strokeWidth={2} />
                     Найти
                   </button>
                 </div>

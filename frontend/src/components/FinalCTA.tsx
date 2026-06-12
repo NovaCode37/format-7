@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Phone, MapPin, Clock } from "lucide-react";
+import { ArrowRight, Phone, MapPin, Clock } from "@/lib/icons";
 import Reveal from "./Reveal";
 
 export default function FinalCTA() {
@@ -32,7 +32,7 @@ export default function FinalCTA() {
                 href="tel:+79324759511"
                 className="btn btn-lg bg-transparent text-ink-600 border border-ink-200 hover:bg-ink-50 hover:border-ink-300"
               >
-                <Phone size={15} strokeWidth={1.75} />
+                <Phone size={15} strokeWidth={2} />
                 Позвонить
               </a>
             </div>
@@ -41,21 +41,21 @@ export default function FinalCTA() {
           <Reveal delay={0.1}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-ink-50 rounded-2xl p-6">
-                <Phone size={20} strokeWidth={1.5} className="text-ink-400 mb-3" />
+                <Phone size={20} strokeWidth={2} className="text-ink-400 mb-3" />
                 <p className="text-[13px] text-ink-400 mb-1">Телефон</p>
                 <a href="tel:+79324759511" className="font-heading text-lg font-bold text-ink-900 hover:text-brand transition-colors tabular">
                   +7 932 475-95-11
                 </a>
               </div>
               <div className="bg-ink-50 rounded-2xl p-6">
-                <MapPin size={20} strokeWidth={1.5} className="text-ink-400 mb-3" />
+                <MapPin size={20} strokeWidth={2} className="text-ink-400 mb-3" />
                 <p className="text-[13px] text-ink-400 mb-1">Адрес</p>
                 <p className="font-heading text-base font-bold text-ink-900 leading-snug">
                   г. Тюмень, ул. Широтная, д. 113, к1 стр1, офис 7
                 </p>
               </div>
               <div className="bg-ink-50 rounded-2xl p-6">
-                <Clock size={20} strokeWidth={1.5} className="text-ink-400 mb-3" />
+                <Clock size={20} strokeWidth={2} className="text-ink-400 mb-3" />
                 <p className="text-[13px] text-ink-400 mb-1">Время работы</p>
                 <p className="font-heading text-lg font-bold text-ink-900 tabular">
                   Пн–Пт · 9–13, 14–17

@@ -50,3 +50,8 @@ _files_py.txt
 _xlsx_dump.txt
 _sticker_data.json
 _words.txt
+
+# editor / scratch
+format7.code-workspace
+_*.json
+_*.txt

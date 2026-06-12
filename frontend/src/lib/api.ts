@@ -45,7 +45,56 @@ export interface Service {
   slug: string;
   icon: string;
   description: string;
+  category_id: number | null;
   order: number;
+  image: string;
+  price_from: number;
+  is_active: boolean;
+}
+
+export interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  icon: string;
+  order: number;
+  services: Service[];
+}
+
+export interface ServiceInput {
+  name: string;
+  slug: string;
+  icon?: string;
+  description?: string;
+  category_id?: number | null;
+  order?: number;
+  image?: string;
+  price_from?: number;
+  is_active?: boolean;
+}
+
+export interface CategoryInput {
+  name: string;
+  slug: string;
+  icon?: string;
+  order?: number;
+}
+
+export interface OfficeInput {
+  name: string;
+  address: string;
+  phone?: string;
+  hours?: string;
+  is_open?: boolean;
+  lat?: string;
+  lng?: string;
+}
+
+export function resolveImageUrl(src?: string): string {
+  if (!src) return "";
+  if (src.startsWith("http://") || src.startsWith("https://")) return src;
+  if (src.startsWith("/api/")) return `${API_BASE}${src}`;
+  return src;
 }
 
 export interface Office {
@@ -73,6 +122,8 @@ export interface CartItem {
   service_id: number;
   quantity: number;
   note: string;
+  price: number;
+  options: string;
   service: Service;
 }
 
@@ -162,7 +213,13 @@ async function fetchApi<T>(path: string, init?: RequestInit): Promise<T> {
     const res = await fetch(`${API_BASE}${path}`, { ...init, signal: controller.signal });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      throw new ApiError(body.detail || `API error: ${res.status}`, res.status);
+      const d = (body as any)?.detail;
+      let msg: string;
+      if (typeof d === "string") msg = d;
+      else if (Array.isArray(d)) msg = d.map((e: any) => e?.msg || (typeof e === "string" ? e : JSON.stringify(e))).join("; ");
+      else if (d && typeof d === "object") msg = d.msg || JSON.stringify(d);
+      else msg = `Ошибка ${res.status}`;
+      throw new ApiError(msg, res.status);
     }
     return res.json();
   } finally {
@@ -180,6 +237,7 @@ export const api = {
   getTabs: () => fetchApi<TabGroup[]>("/api/tabs", { cache: "no-store" }),
   getSections: () => fetchApi<SectionBlock[]>("/api/sections", { cache: "no-store" }),
   getServices: () => fetchApi<Service[]>("/api/services", { cache: "no-store" }),
+  getCategories: () => fetchApi<Category[]>("/api/categories", { cache: "no-store" }),
   getOffices: () => fetchApi<Office[]>("/api/offices", { cache: "no-store" }),
 
   search: (q: string) => fetchApi<Service[]>(`/api/search?q=${encodeURIComponent(q)}`),
@@ -230,11 +288,11 @@ export const api = {
 
   getCart: (token: string) =>
     fetchApi<CartItem[]>("/api/cart", { headers: authHeaders(token) }),
-  addToCart: (service_id: number, quantity = 1, data?: { options?: Record<string, any>; fileIds?: number[]; note?: string }, token?: string) =>
+  addToCart: (service_id: number, quantity = 1, data?: { options?: Record<string, any>; fileIds?: number[]; note?: string; price?: number }, token?: string) =>
     fetchApi<CartItem>("/api/cart", {
       method: "POST",
       headers: token ? authHeaders(token) : { "Content-Type": "application/json" },
-      body: JSON.stringify({ service_id, quantity, note: data?.note || "", options: data?.options }),
+      body: JSON.stringify({ service_id, quantity, note: data?.note || "", options: data?.options, price: data?.price || 0 }),
     }),
   removeFromCart: (token: string, itemId: number) =>
     fetchApi<{ ok: boolean }>(`/api/cart/${itemId}`, {
@@ -340,6 +398,73 @@ export const api = {
       revenue: number;
       by_status: Record<string, number>;
     }>("/api/admin/stats", { headers: authHeaders(token) }),
+
+  adminListServices: (token: string) =>
+    fetchApi<Service[]>("/api/admin/services", { headers: authHeaders(token) }),
+  adminCreateService: (token: string, data: ServiceInput) =>
+    fetchApi<Service>("/api/admin/services", {
+      method: "POST", headers: authHeaders(token), body: JSON.stringify(data),
+    }),
+  adminUpdateService: (token: string, id: number, data: ServiceInput) =>
+    fetchApi<Service>(`/api/admin/services/${id}`, {
+      method: "PATCH", headers: authHeaders(token), body: JSON.stringify(data),
+    }),
+  adminDeleteService: (token: string, id: number) =>
+    fetchApi<{ ok: boolean; soft: boolean }>(`/api/admin/services/${id}`, {
+      method: "DELETE", headers: authHeaders(token),
+    }),
+
+  adminListCategories: (token: string) =>
+    fetchApi<Category[]>("/api/admin/categories", { headers: authHeaders(token) }),
+  adminCreateCategory: (token: string, data: CategoryInput) =>
+    fetchApi<Category>("/api/admin/categories", {
+      method: "POST", headers: authHeaders(token), body: JSON.stringify(data),
+    }),
+  adminUpdateCategory: (token: string, id: number, data: CategoryInput) =>
+    fetchApi<Category>(`/api/admin/categories/${id}`, {
+      method: "PATCH", headers: authHeaders(token), body: JSON.stringify(data),
+    }),
+  adminDeleteCategory: (token: string, id: number) =>
+    fetchApi<{ ok: boolean }>(`/api/admin/categories/${id}`, {
+      method: "DELETE", headers: authHeaders(token),
+    }),
+
+  adminUploadImage: async (token: string, file: File): Promise<{ url: string }> => {
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch(`${API_BASE}/api/admin/upload-image`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: fd,
+    });
+    if (!res.ok) {
+      const b = await res.json().catch(() => ({}));
+      throw new ApiError((b as any)?.detail || `Ошибка ${res.status}`, res.status);
+    }
+    return res.json();
+  },
+
+  adminListOffices: (token: string) =>
+    fetchApi<Office[]>("/api/admin/offices", { headers: authHeaders(token) }),
+  adminCreateOffice: (token: string, data: OfficeInput) =>
+    fetchApi<Office>("/api/admin/offices", {
+      method: "POST", headers: authHeaders(token), body: JSON.stringify(data),
+    }),
+  adminUpdateOffice: (token: string, id: number, data: OfficeInput) =>
+    fetchApi<Office>(`/api/admin/offices/${id}`, {
+      method: "PATCH", headers: authHeaders(token), body: JSON.stringify(data),
+    }),
+  adminDeleteOffice: (token: string, id: number) =>
+    fetchApi<{ ok: boolean }>(`/api/admin/offices/${id}`, {
+      method: "DELETE", headers: authHeaders(token),
+    }),
+
+  adminListReviews: (token: string) =>
+    fetchApi<Review[]>("/api/admin/reviews", { headers: authHeaders(token) }),
+  adminDeleteReview: (token: string, id: number) =>
+    fetchApi<{ ok: boolean }>(`/api/admin/reviews/${id}`, {
+      method: "DELETE", headers: authHeaders(token),
+    }),
 
   wishlistList: (token: string) =>
     fetchApi<Array<{ id: number; service_id: number; service: Service; created_at: string }>>(

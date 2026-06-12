@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { Upload, FileCheck2, Truck, Package, Palette, Info, LayoutTemplate } from "lucide-react";
+import { Upload, FileCheck2, Truck, Package, Palette, Info, LayoutTemplate } from "@/lib/icons";
 import {
   PillsField, QuantityField, TrackCard, BreakdownRow, CheckoutModal, DesignBriefCard,
   TemplateCatalogCard, DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
@@ -83,8 +83,7 @@ export default function DeskCalendarCalculator({ serviceId }: { serviceId?: numb
           </p>
         </div>
 
-        <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <TrackCard active={track === "template"} onClick={() => setTrack("template")} icon={<LayoutTemplate size={18} />} title="Каталог шаблонов" hint="Готовые макеты" />
+        <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-2">
           <TrackCard active={track === "upload"} onClick={() => setTrack("upload")} icon={<Upload size={18} />} title="Загрузить ваш макет" hint="У вас уже есть готовый файл" />
           <TrackCard active={track === "design"} onClick={() => setTrack("design")} icon={<Palette size={18} />} title="Заказ дизайна" hint="Разработка 1 000 ₽" />
         </div>
@@ -137,6 +136,7 @@ export default function DeskCalendarCalculator({ serviceId }: { serviceId?: numb
                     <strong className="text-ink-900">С 12 блоками:</strong> по 1 месяцу на странице, горизонтальная печать. Подложка-картон 300 г/м², 3 бига; индивидуальный блок на бумаге 80 г/м² с полноцветной печатью.
                   </span>
                 </p>
+                <p>Размер готового изделия может отличаться от стандартного на ±2 мм.</p>
                 <p className="flex items-center gap-1.5"><Truck size={13} /> Доставка по Тюмени — 700 ₽.</p>
                 <p className="flex items-center gap-1.5"><Package size={13} /> Возможна отправка СДЭК наложенным платежом по РФ.</p>
               </div>
@@ -180,7 +180,7 @@ export default function DeskCalendarCalculator({ serviceId }: { serviceId?: numb
                 <button onClick={() => setCheckoutOpen(true)} className="mt-4 w-full h-12 rounded-lg flex items-center justify-center gap-2 font-semibold text-[14px] bg-amber-500 text-white hover:bg-amber-600 transition-colors">
                   Оформить заказ
                 </button>
-                <p className="mt-3 text-[11px] text-ink-500 leading-relaxed">После оформления менеджер проверит макет и пришлёт <strong>QR-код для оплаты</strong>.</p>
+                <p className="mt-3 text-[11px] text-ink-500 leading-relaxed">После оформления менеджер проверит макет и свяжется для подтверждения и оплаты.</p>
               </div>
             </div>
           </div>

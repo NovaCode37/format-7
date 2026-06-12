@@ -7,7 +7,7 @@ import {
   Award,
   CheckCircle2,
   Layers,
-} from "lucide-react";
+} from "@/lib/icons";
 
 const ITEMS = [
   { icon: Clock,        text: "Срочная печать за 1 час" },
@@ -30,7 +30,7 @@ export default function TrustStrip() {
             >
               <Icon
                 size={15}
-                strokeWidth={1.75}
+                strokeWidth={2}
                 className="text-ink-400 shrink-0"
                 aria-hidden="true"
               />

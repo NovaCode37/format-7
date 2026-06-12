@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Move3d, Pause, Play, RotateCcw } from "lucide-react";
+import { Move3d, Pause, Play, RotateCcw } from "@/lib/icons";
 
 interface Props {
 

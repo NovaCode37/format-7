@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Heart, ShoppingCart, Trash2 } from "lucide-react";
+import { Heart, ShoppingCart, Trash2 } from "@/lib/icons";
 import { useAuth } from "@/lib/auth-context";
 import { api, type Service } from "@/lib/api";
 
@@ -42,7 +42,7 @@ export default function WishlistPage() {
         <div className="container-page py-12 sm:py-16">
           <p className="eyebrow mb-3">Избранное</p>
           <h1 className="h-display flex items-center gap-3">
-            <Heart size={28} strokeWidth={1.5} className="text-red-500 fill-red-500" />
+            <Heart size={28} strokeWidth={2} className="text-red-500 fill-red-500" />
             Список желаемого
           </h1>
         </div>
@@ -60,7 +60,7 @@ export default function WishlistPage() {
               <li key={item.id} className="flex items-center gap-4 py-5">
                 <div className="flex-1 min-w-0">
                   <Link
-                    href={`/prices/${item.service.slug}`}
+                    href={`/services/${item.service.slug}`}
                     className="font-heading text-[15px] font-semibold hover:text-brand transition-colors"
                   >
                     {item.service.name}
@@ -76,14 +76,14 @@ export default function WishlistPage() {
                   className="btn btn-sm cursor-pointer"
                   title="В корзину"
                 >
-                  <ShoppingCart size={14} strokeWidth={1.75} /> В&nbsp;корзину
+                  <ShoppingCart size={14} strokeWidth={2} /> В&nbsp;корзину
                 </button>
                 <button
                   onClick={() => remove(item.id)}
                   className="text-ink-400 hover:text-red-600 p-2 cursor-pointer transition-colors"
                   title="Удалить"
                 >
-                  <Trash2 size={14} strokeWidth={1.75} />
+                  <Trash2 size={14} strokeWidth={2} />
                 </button>
               </li>
             ))}

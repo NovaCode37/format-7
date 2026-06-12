@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import {
-  Search, ShoppingCart, User, LogOut, Heart, Menu, MessageCircle,
+  Search, ShoppingCart, User, LogOut, Heart, Menu,
   FileText, Camera, Printer, LayoutGrid,
-} from "lucide-react";
+} from "@/lib/icons";
 import MobileDrawer from "./MobileDrawer";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
@@ -104,23 +104,23 @@ export default function Header() {
           </span>
         </Link>
 
-        <nav className="hidden lg:flex items-center gap-0.5 text-[13px] font-medium ml-2" aria-label="Главное меню">
+        <nav className="hidden xl:flex items-center gap-0.5 text-[13px] font-bold ml-2" aria-label="Главное меню">
           {NAV_LINKS.map((l) => (
             <Link
               key={l.href}
               href={l.href}
               className="px-3 h-9 inline-flex items-center gap-1.5 rounded-lg text-ink-600 hover:text-ink-900 hover:bg-ink-50 transition-colors"
             >
-              {"icon" in l && l.icon && <l.icon size={14} strokeWidth={1.75} />}
+              {"icon" in l && l.icon && <l.icon size={14} strokeWidth={2} />}
               {l.label}
             </Link>
           ))}
         </nav>
 
-        <div className="hidden md:block flex-1 min-w-[260px] max-w-[480px] relative ml-auto" ref={wrapperRef}>
+        <div className="hidden md:block flex-1 min-w-0 max-w-[380px] relative ml-auto" ref={wrapperRef}>
           <Search
             size={15}
-            strokeWidth={1.75}
+            strokeWidth={2}
             className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400 pointer-events-none"
           />
           <input
@@ -206,9 +206,9 @@ export default function Header() {
             rel="noopener noreferrer"
             title="Написать в MAX"
             aria-label="Написать в MAX"
-            className="h-9 w-9 grid place-items-center rounded-lg text-ink-500 hover:text-accent hover:bg-ink-50 transition-colors"
+            className="h-9 w-9 grid place-items-center rounded-lg hover:bg-ink-50 transition-colors"
           >
-            <MessageCircle size={16} strokeWidth={1.75} />
+            <img src="/max-icon.png" alt="MAX" className="w-5 h-5 rounded-[5px]" />
           </a>
           {user ? (
             <>
@@ -226,13 +226,13 @@ export default function Header() {
                 aria-label="Избранное"
                 className="h-9 w-9 grid place-items-center rounded-lg text-ink-500 hover:text-red-500 hover:bg-ink-50 transition-colors"
               >
-                <Heart size={15} strokeWidth={1.75} />
+                <Heart size={15} strokeWidth={2} />
               </Link>
               <Link
                 href="/profile"
                 className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-ink-900 font-medium hover:bg-ink-50 transition-colors"
               >
-                <User size={15} strokeWidth={1.75} />
+                <User size={15} strokeWidth={2} />
                 <span className="hidden xl:inline">{user.name}</span>
               </Link>
               <button
@@ -242,7 +242,7 @@ export default function Header() {
                 aria-label="Выйти"
                 className="h-9 w-9 grid place-items-center rounded-lg text-ink-500 hover:text-ink-900 hover:bg-ink-50 transition-colors cursor-pointer"
               >
-                <LogOut size={15} strokeWidth={1.75} />
+                <LogOut size={15} strokeWidth={2} />
               </button>
             </>
           ) : (
@@ -250,13 +250,13 @@ export default function Header() {
               href="/login"
               className="h-9 px-3 inline-flex items-center gap-1.5 rounded-lg text-ink-600 font-medium hover:bg-ink-50 transition-colors"
             >
-              <User size={15} strokeWidth={1.75} />
+              <User size={15} strokeWidth={2} />
               <span className="hidden sm:inline">Вход</span>
             </Link>
           )}
           <Link
             href="/catalog"
-            className="hidden md:inline-flex btn-accent btn-sm ml-1"
+            className="hidden 2xl:inline-flex btn-accent btn-sm ml-1"
           >
             Заказать онлайн
           </Link>
@@ -265,7 +265,7 @@ export default function Header() {
             className="ml-1 btn btn-sm bg-ink-900 text-white border-ink-900 hover:bg-ink-800 hover:border-ink-800"
             aria-label="Корзина"
           >
-            <ShoppingCart size={15} strokeWidth={1.75} />
+            <ShoppingCart size={15} strokeWidth={2} />
             <span className="hidden sm:inline">
               Корзина
               {cartCount > 0 && (
@@ -281,9 +281,9 @@ export default function Header() {
             type="button"
             onClick={() => setDrawerOpen(true)}
             aria-label="Открыть меню"
-            className="lg:hidden h-9 w-9 grid place-items-center rounded-lg text-ink-700 hover:bg-ink-50 transition-colors cursor-pointer ml-1"
+            className="xl:hidden h-9 w-9 grid place-items-center rounded-lg text-ink-700 hover:bg-ink-50 transition-colors cursor-pointer ml-1"
           >
-            <Menu size={18} strokeWidth={1.75} />
+            <Menu size={18} strokeWidth={2} />
           </button>
         </div>
       </div>

@@ -21,6 +21,9 @@ class ServiceOut(BaseModel):
     description: str
     category_id: int | None
     order: int
+    image: str = ""
+    price_from: int = 0
+    is_active: bool = True
 
     class Config:
         from_attributes = True
@@ -35,6 +38,32 @@ class CategoryOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+class ServiceAdminIn(BaseModel):
+    name: str = Field(min_length=1, max_length=200)
+    slug: str = Field(min_length=1, max_length=200)
+    icon: str = Field(default="", max_length=10)
+    description: str = Field(default="", max_length=4000)
+    category_id: int | None = None
+    order: int = Field(default=0)
+    image: str = Field(default="", max_length=500)
+    price_from: int = Field(default=0, ge=0)
+    is_active: bool = True
+
+class CategoryAdminIn(BaseModel):
+    name: str = Field(min_length=1, max_length=200)
+    slug: str = Field(min_length=1, max_length=200)
+    icon: str = Field(default="", max_length=10)
+    order: int = Field(default=0)
+
+class OfficeAdminIn(BaseModel):
+    name: str = Field(min_length=1, max_length=300)
+    address: str = Field(min_length=1, max_length=500)
+    phone: str = Field(default="", max_length=50)
+    hours: str = Field(default="", max_length=200)
+    is_open: bool = True
+    lat: str = Field(default="", max_length=20)
+    lng: str = Field(default="", max_length=20)
 
 class TabProductOut(BaseModel):
     id: int
@@ -127,22 +156,26 @@ class UserOut(BaseModel):
         from_attributes = True
 
 class CartItemIn(BaseModel):
-    service_id: int
-    quantity: int = 1
-    note: str = ""
+    service_id: int = Field(default=0, ge=0)
+    quantity: int = Field(default=1, ge=1, le=100000)
+    note: str = Field(default="", max_length=2000)
+    price: float = Field(default=0, ge=0, le=10_000_000)
+    options: dict = Field(default_factory=dict)
 
 class CartItemOut(BaseModel):
     id: int
     service_id: int
     quantity: int
     note: str
+    price: float = 0
+    options: str = ""
     service: ServiceOut
 
     class Config:
         from_attributes = True
 
 class OrderItemIn(BaseModel):
-    service_id: int = Field(ge=1)
+    service_id: int = Field(default=0, ge=0)
     quantity: int = Field(default=1, ge=1, le=10000)
     price: float = Field(default=0, ge=0, le=10_000_000)
     options: dict = Field(default_factory=dict)

@@ -5,11 +5,11 @@ import { useParams, useRouter } from "next/navigation";
 import { api, type Service } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import Link from "next/link";
-import { ShoppingCart, Calculator, Loader2, ArrowRight } from "lucide-react";
-import { findPriceByName } from "@/lib/prices";
+import { ShoppingCart, Calculator, Loader2 } from "@/lib/icons";
 import WishlistButton from "@/components/WishlistButton";
 import ProductCalculator from "@/components/ProductCalculator";
-import CategorySubProducts, { getParentCategory } from "@/components/CategorySubProducts";
+import CategorySubProducts from "@/components/CategorySubProducts";
+import { CATALOG_INDEX } from "@/lib/catalogIndex";
 import { getProductCalculator } from "@/lib/productCalculators";
 import CopyPrintCalculator from "@/components/CopyPrintCalculator";
 import FlyerCalculator from "@/components/FlyerCalculator";
@@ -57,7 +57,6 @@ const DIPLOMA_SLUGS = ["грамоты-и-дипломы", "грамоты", "д
 const PHOTO_SLUGS = ["печать-фотографий", "печать-фото", "фотопечать"];
 
 const CATEGORY_TITLES: Record<string, string> = {
-  "копирование-и-печать-документов": "Услуги копицентра",
   "оперативная-полиграфия": "Полиграфия на заказ",
 };
 
@@ -107,13 +106,13 @@ function findBestMatch(list: Service[], slug: string): Service | undefined {
   const slugWords = decoded.replace(/-/g, " ").split(" ");
   const byWord = list.find((s) => {
     const sWords = s.slug.toLowerCase().replace(/-/g, " ").split(" ");
-    return slugWords.some((w) => w.length > 2 && sWords.some((sw) => sw.includes(w) || w.includes(sw)));
+    return slugWords.some((w) => w.length > 2 && sWords.some((sw) => sw.length > 2 && (sw.includes(w) || w.includes(sw))));
   });
   if (byWord) return byWord;
 
   const byName = list.find((s) => {
     const nameWords = s.name.toLowerCase().split(" ");
-    return slugWords.some((w) => w.length > 2 && nameWords.some((nw) => nw.includes(w) || w.includes(nw)));
+    return slugWords.some((w) => w.length > 2 && nameWords.some((nw) => nw.length > 2 && (nw.includes(w) || w.includes(nw))));
   });
   return byName;
 }
@@ -123,7 +122,7 @@ export default function ServicePage() {
   const { user, addToCart } = useAuth();
   const router = useRouter();
   const [service, setService] = useState<Service | null>(null);
-  const [allServices, setAllServices] = useState<Service[]>([]);
+  const [, setAllServices] = useState<Service[]>([]);
   const [added, setAdded] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -150,7 +149,7 @@ export default function ServicePage() {
   if (loading) {
     return (
       <div className="bg-white min-h-[60vh] flex items-center justify-center">
-        <Loader2 className="animate-spin text-ink-400" size={28} strokeWidth={1.5} />
+        <Loader2 className="animate-spin text-ink-400" size={28} strokeWidth={2} />
       </div>
     );
   }
@@ -271,19 +270,9 @@ export default function ServicePage() {
           const decoded = decodeURIComponent(slug).toLowerCase();
           const title = CATEGORY_TITLES[decoded];
           if (title) {
-            return <CategorySubProducts slug={decoded} title={title} />;
+            return <CategorySubProducts activeSlug={decoded} title={title} />;
           }
-          const parent = getParentCategory(decoded);
-          if (parent) {
-            return (
-              <CategorySubProducts
-                slug={parent}
-                title={CATEGORY_TITLES[parent] || "Другие товары категории"}
-                activeSlug={decoded}
-              />
-            );
-          }
-          return null;
+          return <CategorySubProducts activeSlug={decoded} title="Другие товары категории" variant="carousel" />;
         })()}
 
         {!fallbackCalc && !hasDedicatedCalc && (
@@ -291,7 +280,7 @@ export default function ServicePage() {
             <p className="text-ink-500 mb-6">Для расчёта стоимости перейдите в калькулятор.</p>
             <div className="flex gap-3 justify-center flex-wrap">
               <Link href="/calculator" className="btn-primary">
-                <Calculator size={16} strokeWidth={1.75} />
+                <Calculator size={16} strokeWidth={2} />
                 Рассчитать стоимость
               </Link>
               <Link href="/" className="btn">На главную</Link>
@@ -299,25 +288,7 @@ export default function ServicePage() {
           </section>
         )}
 
-        {allServices.length > 0 && (
-          <section className="container-page py-14 sm:py-20">
-            <h2 className="h-section mb-6">Другие услуги</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {allServices.slice(0, 12).map((s) => (
-                <Link
-                  key={s.id}
-                  href={`/services/${s.slug}`}
-                  className="flex flex-col items-start gap-2 p-4 border border-ink-200 rounded-md hover:border-ink-400 transition-colors"
-                >
-                  <span className="grid place-items-center w-9 h-9 rounded-md bg-ink-100 text-ink-700 font-heading text-base font-semibold">
-                    {s.name.charAt(0)}
-                  </span>
-                  <span className="text-[12px] font-medium text-ink-900">{s.name}</span>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
+        <OtherServices excludeSlug={decodeURIComponent(slug)} />
       </div>
     );
   }
@@ -365,7 +336,7 @@ export default function ServicePage() {
             <div className="col-span-12 md:col-span-4 flex flex-wrap gap-2 md:justify-end">
               <WishlistButton serviceId={service.id} className="border border-ink-200 rounded-md p-3" />
               <Link href="/cart" className="btn-secondary btn-sm">
-                <ShoppingCart size={14} strokeWidth={1.75} />
+                <ShoppingCart size={14} strokeWidth={2} />
                 Корзина
               </Link>
             </div>
@@ -377,24 +348,13 @@ export default function ServicePage() {
         const decoded = service.slug.toLowerCase();
         const title = CATEGORY_TITLES[decoded];
         if (title) {
-
-          return <CategorySubProducts slug={decoded} title={title} />;
-        }
-
-        const parent = getParentCategory(decoded);
-        if (parent) {
-          return (
-            <CategorySubProducts
-              slug={parent}
-              title={CATEGORY_TITLES[parent] || "Другие товары категории"}
-              activeSlug={decoded}
-            />
-          );
+          return <CategorySubProducts activeSlug={decoded} title={title} />;
         }
         return null;
       })()}
 
       {(() => {
+        if (CATEGORY_TITLES[service.slug.toLowerCase()]) return null;
         if (service.slug.toLowerCase() === COPY_PRINT_SLUG) {
           return (
             <section className="border-b border-ink-200 bg-ink-50/40">
@@ -545,11 +505,11 @@ export default function ServicePage() {
             <div className="container-page py-10 sm:py-14">
               <div className="flex flex-wrap gap-3">
                 <button onClick={handleAdd} className="btn-primary">
-                  <ShoppingCart size={16} strokeWidth={1.75} />
+                  <ShoppingCart size={16} strokeWidth={2} />
                   {added ? "Добавлено ✓" : "Добавить в корзину"}
                 </button>
                 <Link href="/calculator" className="btn-secondary">
-                  <Calculator size={14} strokeWidth={1.75} />
+                  <Calculator size={14} strokeWidth={2} />
                   Полный калькулятор
                 </Link>
               </div>
@@ -559,95 +519,47 @@ export default function ServicePage() {
       })()}
 
       {(() => {
-        const priceData = findPriceByName(service.name);
-        if (!priceData) return null;
-        return (
-          <section className="border-b border-ink-200">
-            <div className="container-page py-14 sm:py-20">
-              <div className="flex items-end justify-between gap-4 mb-8">
-                <div>
-                  <p className="eyebrow mb-2">Прайс-лист</p>
-                  <h2 className="h-section">Цены на {service.name.toLowerCase()}</h2>
-                </div>
-                <Link
-                  href="/prices"
-                  className="hidden sm:inline-flex items-center gap-1.5 text-[13px] font-medium text-ink-500 hover:text-brand transition-colors shrink-0"
-                >
-                  Все цены
-                  <ArrowRight size={13} strokeWidth={1.75} />
-                </Link>
-              </div>
-              <div className="space-y-8">
-                {priceData.tables.map((table, ti) => (
-                  <div key={ti} className="card p-6 sm:p-8 overflow-x-auto">
-                    <h4 className="text-[13px] font-semibold text-ink-900 mb-4">{table.title}</h4>
-                    <table className="w-full text-sm border-collapse">
-                      <thead>
-                        <tr>
-                          {table.columns.map((col, ci) => (
-                            <th
-                              key={ci}
-                              className={`py-2.5 px-3 text-[11px] uppercase tracking-[0.14em] font-semibold text-ink-500 border-b border-ink-200 text-left whitespace-nowrap ${
-                                ci === 0 ? "pl-0" : ""
-                              }`}
-                            >
-                              {col}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {table.rows.map((row, ri) => (
-                          <tr key={ri} className="border-b border-ink-100 last:border-b-0">
-                            <td className="py-2.5 pl-0 pr-3 text-ink-900 font-medium whitespace-nowrap">
-                              {row.label}
-                            </td>
-                            {row.prices.map((p, pi) => (
-                              <td key={pi} className="py-2.5 px-3 tabular text-ink-700 whitespace-nowrap">
-                                {p !== null ? `${p} \u20BD` : "\u2014"}
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ))}
-              </div>
-              {priceData.notes.length > 0 && (
-                <ul className="mt-6 space-y-1">
-                  {priceData.notes.map((n, i) => (
-                    <li key={i} className="text-[12px] text-ink-500">{n}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </section>
-        );
+        const decoded = service.slug.toLowerCase();
+        if (CATEGORY_TITLES[decoded]) return null;
+        return <CategorySubProducts activeSlug={decoded} title="Другие товары категории" variant="carousel" />;
       })()}
 
-      {allServices.length > 1 && (
-        <section className="container-page py-14 sm:py-20">
-          <h2 className="h-section mb-6">Другие услуги</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {allServices
-              .filter((s) => s.id !== service.id)
-              .slice(0, 8)
-              .map((s) => (
-                <Link
-                  key={s.id}
-                  href={`/services/${s.slug}`}
-                  className="flex flex-col items-start gap-2 p-4 border border-ink-200 rounded-md hover:border-ink-400 transition-colors"
-                >
-                  <span className="grid place-items-center w-9 h-9 rounded-md bg-ink-100 text-ink-700 font-heading text-base font-semibold">
-                    {s.name.charAt(0)}
-                  </span>
-                  <span className="text-[12px] font-medium text-ink-900">{s.name}</span>
-                </Link>
-              ))}
-          </div>
-        </section>
-      )}
+      <OtherServices excludeSlug={service.slug} />
     </div>
+  );
+}
+
+function OtherServices({ excludeSlug }: { excludeSlug?: string }) {
+  const exclude = decodeURIComponent(excludeSlug || "").toLowerCase();
+  const items = CATALOG_INDEX.filter((i) => i.slug.toLowerCase() !== exclude).slice(0, 8);
+  if (items.length === 0) return null;
+  return (
+    <section className="container-page py-14 sm:py-20">
+      <h2 className="h-section mb-6">Другие услуги</h2>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        {items.map((s) => (
+          <Link
+            key={s.slug}
+            href={`/services/${s.slug}`}
+            className="group flex flex-col overflow-hidden rounded-xl border border-ink-200 bg-white hover:border-ink-300 hover:shadow-card transition-all duration-200"
+          >
+            <div className="relative aspect-[4/3] overflow-hidden bg-ink-100">
+              <img
+                src={s.image}
+                alt={s.title}
+                loading="lazy"
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+            </div>
+            <div className="p-3.5">
+              <h3 className="text-sm font-semibold text-ink-900 group-hover:text-brand transition-colors leading-tight">
+                {s.title}
+              </h3>
+              <p className="mt-0.5 text-[12px] text-ink-500 tabular">{s.from}</p>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }

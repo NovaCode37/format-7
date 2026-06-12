@@ -141,7 +141,7 @@ def _html_wrap(title: str, body_html: str, *, cta: dict | None = None) -> str:
     <hr style="border:0;border-top:1px solid #eee;margin:28px 0">
     <p style="font-size:12px;color:#888;margin:0">
       Format7 — типография в Тюмени.<br>
-      <a href="{site}" style="color:#888">{site or "format7.ru"}</a>
+      <a href="{site}" style="color:#888">{site or "формат7.рф"}</a>
     </p>
   </div>
 </body></html>"""
@@ -191,6 +191,22 @@ def notify_new_order(order) -> None:
         cta={"label": "Перейти к заказу", "url": f"{site}/profile"} if site else None,
     )
     send_email(order.customer_email, f"Заказ {order.order_number} принят", plain, html=html)
+
+    admin_to = (os.environ.get("ORDER_NOTIFY_EMAIL") or os.environ.get("SMTP_FROM") or "").strip()
+    if admin_to:
+        admin_plain = (
+            f"Новый заказ № {order.order_number}\n\n"
+            f"Клиент: {order.customer_name}\n"
+            f"Email: {order.customer_email}\n"
+            f"Телефон: {order.customer_phone or '—'}\n"
+            f"Доставка: {order.delivery_type}"
+            + (f" — {order.delivery_address}" if order.delivery_address else "")
+            + f"\nСумма: {order.total:.2f} ₽\n\n"
+            f"Состав заказа:\n{_fmt_order_lines(order)}\n"
+            + (f"\nКомментарий клиента: {order.comment}\n" if order.comment else "")
+            + "\nЗаказ также виден в админке: /admin"
+        )
+        send_email(admin_to, f"🧾 Новый заказ {order.order_number} — {order.total:.0f} ₽", admin_plain)
 
 def _push_to_order_user(order, title: str, body: str) -> None:
 

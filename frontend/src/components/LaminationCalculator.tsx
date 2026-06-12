@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   Minus, Plus, X, QrCode, Info,
   CheckCircle2, Phone,
-} from "lucide-react";
+} from "@/lib/icons";
 import { api } from "@/lib/api";
 import { useToast } from "./Toast";
 
@@ -398,7 +398,7 @@ function CheckoutModal({
                 <QrCode size={22} />
               </span>
               <div className="text-[12px] text-ink-700">
-                <p className="font-semibold text-ink-900">Оплата по QR-коду СБП</p>
+                <p className="font-semibold text-ink-900">Оплата по согласованию</p>
                 <p>Ссылка придёт после подтверждения менеджером</p>
               </div>
             </div>

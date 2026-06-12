@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { Upload, FileCheck2, Truck, Package, Palette, Info, LayoutTemplate } from "lucide-react";
+import { Upload, FileCheck2, Truck, Package, Palette, Info, LayoutTemplate } from "@/lib/icons";
 import {
   PillsField, QuantityField, TrackCard, BreakdownRow, CheckoutModal, DesignBriefCard,
   TemplateCatalogCard, DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
@@ -14,16 +14,16 @@ type YesNo = "Да" | "Нет";
 
 const BOOKLET_SLUGS = ["буклеты", "оперативная-полиграфия"];
 
-const QTY_TIERS = [10, 50, 100, 200, 500] as const;
+const QTY_TIERS = [10, 50, 100, 200, 500, 1000] as const;
 type Tier = (typeof QTY_TIERS)[number];
-const QTY_PRESETS = [10, 50, 100, 200, 500];
+const QTY_PRESETS = [10, 50, 100, 200, 500, 1000];
 const MIN_QTY = 10;
-const MAX_QTY = 500;
+const MAX_QTY = 1000;
 
 const PRINT_PRICE: Record<Color, Record<Tier, number>> = {
-  "Цветная":       { 10: 70, 50: 64, 100: 60, 200: 55, 500: 50 },
-  "Цветная + ч/б": { 10: 50, 50: 45, 100: 41, 200: 38, 500: 34 },
-  "Чёрно-белая":   { 10: 30, 50: 25, 100: 23, 200: 21, 500: 18 },
+  "Цветная":       { 10: 70, 50: 64, 100: 60, 200: 55, 500: 50, 1000: 45 },
+  "Цветная + ч/б": { 10: 50, 50: 45, 100: 41, 200: 38, 500: 34, 1000: 30 },
+  "Чёрно-белая":   { 10: 30, 50: 25, 100: 23, 200: 21, 500: 18, 1000: 15 },
 };
 
 const LAMINATION_PER_COPY = 50;
@@ -90,8 +90,7 @@ export default function BookletCalculator({ serviceId }: { serviceId?: number })
           </p>
         </div>
 
-        <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <TrackCard active={track === "template"} onClick={() => setTrack("template")} icon={<LayoutTemplate size={18} />} title="Каталог шаблонов" hint="Готовые макеты" />
+        <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-2">
           <TrackCard active={track === "upload"} onClick={() => setTrack("upload")} icon={<Upload size={18} />} title="Загрузить ваш макет" hint="У вас уже есть готовый файл" />
           <TrackCard active={track === "design"} onClick={() => setTrack("design")} icon={<Palette size={18} />} title="Заказ дизайна" hint="1500 / 2000 ₽ по сложениям" />
         </div>
@@ -145,7 +144,7 @@ export default function BookletCalculator({ serviceId }: { serviceId?: number })
           <div className="lg:col-span-5">
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
 
-              <PillsField label="Цветность" values={["Чёрно-белая", "Цветная + ч/б", "Цветная"]} value={color} onChange={(v) => setColor(v as Color)} hint="двусторонняя печать" />
+              <PillsField label="Цветность" values={["Цветная", "Цветная + ч/б", "Чёрно-белая"]} value={color} onChange={(v) => setColor(v as Color)} hint="двусторонняя печать" />
 
               <div>
                 <label className="block text-[12px] font-semibold text-ink-700 mb-1.5">Количество бигов (сложений)</label>
@@ -197,7 +196,7 @@ export default function BookletCalculator({ serviceId }: { serviceId?: number })
                 <button onClick={() => setCheckoutOpen(true)} className="mt-4 w-full h-12 rounded-lg flex items-center justify-center gap-2 font-semibold text-[14px] bg-amber-500 text-white hover:bg-amber-600 transition-colors">
                   Оформить заказ
                 </button>
-                <p className="mt-3 text-[11px] text-ink-500 leading-relaxed">После оформления менеджер проверит макет и пришлёт <strong>QR-код для оплаты</strong>.</p>
+                <p className="mt-3 text-[11px] text-ink-500 leading-relaxed">После оформления менеджер проверит макет и свяжется для подтверждения и оплаты.</p>
               </div>
             </div>
           </div>

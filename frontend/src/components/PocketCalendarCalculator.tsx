@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { Upload, FileCheck2, Truck, Package, Palette, LayoutTemplate } from "lucide-react";
+import { Upload, FileCheck2, Truck, Package, Palette, LayoutTemplate } from "@/lib/icons";
 import {
   PillsField, QuantityField, TrackCard, BreakdownRow, CheckoutModal, DesignBriefCard,
   TemplateCatalogCard, DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
@@ -83,8 +83,7 @@ export default function PocketCalendarCalculator({ serviceId }: { serviceId?: nu
           </p>
         </div>
 
-        <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <TrackCard active={track === "template"} onClick={() => setTrack("template")} icon={<LayoutTemplate size={18} />} title="Каталог шаблонов" hint="Готовые макеты" />
+        <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-2">
           <TrackCard active={track === "upload"} onClick={() => setTrack("upload")} icon={<Upload size={18} />} title="Загрузить ваш макет" hint="У вас уже есть готовый файл" />
           <TrackCard active={track === "design"} onClick={() => setTrack("design")} icon={<Palette size={18} />} title="Заказ дизайна" hint="Разработка 1 000 ₽" />
         </div>
@@ -121,6 +120,7 @@ export default function PocketCalendarCalculator({ serviceId }: { serviceId?: nu
 
               <div className="rounded-xl border border-ink-200 bg-ink-50 p-4 text-[12px] text-ink-600 space-y-2">
                 <p><strong className="text-ink-900">Формат:</strong> 70×100 мм, бумага 300 г/м², печать 4+4.</p>
+                <p>Размер готового изделия может отличаться от стандартного на ±2 мм.</p>
                 <p className="flex items-center gap-1.5"><Truck size={13} /> Доставка по Тюмени — 700 ₽.</p>
                 <p className="flex items-center gap-1.5"><Package size={13} /> Возможна отправка СДЭК наложенным платежом по РФ.</p>
               </div>
@@ -138,7 +138,7 @@ export default function PocketCalendarCalculator({ serviceId }: { serviceId?: nu
                 <PillsField label="Скругление углов" values={["Нет", "Да"]} value={rounding} onChange={(v) => setRounding(v as YesNo)} hint={rounding === "Да" ? `+${ROUNDING_PER_UNIT} ₽/шт` : undefined} />
               </div>
               <div className="pt-4 border-t border-ink-100">
-                <QuantityField presets={QTY_PRESETS} value={quantity} onChange={setQuantity} min={MIN_QTY} max={MAX_QTY} step={5} hint={`Максимальный тираж — ${MAX_QTY} шт. Цена — ${PRICE[50]} ₽/шт (печать цветная двусторонняя).`} />
+                <QuantityField presets={QTY_PRESETS} value={quantity} onChange={setQuantity} min={MIN_QTY} max={MAX_QTY} step={5} />
               </div>
               <div className="pt-4 border-t border-ink-100">
                 <PillsField label="Доставка" values={DELIVERY_VALUES} value={delivery} onChange={(v) => setDelivery(v as Delivery)} />
@@ -160,7 +160,7 @@ export default function PocketCalendarCalculator({ serviceId }: { serviceId?: nu
                   <p className="mt-1 font-heading text-3xl font-bold text-ink-900 tabular tracking-tight">{fmt(calc.grandTotal)}&nbsp;₽</p>
                 </div>
                 <button onClick={() => setCheckoutOpen(true)} className="mt-4 w-full h-12 rounded-lg flex items-center justify-center gap-2 font-semibold text-[14px] bg-amber-500 text-white hover:bg-amber-600 transition-colors">Оформить заказ</button>
-                <p className="mt-3 text-[11px] text-ink-500 leading-relaxed">После оформления менеджер проверит макет и пришлёт <strong>QR-код для оплаты</strong>.</p>
+                <p className="mt-3 text-[11px] text-ink-500 leading-relaxed">После оформления менеджер проверит макет и свяжется для подтверждения и оплаты.</p>
               </div>
             </div>
           </div>

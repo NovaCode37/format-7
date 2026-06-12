@@ -1,9 +1,10 @@
 
 {
-  email admin@format7.ru
+  email Format7-tmn@yandex.ru
 }
 
-format7.ru, www.format7.ru {
+# формат7.рф (punycode для корректного выпуска сертификата Let's Encrypt)
+xn--7-7sb9ahkoj.xn--p1ai, www.xn--7-7sb9ahkoj.xn--p1ai {
   encode zstd gzip
 
   handle_path /api/* {

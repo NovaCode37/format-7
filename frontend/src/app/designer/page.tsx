@@ -10,7 +10,7 @@ import {
   Palette, Type, Download, ShoppingCart,
   RotateCcw, ZoomIn, ZoomOut, AlignLeft, AlignCenter, AlignRight,
   CheckCircle, Layers, PenTool, ClipboardList,
-} from "lucide-react";
+} from "@/lib/icons";
 import DesignBriefForm from "@/components/DesignBriefForm";
 
 interface Template {
@@ -39,9 +39,17 @@ const TEMPLATES: Template[] = [
   { id: 10, name: "Лаванда", category: "Креативные", bg: "linear-gradient(135deg,#e8d5f5,#f3e7fa)", accent: "#6b21a8", textColor: "#4c1d95" },
   { id: 11, name: "Огонь", category: "Яркие", bg: "linear-gradient(135deg,#f12711,#f5af19)", accent: "#ffffff", textColor: "#ffffff" },
   { id: 12, name: "Сталь", category: "Бизнес", bg: "linear-gradient(135deg,#bdc3c7,#2c3e50)", accent: "#ecf0f1", textColor: "#ecf0f1" },
+  { id: 13, name: "Изумруд", category: "Яркие", bg: "linear-gradient(135deg,#11998e,#38ef7d)", accent: "#ffffff", textColor: "#ffffff" },
+  { id: 14, name: "Графит", category: "Минимализм", bg: "#f4f4f5", accent: "#18181b", textColor: "#27272a" },
+  { id: 15, name: "Мрамор", category: "Минимализм", bg: "#f8f7f4", accent: "#a07e5d", textColor: "#3f3a34" },
+  { id: 16, name: "Неон", category: "Тёмные", bg: "#0f0f1a", accent: "#00f5d4", textColor: "#f0f0f0" },
+  { id: 17, name: "Винтаж", category: "Креативные", bg: "#f3e9d2", accent: "#9c4722", textColor: "#5a3e2b" },
+  { id: 18, name: "Сапфир", category: "Бизнес", bg: "linear-gradient(135deg,#0f2027,#2c5364)", accent: "#56ccf2", textColor: "#eaf6ff" },
+  { id: 19, name: "Роза", category: "Креативные", bg: "linear-gradient(135deg,#ee9ca7,#ffdde1)", accent: "#b03052", textColor: "#7a2540" },
+  { id: 20, name: "Контраст", category: "Тёмные", bg: "#000000", accent: "#facc15", textColor: "#ffffff" },
 ];
 
-const FONTS = ["Inter", "Georgia", "Courier New", "Arial Black", "Verdana", "Trebuchet MS"];
+const FONTS = ["Inter", "Georgia", "Times New Roman", "Courier New", "Arial Black", "Impact", "Verdana", "Tahoma", "Trebuchet MS", "Palatino Linotype"];
 
 const PRODUCT_GROUPS = [
   "Визитки", "Полиграфия", "Сувениры", "Текстиль", "Фото", "Награды",
@@ -90,7 +98,7 @@ const FIELD_LABELS: Record<string, string> = {
 const FIELD_DEFAULTS: Record<string, string> = {
   company: "Format7", person: "Иван Иванов", position: "Менеджер",
   phone: "+7 932 475-95-11", email: "Format7-tmn@yandex.ru",
-  website: "format7.ru", address: "г. Тюмень",
+  website: "формат7.рф", address: "г. Тюмень",
   headline: "Заголовок", subline: "Подзаголовок",
   body: "Текст описания здесь", cta: "Заказать", year: "2026",
 };
@@ -121,6 +129,14 @@ export default function DesignerPage() {
   const [side, setSide] = useState<"front" | "back">("front");
   const [textAlign, setTextAlign] = useState<"left" | "center" | "right">("left");
   const [tab, setTab] = useState<"product" | "templates" | "text" | "style">("product");
+  const [logo, setLogo] = useState<HTMLImageElement | null>(null);
+
+  const handleLogo = (file?: File) => {
+    if (!file) { setLogo(null); return; }
+    const img = new Image();
+    img.onload = () => setLogo(img);
+    img.src = URL.createObjectURL(file);
+  };
 
   const [quantity, setQuantity] = useState(100);
   const [sending, setSending] = useState(false);
@@ -198,6 +214,13 @@ export default function DesignerPage() {
       ctx.font = `${Math.min(14, cw * 0.035)}px ${fontFamily}, sans-serif`;
       ctx.fillStyle = txtColor + "88";
       ctx.fillText(f("website") || f("subline") || f("phone"), cw / 2, ch / 2 + 20);
+      if (logo) {
+        const ratio = (logo.width || 1) / (logo.height || 1);
+        let lw = cw * 0.3, lh = lw / ratio;
+        const maxH = ch * 0.35;
+        if (lh > maxH) { lh = maxH; lw = lh * ratio; }
+        ctx.drawImage(logo, (cw - lw) / 2, ch * 0.12, lw, lh);
+      }
       if (isRound) ctx.restore();
       return;
     }
@@ -328,12 +351,20 @@ export default function DesignerPage() {
       }
     }
 
+    if (logo) {
+      const ratio = (logo.width || 1) / (logo.height || 1);
+      let lw = cw * 0.24, lh = lw / ratio;
+      const maxH = ch * 0.3;
+      if (lh > maxH) { lh = maxH; lw = lh * ratio; }
+      ctx.drawImage(logo, cw - lw - 14, 14, lw, lh);
+    }
+
     if (isRound) ctx.restore();
-  }, [fields, fontFamily, bg, accent, txtColor, zoom, side, textAlign, product, templateId]);
+  }, [fields, fontFamily, bg, accent, txtColor, zoom, side, textAlign, product, templateId, logo]);
 
   const handleOrder = async () => {
     const cName = user?.name || f("person") || f("headline");
-    const cEmail = user?.email || f("email") || "order@format7.ru";
+    const cEmail = user?.email || f("email") || "Format7-tmn@yandex.ru";
     if (!cName) { router.push("/login"); return; }
 
     setSending(true);
@@ -393,7 +424,7 @@ export default function DesignerPage() {
     return (
       <div className="bg-white min-h-[60vh] py-16 sm:py-24">
         <div className="container-page max-w-xl mx-auto text-center">
-          <CheckCircle className="mx-auto mb-6 text-emerald-600" size={40} strokeWidth={1.5} />
+          <CheckCircle className="mx-auto mb-6 text-emerald-600" size={40} strokeWidth={2} />
           <p className="eyebrow mb-4">Готово</p>
           <h1 className="h-display mb-4">Заказ оформлен.</h1>
           <p className="text-ink-500 mb-2">Номер заказа:</p>
@@ -409,7 +440,7 @@ export default function DesignerPage() {
   }
 
   if (mode === "brief") {
-    return <DesignBriefForm onUseConstructor={() => setMode("constructor")} />;
+    return <DesignBriefForm />;
   }
 
   return (
@@ -443,7 +474,7 @@ export default function DesignerPage() {
                   tab === key ? "text-ink-900 border-b-2 border-ink-900 bg-ink-50" : "text-ink-400 hover:text-ink-700"
                 }`}
               >
-                <Icon size={14} strokeWidth={1.75} />
+                <Icon size={14} strokeWidth={2} />
                 {label}
               </button>
             ))}
@@ -534,6 +565,19 @@ export default function DesignerPage() {
             {tab === "style" && (
               <div className="space-y-4">
                 <div>
+                  <label className="block text-[10px] font-medium text-ink-500 mb-1">Логотип</label>
+                  <div className="flex items-center gap-2">
+                    <label className="flex-1 cursor-pointer text-[10px] font-medium text-ink-700 border border-dashed border-ink-300 rounded-md px-2.5 py-2 hover:border-ink-500 transition-colors text-center">
+                      {logo ? "Заменить логотип" : "Загрузить PNG / JPG"}
+                      <input type="file" accept="image/png,image/jpeg,image/svg+xml" hidden onChange={(e) => handleLogo(e.target.files?.[0])} />
+                    </label>
+                    {logo && (
+                      <button onClick={() => setLogo(null)} className="text-[10px] font-medium text-ink-500 hover:text-red-600 transition-colors shrink-0">Убрать</button>
+                    )}
+                  </div>
+                  <p className="mt-1 text-[10px] text-ink-400">Прозрачный PNG — лучше всего. На лицевой — в углу, на оборотной — по центру.</p>
+                </div>
+                <div>
                   <label className="block text-[10px] font-medium text-ink-500 mb-1">Шрифт</label>
                   <select value={fontFamily} onChange={(e) => setFontFamily(e.target.value)}
                     className="w-full border border-ink-200 rounded-md px-2.5 py-1.5 text-xs outline-none focus:border-ink-500 transition-colors">
@@ -546,7 +590,7 @@ export default function DesignerPage() {
                     {([["left", AlignLeft], ["center", AlignCenter], ["right", AlignRight]] as const).map(([a, Icon]) => (
                       <button key={a} onClick={() => setTextAlign(a)}
                         className={`p-2 rounded-md transition-colors ${textAlign === a ? "bg-ink-900 text-white" : "bg-ink-100 text-ink-500 hover:text-ink-900"}`}>
-                        <Icon size={14} strokeWidth={1.75} />
+                        <Icon size={14} strokeWidth={2} />
                       </button>
                     ))}
                   </div>
@@ -583,11 +627,11 @@ export default function DesignerPage() {
             <button onClick={() => setSide("front")} className={`px-3 py-1 rounded-md text-[11px] font-medium transition-colors ${side === "front" ? "bg-ink-900 text-white" : "text-ink-500 hover:text-ink-900"}`}>Лицевая</button>
             <button onClick={() => setSide("back")} className={`px-3 py-1 rounded-md text-[11px] font-medium transition-colors ${side === "back" ? "bg-ink-900 text-white" : "text-ink-500 hover:text-ink-900"}`}>Оборотная</button>
             <div className="w-px h-5 bg-ink-200 mx-1" />
-            <button onClick={() => setZoom((z) => Math.max(0.5, z - 0.1))} className="p-1 text-ink-400 hover:text-ink-900 transition-colors"><ZoomOut size={15} strokeWidth={1.75} /></button>
+            <button onClick={() => setZoom((z) => Math.max(0.5, z - 0.1))} className="p-1 text-ink-400 hover:text-ink-900 transition-colors"><ZoomOut size={15} strokeWidth={2} /></button>
             <span className="text-[10px] text-ink-400 w-10 text-center tabular">{Math.round(zoom * 100)}%</span>
-            <button onClick={() => setZoom((z) => Math.min(2, z + 0.1))} className="p-1 text-ink-400 hover:text-ink-900 transition-colors"><ZoomIn size={15} strokeWidth={1.75} /></button>
+            <button onClick={() => setZoom((z) => Math.min(2, z + 0.1))} className="p-1 text-ink-400 hover:text-ink-900 transition-colors"><ZoomIn size={15} strokeWidth={2} /></button>
             <div className="w-px h-5 bg-ink-200 mx-1" />
-            <button onClick={() => { setBgOverride(""); setAccentOverride(""); setZoom(1); }} className="p-1 text-ink-400 hover:text-ink-900 transition-colors" title="Сбросить"><RotateCcw size={14} strokeWidth={1.75} /></button>
+            <button onClick={() => { setBgOverride(""); setAccentOverride(""); setZoom(1); }} className="p-1 text-ink-400 hover:text-ink-900 transition-colors" title="Сбросить"><RotateCcw size={14} strokeWidth={2} /></button>
           </div>
           <div className="bg-ink-100 rounded-md p-6 flex items-center justify-center min-h-[300px] w-full border border-ink-200">
             <div className="shadow-lg rounded-md overflow-hidden" style={{ lineHeight: 0 }}>
@@ -624,7 +668,7 @@ export default function DesignerPage() {
             </div>
             <button onClick={handleOrder} disabled={sending}
               className="btn-primary w-full disabled:opacity-60 disabled:cursor-not-allowed">
-              <ShoppingCart size={14} strokeWidth={1.75} />
+              <ShoppingCart size={14} strokeWidth={2} />
               {sending ? "Оформляем…" : "Заказать печать"}
             </button>
             {!user && (
@@ -635,7 +679,7 @@ export default function DesignerPage() {
           </div>
           <button onClick={handleDownload}
             className="btn w-full">
-            <Download size={14} strokeWidth={1.75} /> Скачать макет PNG
+            <Download size={14} strokeWidth={2} /> Скачать макет PNG
           </button>
           <div className="border border-ink-200 rounded-md p-3 text-[10px] text-ink-400 space-y-1.5">
             <p>Макет проверит дизайнер.</p>

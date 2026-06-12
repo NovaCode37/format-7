@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "@/lib/icons";
 import { IMG } from "@/lib/images";
 import Reveal, { Stagger, StaggerItem } from "./Reveal";
 
