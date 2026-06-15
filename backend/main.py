@@ -1203,6 +1203,8 @@ def admin_update_status(
     mark_paid = new_status == "paid" and order.payment_status != "paid"
     if mark_paid:
         order.payment_status = "paid"
+    if new_status == "cancelled" and order.payment_status == "paid":
+        order.payment_status = "cancelled"
     db.commit()
     db.refresh(order)
     audit.record(
