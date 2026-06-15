@@ -12,9 +12,10 @@ export default function OrderStatusPage() {
 
   const statusLabels: Record<string, string> = {
     new: "Новый",
-    processing: "В обработке",
-    ready: "Готов",
-    completed: "Выполнен",
+    paid: "Оплачен",
+    processing: "В работе",
+    ready: "Готов к выдаче",
+    completed: "Выдан",
     cancelled: "Отменён",
   };
 

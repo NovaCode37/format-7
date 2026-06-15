@@ -154,6 +154,28 @@ def _fmt_order_lines(order) -> str:
     return "\n".join(lines) or "  (без позиций)"
 
 def notify_new_order(order) -> None:
+    from database import SessionLocal
+    from sqlalchemy.orm import joinedload
+    from models import Order as _Order, OrderItem as _OrderItem
+
+    order_id = getattr(order, "id", None)
+    _db = SessionLocal()
+    try:
+        if order_id is not None:
+            fresh = (
+                _db.query(_Order)
+                .options(joinedload(_Order.items).joinedload(_OrderItem.service))
+                .filter(_Order.id == order_id)
+                .first()
+            )
+            if fresh is not None:
+                order = fresh
+        _notify_new_order_impl(order)
+    finally:
+        _db.close()
+
+
+def _notify_new_order_impl(order) -> None:
 
     tg = (
         f"<b>🧾 Новый заказ {order.order_number}</b>\n"
@@ -305,16 +327,42 @@ def notify_refund(order, amount: float) -> None:
 
 def notify_status_changed(order, new_status: str) -> None:
     labels = {
-        "processing": "взят в работу",
-        "ready": "готов к выдаче",
-        "completed": "выдан",
-        "cancelled": "отменён",
+        "new": "Новый",
+        "paid": "Оплачен",
+        "processing": "В работе",
+        "ready": "Готов к выдаче",
+        "completed": "Выдан",
+        "cancelled": "Отменён",
+    }
+    messages = {
+        "new": "Мы получили ваш заказ и скоро свяжемся с вами.",
+        "paid": "Оплата получена — мы приступили к выполнению заказа.",
+        "processing": "Мы начали работу над вашим заказом.",
+        "ready": "Ваш заказ готов и ждёт вас. Можно забирать!",
+        "completed": "Заказ выдан. Спасибо, что выбрали Format7!",
+        "cancelled": "К сожалению, заказ был отменён. По вопросам свяжитесь с нами.",
     }
     human = labels.get(new_status, new_status)
+    detail = messages.get(new_status, f"Новый статус заказа: {human}.")
+
     send_telegram(f"📦 <b>{order.order_number}</b>: статус — <i>{human}</i>")
-    _push_to_order_user(order, f"Заказ {order.order_number}", f"Статус изменился: {human}")
+    _push_to_order_user(order, f"Заказ {order.order_number}", detail)
+
+    plain = (
+        f"Здравствуйте, {order.customer_name}!\n\n"
+        f"Статус вашего заказа № {order.order_number}: {human}.\n"
+        f"{detail}\n\n"
+        "Отследить заказ можно в личном кабинете на сайте."
+    )
+    html = _html_wrap(
+        f"Заказ №&nbsp;{order.order_number}: {human}",
+        f"<p>Здравствуйте, {order.customer_name}!</p>"
+        f"<p>Статус вашего заказа <b>№&nbsp;{order.order_number}</b>: <b>{human}</b>.</p>"
+        f"<p>{detail}</p>",
+    )
     send_email(
         order.customer_email,
         f"Заказ {order.order_number}: {human}",
-        f"Здравствуйте, {order.customer_name}!\n\nСтатус вашего заказа № {order.order_number} изменился: {human}.\n",
+        plain,
+        html=html,
     )

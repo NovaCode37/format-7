@@ -1200,6 +1200,9 @@ def admin_update_status(
         return order
     old_status = order.status
     order.status = new_status
+    mark_paid = new_status == "paid" and order.payment_status != "paid"
+    if mark_paid:
+        order.payment_status = "paid"
     db.commit()
     db.refresh(order)
     audit.record(
@@ -1210,7 +1213,10 @@ def admin_update_status(
         diff={"from": old_status, "to": new_status},
         request=request,
     )
-    background.add_task(notify_status_changed, order, new_status)
+    if mark_paid:
+        background.add_task(notify_order_paid, order)
+    else:
+        background.add_task(notify_status_changed, order, new_status)
     return order
 
 @app.post("/api/admin/orders/{order_number}/refund", response_model=RefundOut, dependencies=[Depends(refund_limit)])

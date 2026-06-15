@@ -324,7 +324,7 @@ export function CheckoutModal({
   onClose: () => void;
 }) {
   const toast = useToast();
-  const { token } = useAuth();
+  const { token, refreshCart } = useAuth();
   const router = useRouter();
   const [comment, setComment] = useState("");
   const [adding, setAdding] = useState(false);
@@ -348,6 +348,7 @@ export function CheckoutModal({
       if (summary.fileId) options._fileId = summary.fileId;
       const note = [summary.productLabel, ...summary.lines].filter(Boolean).join(" · ");
       await api.addToCart(serviceId || 0, 1, { price: summary.total, options, note }, token);
+      await refreshCart();
       toast.success("Добавлено в корзину");
       onClose();
       router.push("/cart");
