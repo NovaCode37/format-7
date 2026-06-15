@@ -854,7 +854,7 @@ def create_order(
     db.commit()
     db.refresh(order)
 
-    background.add_task(notify_new_order, order)
+    background.add_task(notify_new_order, order.id)
 
     response = OrderOut.model_validate(order).model_dump(mode="json")
     idempotency.remember(db, request, scope="orders.create", response=response, user_id=user.id if user else None)

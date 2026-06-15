@@ -153,23 +153,25 @@ def _fmt_order_lines(order) -> str:
         lines.append(f"  • {name} × {it.quantity} — {it.price:.2f} ₽")
     return "\n".join(lines) or "  (без позиций)"
 
-def notify_new_order(order) -> None:
+def notify_new_order(order_id) -> None:
     from database import SessionLocal
     from sqlalchemy.orm import joinedload
     from models import Order as _Order, OrderItem as _OrderItem
 
-    order_id = getattr(order, "id", None)
+    if not isinstance(order_id, int):
+        order_id = getattr(order_id, "id", None)
+    if order_id is None:
+        return
     _db = SessionLocal()
     try:
-        if order_id is not None:
-            fresh = (
-                _db.query(_Order)
-                .options(joinedload(_Order.items).joinedload(_OrderItem.service))
-                .filter(_Order.id == order_id)
-                .first()
-            )
-            if fresh is not None:
-                order = fresh
+        order = (
+            _db.query(_Order)
+            .options(joinedload(_Order.items).joinedload(_OrderItem.service))
+            .filter(_Order.id == order_id)
+            .first()
+        )
+        if order is None:
+            return
         _notify_new_order_impl(order)
     finally:
         _db.close()
