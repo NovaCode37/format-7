@@ -116,6 +116,7 @@ export default function RootLayout({
   return (
     <html lang="ru" className={inter.variable} style={{ ["--font-inter" as any]: "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif" }}>
       <head>
+        <link rel="icon" href="/favicon.ico" sizes="48x48" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
         <link rel="icon" type="image/svg+xml" href="/icon.svg" />
