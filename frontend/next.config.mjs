@@ -1,4 +1,13 @@
-const apiOrigin = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// HTTP headers (CSP) must be ASCII — convert any IDN host (формат7.рф) to punycode.
+function toAsciiOrigin(raw) {
+  try {
+    return new URL(raw).origin;
+  } catch {
+    return raw;
+  }
+}
+
+const apiOrigin = toAsciiOrigin(process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000");
 
 const isDev = process.env.NODE_ENV !== "production";
 
