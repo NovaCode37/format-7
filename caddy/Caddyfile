@@ -7,15 +7,12 @@
 xn--7-7sb9ahkoj.xn--p1ai, www.xn--7-7sb9ahkoj.xn--p1ai {
   encode zstd gzip
 
-  handle_path /api/* {
+  handle /api/* {
     reverse_proxy backend:8000 {
       header_up X-Real-IP {remote_host}
       header_up X-Forwarded-For {remote_host}
       header_up X-Forwarded-Proto {scheme}
     }
-  }
-  handle /api/payments/webhook/* {
-    reverse_proxy backend:8000
   }
   handle /health {
     reverse_proxy backend:8000
