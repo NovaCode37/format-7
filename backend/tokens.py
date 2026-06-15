@@ -22,22 +22,23 @@ def issue(db: Session, user: User, purpose: str, ttl_minutes: int) -> str:
     db.commit()
     return raw
 
-def consume(db: Session, raw: str, purpose: str) -> User | None:
+def consume(db: Session, raw: str, purpose: str, allow_reuse: bool = False) -> User | None:
 
     if not raw:
         return None
     rec = db.query(AuthToken).filter(AuthToken.token_hash == _hash(raw), AuthToken.purpose == purpose).first()
     if not rec:
         return None
-    if rec.used_at is not None:
-        return None
     if rec.expires_at < datetime.utcnow():
+        return None
+    if rec.used_at is not None and not allow_reuse:
         return None
     user = db.query(User).filter(User.id == rec.user_id).first()
     if not user:
         return None
-    rec.used_at = datetime.utcnow()
-    db.commit()
+    if rec.used_at is None:
+        rec.used_at = datetime.utcnow()
+        db.commit()
     return user
 
 def invalidate_pending(db: Session, user_id: int, purpose: str) -> None:

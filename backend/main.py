@@ -510,7 +510,7 @@ def reset_password(data: ResetPasswordIn, db: Session = Depends(get_db)):
 
 @app.post("/api/auth/verify-email")
 def verify_email(data: VerifyEmailIn, db: Session = Depends(get_db)):
-    user = auth_tokens.consume(db, data.token, purpose="email_verify")
+    user = auth_tokens.consume(db, data.token, purpose="email_verify", allow_reuse=True)
     if not user:
         raise HTTPException(status_code=400, detail="Ссылка недействительна или устарела")
     user.email_verified = True
