@@ -1,4 +1,3 @@
-// HTTP headers (CSP) must be ASCII — convert any IDN host (формат7.рф) to punycode.
 function toAsciiOrigin(raw) {
   try {
     return new URL(raw).origin;
