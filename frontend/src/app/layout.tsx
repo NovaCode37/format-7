@@ -22,33 +22,43 @@ const METRIKA_ID = process.env.NEXT_PUBLIC_YM_ID || "";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Format7 — типография и копицентр в Тюмени",
-    template: "%s — Format7",
+    default: "Формат7 — типография и копицентр в Тюмени",
+    template: "%s — Формат7",
   },
   description:
-    "Format7 — типография полного цикла в Тюмени. Визитки, флаеры, сувениры, текстиль. Срочная печать за 1 час, доставка по городу.",
-  keywords: ["типография", "копицентр", "печать", "визитки", "Тюмень", "Format7", "срочная печать"],
+    "Формат7 — онлайн-типография в Тюмени: визитки, листовки, флаеры, буклеты, наклейки, календари, печать документов и фотографий. Срочная печать за 1 час, доставка по городу.",
+  keywords: [
+    "типография Тюмень", "печать Тюмень", "визитки Тюмень", "листовки", "флаеры", "буклеты",
+    "наклейки", "печать документов", "печать фото", "копицентр", "полиграфия Тюмень",
+    "Формат7", "формат7.рф", "срочная печать",
+  ],
   openGraph: {
     type: "website",
     locale: "ru_RU",
     url: SITE_URL,
-    siteName: "Format7",
-    title: "Format7 — типография и копицентр в Тюмени",
-    description: "Срочная печать, визитки, полиграфия, сувениры.",
+    siteName: "Формат7",
+    title: "Формат7 — типография и копицентр в Тюмени",
+    description: "Срочная печать за 1 час, визитки, полиграфия, фотопечать. Доставка по Тюмени.",
+    images: [{ url: "/logo.png", width: 512, height: 512, alt: "Формат7 — типография в Тюмени" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Format7 — типография и копицентр в Тюмени",
-    description: "Срочная печать, визитки, полиграфия, сувениры.",
+    title: "Формат7 — типография в Тюмени",
+    description: "Срочная печать, визитки, полиграфия, фотопечать.",
+    images: ["/logo.png"],
   },
   robots: {
     index: true,
     follow: true,
-    googleBot: { index: true, follow: true, "max-image-preview": "large" },
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
   },
   alternates: { canonical: SITE_URL },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || undefined,
+    yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION || undefined,
+  },
   manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, statusBarStyle: "default", title: "Format7" },
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "Формат7" },
 };
 
 export const viewport: Viewport = {
@@ -57,27 +67,45 @@ export const viewport: Viewport = {
 
 const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "LocalBusiness",
-  "@id": SITE_URL,
-  name: "Format7",
-  image: `${SITE_URL}/og.jpg`,
+  "@type": "PrintShop",
+  "@id": `${SITE_URL}/#business`,
+  name: "Формат7",
+  legalName: "ИП Голубев Александр Александрович",
+  image: `${SITE_URL}/logo.png`,
   url: SITE_URL,
-  telephone: "+7 932 475-95-11",
+  telephone: "+79324759511",
+  email: "Format7-tmn@yandex.ru",
   priceRange: "₽₽",
   address: {
     "@type": "PostalAddress",
+    streetAddress: "ул. Широтная, д. 113, к1 стр1, офис 7",
     addressLocality: "Тюмень",
+    postalCode: "625046",
     addressCountry: "RU",
   },
+  geo: {
+    "@type": "GeoCoordinates",
+    latitude: 57.109684,
+    longitude: 65.590356,
+  },
+  areaServed: { "@type": "City", name: "Тюмень" },
   openingHoursSpecification: [
     {
       "@type": "OpeningHoursSpecification",
-      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      opens: "09:00",
+      closes: "19:00",
+    },
+    {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ["Saturday"],
       opens: "10:00",
-      closes: "21:00",
+      closes: "16:00",
     },
   ],
-  sameAs: [] as string[],
+  sameAs: [
+    "https://max.ru/u/f9LHodD0cOL5K_y_ohndrIuQqxgsgd1UTeFnK4VSa5Swa303MHSbSyCAxRE",
+  ],
 };
 
 export default function RootLayout({

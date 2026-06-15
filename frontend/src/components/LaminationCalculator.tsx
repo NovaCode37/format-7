@@ -61,7 +61,7 @@ export default function LaminationCalculator({ serviceId }: { serviceId?: number
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
           <div className="lg:col-span-4">
-            <div className="sticky top-24 space-y-3">
+            <div className="lg:sticky lg:top-24 space-y-3">
               <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-[12px] text-ink-700 space-y-2.5">
                 <div className="flex items-start gap-2">
                   <Info size={14} className="text-amber-600 mt-0.5 shrink-0" />
@@ -123,7 +123,7 @@ export default function LaminationCalculator({ serviceId }: { serviceId?: number
           </div>
 
           <div className="lg:col-span-3">
-            <div className="sticky top-24 space-y-3">
+            <div className="lg:sticky lg:top-24 space-y-3">
               <div className="rounded-xl border border-ink-200 bg-white p-5">
                 <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500 mb-3">
                   Расчёт стоимости

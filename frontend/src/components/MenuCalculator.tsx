@@ -165,53 +165,65 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
           <div className="lg:col-span-4">
-            <div className="sticky top-24 space-y-3">
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className={`w-full rounded-xl border-2 border-dashed p-6 text-left transition-colors ${
-                  uploadedFile
-                    ? "border-emerald-400 bg-emerald-50"
-                    : "border-amber-300 bg-amber-50 hover:bg-amber-100"
-                }`}
-              >
-                <div className="flex items-center gap-3 mb-2">
-                  <span className={`grid place-items-center w-11 h-11 rounded-lg ${
-                    uploadedFile ? "bg-emerald-600 text-white" : "bg-amber-500 text-white"
-                  }`}>
-                    {uploadedFile ? <FileCheck2 size={20} /> : <Upload size={20} />}
-                  </span>
-                  <div>
-                    <p className="font-heading text-base font-bold text-ink-900">
-                      {uploadedFile ? "Макет загружен" : "Загрузить ваш макет"}
-                    </p>
-                    <p className="text-[12px] text-ink-500">PDF, JPG, PNG, AI, CDR, PSD</p>
-                  </div>
-                </div>
-                {uploadedFile && (
-                  <p className="mt-2 text-[12px] text-emerald-700 break-all">{uploadedFile.name}</p>
-                )}
-                <p className="mt-3 text-[11px] text-ink-500">Файл будет передан менеджеру вместе с заказом</p>
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                hidden
-                accept=".pdf,.jpg,.jpeg,.png,.docx,.doc,.ai,.cdr,.eps,.tiff,.psd"
-                onChange={(e) => handleUpload(e.target.files)}
-              />
+            <div className="lg:sticky lg:top-24 space-y-3">
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setNeedDesign("Нет")}
+                  className={`rounded-xl border p-3 text-left transition-colors ${needDesign === "Нет" ? "border-ink-900 bg-ink-50" : "border-ink-200 hover:border-ink-300"}`}
+                >
+                  <span className="flex items-center gap-2 text-[13px] font-semibold text-ink-900"><Upload size={16} /> Загрузить макет</span>
+                  <span className="block text-[11px] text-ink-500 mt-0.5">У вас есть файл</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setNeedDesign("Да")}
+                  className={`rounded-xl border p-3 text-left transition-colors ${needDesign === "Да" ? "border-amber-400 bg-amber-50" : "border-ink-200 hover:border-ink-300"}`}
+                >
+                  <span className="flex items-center gap-2 text-[13px] font-semibold text-ink-900"><Palette size={16} /> Заказ дизайна</span>
+                  <span className="block text-[11px] text-ink-500 mt-0.5">+{fmt(DESIGN_FEE)} ₽</span>
+                </button>
+              </div>
 
-              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-[12px] text-ink-700 space-y-2">
-                <div className="flex items-start gap-2">
-                  <Palette size={14} className="text-amber-600 mt-0.5 shrink-0" />
-                  <p>
-                    <strong className="text-ink-900">Разработка макета</strong> нашим дизайнером — <strong>2 000 ₽</strong>.
-                    Включены 2 доработки, каждая последующая правка — +100 ₽.
-                  </p>
+              {needDesign === "Нет" ? (
+                <>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`w-full rounded-xl border-2 border-dashed p-6 text-left transition-colors ${
+                      uploadedFile ? "border-emerald-400 bg-emerald-50" : "border-amber-300 bg-amber-50 hover:bg-amber-100"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className={`grid place-items-center w-11 h-11 rounded-lg ${uploadedFile ? "bg-emerald-600 text-white" : "bg-amber-500 text-white"}`}>
+                        {uploadedFile ? <FileCheck2 size={20} /> : <Upload size={20} />}
+                      </span>
+                      <div>
+                        <p className="font-heading text-base font-bold text-ink-900">{uploadedFile ? "Макет загружен" : "Загрузить ваш макет"}</p>
+                        <p className="text-[12px] text-ink-500">PDF, JPG, PNG, AI, CDR, PSD</p>
+                      </div>
+                    </div>
+                    {uploadedFile && <p className="mt-2 text-[12px] text-emerald-700 break-all">{uploadedFile.name}</p>}
+                    <p className="mt-3 text-[11px] text-ink-500">Файл будет передан менеджеру вместе с заказом</p>
+                  </button>
+                  <input ref={fileInputRef} type="file" hidden accept=".pdf,.jpg,.jpeg,.png,.docx,.doc,.ai,.cdr,.eps,.tiff,.psd" onChange={(e) => handleUpload(e.target.files)} />
+                </>
+              ) : (
+                <div className="rounded-xl border border-amber-300 bg-amber-50 p-5">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="grid place-items-center w-11 h-11 rounded-lg bg-amber-500 text-white"><Palette size={20} /></span>
+                    <div>
+                      <p className="font-heading text-base font-bold text-ink-900">Разработка макета</p>
+                      <p className="text-[12px] text-ink-500">Дизайнер сделает меню «с нуля»</p>
+                    </div>
+                  </div>
+                  <p className="mt-2 text-[12px] text-ink-700">Стоимость — <strong>{fmt(DESIGN_FEE)} ₽</strong>. Включены 2 доработки, каждая последующая — <strong>+100 ₽</strong>. Менеджер свяжется для уточнения ТЗ.</p>
                 </div>
-                <div className="flex items-start gap-2">
-                  <Info size={14} className="text-amber-600 mt-0.5 shrink-0" />
-                  <p>Формат для печати меню — <strong className="text-ink-900">А4</strong>. Полноцветная печать.</p>
-                </div>
+              )}
+
+              <div className="rounded-xl border border-ink-200 bg-ink-50 p-4 text-[12px] text-ink-600">
+                <p className="flex items-start gap-2">
+                  <Info size={13} className="mt-0.5 shrink-0" /> Формат для печати меню — <strong className="text-ink-900">А4</strong>, полноцветная печать.
+                </p>
               </div>
 
               <div className="rounded-xl border border-ink-200 bg-ink-50 p-4 text-[12px] text-ink-600 space-y-2">
@@ -330,16 +342,6 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
               </div>
 
               <div className="pt-4 border-t border-ink-100">
-                <PillsField
-                  label="Разработка макета дизайнером"
-                  values={["Нет", "Да"]}
-                  value={needDesign}
-                  onChange={(v) => setNeedDesign(v as YesNo)}
-                  hint={needDesign === "Да" ? `+${fmt(DESIGN_FEE)} ₽` : undefined}
-                />
-              </div>
-
-              <div className="pt-4 border-t border-ink-100">
                 <label className="block text-[12px] font-semibold text-ink-700 mb-1.5">
                   Тираж, шт.
                 </label>
@@ -380,7 +382,7 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
           </div>
 
           <div className="lg:col-span-3">
-            <div className="sticky top-24 space-y-3">
+            <div className="lg:sticky lg:top-24 space-y-3">
               <div className="rounded-xl border border-ink-200 bg-white p-5">
                 <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500 mb-3">
                   Расчёт стоимости

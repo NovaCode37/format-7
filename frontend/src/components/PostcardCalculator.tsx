@@ -20,7 +20,7 @@ const POSTCARD_SLUGS = ["открытки", "открытка"];
 
 const QTY_TIERS = [50, 100, 200] as const;
 type Tier = (typeof QTY_TIERS)[number];
-const QTY_PRESETS = [50, 100, 200, 300, 500];
+const QTY_PRESETS = [50, 100, 200];
 const MIN_QTY = 50;
 
 const PRICE: Record<Size, Record<Mode, Record<Tier, number>>> = {
@@ -132,7 +132,7 @@ export default function PostcardCalculator({ serviceId }: { serviceId?: number }
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
           <div className="lg:col-span-4">
-            <div className="sticky top-24 space-y-3">
+            <div className="lg:sticky lg:top-24 space-y-3">
               {track === "template" ? (
                 <TemplateCatalogCard />
               ) : track === "upload" ? (
@@ -194,7 +194,7 @@ export default function PostcardCalculator({ serviceId }: { serviceId?: number }
           </div>
 
           <div className="lg:col-span-3">
-            <div className="sticky top-24 space-y-3">
+            <div className="lg:sticky lg:top-24 space-y-3">
               <div className="rounded-xl border border-ink-200 bg-white p-5">
                 <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500 mb-3">Расчёт стоимости</p>
                 <BreakdownRow label="Печать" hint={`${quantity} × ${fmt(calc.printUnit)} ₽`} value={`${fmt(calc.printTotal)} ₽`} />

@@ -39,7 +39,7 @@ const PRICE: Record<Format, Record<Mode, Record<Tier, number>>> = {
   },
   "А5 (148×210 мм)": {
     "4+0": { 100: 25, 200: 18, 500: 15, 1000: 13 },
-    "4+4": { 100: 35, 200: 23, 500: 23, 1000: 20 },
+    "4+4": { 100: 35, 200: 23, 500: 21, 1000: 20 },
     "1+0": { 100: 12, 200: 11, 500: 9, 1000: 7 },
     "1+1": { 100: 16, 200: 15, 500: 13, 1000: 11 },
   },
@@ -147,7 +147,7 @@ export default function LeafletCalculator({ serviceId }: { serviceId?: number })
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
           <div className="lg:col-span-4">
-            <div className="sticky top-24 space-y-3">
+            <div className="lg:sticky lg:top-24 space-y-3">
               {track === "template" ? (
                 <TemplateCatalogCard />
               ) : track === "upload" ? (
@@ -204,7 +204,7 @@ export default function LeafletCalculator({ serviceId }: { serviceId?: number })
           </div>
 
           <div className="lg:col-span-3">
-            <div className="sticky top-24 space-y-3">
+            <div className="lg:sticky lg:top-24 space-y-3">
               <div className="rounded-xl border border-ink-200 bg-white p-5">
                 <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500 mb-3">Расчёт стоимости</p>
                 <BreakdownRow label={`Печать ${mode}`} hint={`${quantity} × ${fmt(calc.printUnit)} ₽`} value={`${fmt(calc.printTotal)} ₽`} />

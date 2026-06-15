@@ -98,7 +98,10 @@ export default function Header() {
             className="h-9 w-auto"
           />
           <span className="hidden sm:flex flex-col leading-tight">
-            <span className="text-[10px] text-ink-400 uppercase tracking-[0.1em]">
+            <span className="font-heading text-[15px] font-bold text-ink-900 leading-none">
+              Формат7
+            </span>
+            <span className="text-[10px] text-ink-400 uppercase tracking-[0.1em] mt-0.5">
               Онлайн-типография
             </span>
           </span>
@@ -117,7 +120,7 @@ export default function Header() {
           ))}
         </nav>
 
-        <div className="hidden md:block flex-1 min-w-0 max-w-[380px] relative ml-auto" ref={wrapperRef}>
+        <div className="hidden lg:block flex-1 min-w-[200px] max-w-[340px] relative ml-auto" ref={wrapperRef}>
           <Search
             size={15}
             strokeWidth={2}
@@ -230,10 +233,11 @@ export default function Header() {
               </Link>
               <Link
                 href="/profile"
-                className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-ink-900 font-medium hover:bg-ink-50 transition-colors"
+                title={user.name}
+                aria-label="Профиль"
+                className="h-9 w-9 grid place-items-center rounded-lg text-ink-900 hover:bg-ink-50 transition-colors"
               >
                 <User size={15} strokeWidth={2} />
-                <span className="hidden xl:inline">{user.name}</span>
               </Link>
               <button
                 type="button"
@@ -254,12 +258,6 @@ export default function Header() {
               <span className="hidden sm:inline">Вход</span>
             </Link>
           )}
-          <Link
-            href="/catalog"
-            className="hidden 2xl:inline-flex btn-accent btn-sm ml-1"
-          >
-            Заказать онлайн
-          </Link>
           <Link
             href="/cart"
             className="ml-1 btn btn-sm bg-ink-900 text-white border-ink-900 hover:bg-ink-800 hover:border-ink-800"

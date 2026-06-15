@@ -105,7 +105,7 @@ export default function PhotoCalculator({ serviceId }: { serviceId?: number }) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
           <div className="lg:col-span-4">
-            <div className="sticky top-24 space-y-3">
+            <div className="lg:sticky lg:top-24 space-y-3">
               <button onClick={() => fileInputRef.current?.click()} className={`w-full rounded-xl border-2 border-dashed p-6 text-left transition-colors ${uploadedFile ? "border-emerald-400 bg-emerald-50" : "border-amber-300 bg-amber-50 hover:bg-amber-100"}`}>
                 <div className="flex items-center gap-3 mb-2">
                   <span className={`grid place-items-center w-11 h-11 rounded-lg ${uploadedFile ? "bg-emerald-600 text-white" : "bg-amber-500 text-white"}`}>
@@ -164,7 +164,7 @@ export default function PhotoCalculator({ serviceId }: { serviceId?: number }) {
           </div>
 
           <div className="lg:col-span-3">
-            <div className="sticky top-24 space-y-3">
+            <div className="lg:sticky lg:top-24 space-y-3">
               <div className="rounded-xl border border-ink-200 bg-white p-5">
                 <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500 mb-3">Расчёт стоимости</p>
                 <BreakdownRow label="Печать" hint={`${quantity} × ${fmt(calc.printUnit)} ₽`} value={`${fmt(calc.printTotal)} ₽`} />

@@ -10,7 +10,6 @@ const COLUMNS = [
   {
     title: "Компания",
     links: [
-      { label: "О компании", href: "/contacts" },
       { label: "Контакты", href: "/contacts" },
     ],
   },
@@ -39,7 +38,6 @@ const COLUMNS = [
   {
     title: "Документы",
     links: [
-      { label: "Публичная оферта", href: "/legal/offer" },
       { label: "Политика ПДн", href: "/legal/privacy" },
       { label: "Политика cookies", href: "/legal/cookies" },
     ],
@@ -190,14 +188,11 @@ export default function Footer() {
             <Link href="/legal/privacy" className="hover:text-ink-900 transition-colors">
               Политика конфиденциальности
             </Link>
-            <Link href="/legal/offer" className="hover:text-ink-900 transition-colors">
-              Пользовательское соглашение
-            </Link>
             <Link href="/legal/cookies" className="hover:text-ink-900 transition-colors">
               Политика cookies
             </Link>
           </div>
-          <span>© {new Date().getFullYear()} ООО «Формат7», Тюмень</span>
+          <span>© {new Date().getFullYear()} Формат7 · ИП Голубев А. А., Тюмень</span>
         </div>
       </div>
     </footer>

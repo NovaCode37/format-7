@@ -13,12 +13,14 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     text-size-adjust: 100%;
+    overflow-x: clip;
   }
 
   body {
     @apply text-[15px] leading-relaxed text-ink-700 bg-white;
     font-feature-settings: "cv11", "ss01", "ss03", "tnum" 0;
     letter-spacing: -0.005em;
+    overflow-x: clip;
   }
 
   h1, h2, h3, h4, h5, h6 {

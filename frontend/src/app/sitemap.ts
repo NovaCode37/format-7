@@ -1,29 +1,28 @@
 import type { MetadataRoute } from "next";
-import { PRICE_CATEGORIES } from "@/lib/prices";
+import { CATALOG_INDEX } from "@/lib/catalogIndex";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://формат7.рф";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
+
   const staticRoutes: MetadataRoute.Sitemap = [
-    { url: `${SITE_URL}/`,          lastModified: now, priority: 1.0,  changeFrequency: "weekly" },
-    { url: `${SITE_URL}/catalog`,   lastModified: now, priority: 0.9,  changeFrequency: "weekly" },
-    { url: `${SITE_URL}/prices`,    lastModified: now, priority: 0.9,  changeFrequency: "weekly" },
-    { url: `${SITE_URL}/calculator`, lastModified: now, priority: 0.7, changeFrequency: "monthly" },
-    { url: `${SITE_URL}/designer`,  lastModified: now, priority: 0.6,  changeFrequency: "monthly" },
-    { url: `${SITE_URL}/contacts`,  lastModified: now, priority: 0.6,  changeFrequency: "monthly" },
-    { url: `${SITE_URL}/reviews`,   lastModified: now, priority: 0.5,  changeFrequency: "weekly" },
-    { url: `${SITE_URL}/legal/offer`,   lastModified: now, priority: 0.3 },
+    { url: `${SITE_URL}/`,           lastModified: now, priority: 1.0, changeFrequency: "weekly" },
+    { url: `${SITE_URL}/catalog`,    lastModified: now, priority: 0.9, changeFrequency: "weekly" },
+    { url: `${SITE_URL}/prices`,     lastModified: now, priority: 0.8, changeFrequency: "weekly" },
+    { url: `${SITE_URL}/designer`,   lastModified: now, priority: 0.6, changeFrequency: "monthly" },
+    { url: `${SITE_URL}/contacts`,   lastModified: now, priority: 0.6, changeFrequency: "monthly" },
+    { url: `${SITE_URL}/reviews`,    lastModified: now, priority: 0.5, changeFrequency: "weekly" },
     { url: `${SITE_URL}/legal/privacy`, lastModified: now, priority: 0.3 },
     { url: `${SITE_URL}/legal/cookies`, lastModified: now, priority: 0.3 },
   ];
 
-  const priceRoutes: MetadataRoute.Sitemap = PRICE_CATEGORIES.map(cat => ({
-    url: `${SITE_URL}/prices#${cat.slug}`,
+  const productRoutes: MetadataRoute.Sitemap = CATALOG_INDEX.map((item) => ({
+    url: `${SITE_URL}/services/${encodeURIComponent(item.slug)}`,
     lastModified: now,
-    priority: 0.7,
-    changeFrequency: "monthly" as const,
+    priority: 0.8,
+    changeFrequency: "weekly" as const,
   }));
 
-  return [...staticRoutes, ...priceRoutes];
+  return [...staticRoutes, ...productRoutes];
 }
