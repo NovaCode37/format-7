@@ -908,12 +908,12 @@ def cancel_order(order_number: str, user: User = Depends(require_user), db: Sess
         raise HTTPException(status_code=400, detail=f"Заказ уже в статусе «{order.status}»")
     if order.status == "ready":
         raise HTTPException(status_code=400, detail="Нельзя отменить готовый заказ — свяжитесь с офисом")
-    if order.payment_status == "paid":
-        try:
-            _provider_full_refund(order)
-            order.payment_status = "cancelled"
-        except PaymentError as e:
-            raise HTTPException(status_code=502, detail=f"Не удалось вернуть оплату: {e}")
+    try:
+        refunded = _provider_full_refund(order)
+    except PaymentError as e:
+        raise HTTPException(status_code=502, detail=f"Не удалось вернуть оплату: {e}")
+    if refunded or order.payment_status == "paid":
+        order.payment_status = "cancelled"
     order.status = "cancelled"
     db.commit()
     db.refresh(order)
@@ -1037,13 +1037,18 @@ def _tbank_receipt(order) -> dict:
         receipt["Phone"] = order.customer_phone
     return receipt
 
-def _provider_full_refund(order) -> None:
+def _provider_full_refund(order) -> bool:
     if order.payment_provider == "tbank" and order.provider_payment_id:
         client = get_tbank_client()
         if client is None:
             raise PaymentError("T-Bank не настроен")
+        state = client.get_state(order.provider_payment_id)
+        st = state.get("Status")
+        if st != client.PAID_STATUS:
+            return False
         client.cancel(order.provider_payment_id, amount_rub=None, receipt=_tbank_receipt(order))
-    elif order.payment_provider == "yookassa" and order.provider_payment_id:
+        return True
+    if order.payment_provider == "yookassa" and order.provider_payment_id:
         client = get_yookassa_client()
         if client is None:
             raise PaymentError("YooKassa не настроена")
@@ -1052,6 +1057,8 @@ def _provider_full_refund(order) -> None:
             amount_rub=float(order.total or 0),
             description=f"Возврат по заказу {order.order_number}",
         )
+        return True
+    return False
 
 def _is_trusted_proxy(ip: str) -> bool:
     try:
