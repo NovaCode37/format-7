@@ -908,6 +908,12 @@ def cancel_order(order_number: str, user: User = Depends(require_user), db: Sess
         raise HTTPException(status_code=400, detail=f"Заказ уже в статусе «{order.status}»")
     if order.status == "ready":
         raise HTTPException(status_code=400, detail="Нельзя отменить готовый заказ — свяжитесь с офисом")
+    if order.payment_status == "paid":
+        try:
+            _provider_full_refund(order)
+            order.payment_status = "cancelled"
+        except PaymentError as e:
+            raise HTTPException(status_code=502, detail=f"Не удалось вернуть оплату: {e}")
     order.status = "cancelled"
     db.commit()
     db.refresh(order)
@@ -1030,6 +1036,22 @@ def _tbank_receipt(order) -> dict:
     if order.customer_phone:
         receipt["Phone"] = order.customer_phone
     return receipt
+
+def _provider_full_refund(order) -> None:
+    if order.payment_provider == "tbank" and order.provider_payment_id:
+        client = get_tbank_client()
+        if client is None:
+            raise PaymentError("T-Bank не настроен")
+        client.cancel(order.provider_payment_id, amount_rub=None, receipt=_tbank_receipt(order))
+    elif order.payment_provider == "yookassa" and order.provider_payment_id:
+        client = get_yookassa_client()
+        if client is None:
+            raise PaymentError("YooKassa не настроена")
+        client.create_refund(
+            payment_id=order.provider_payment_id,
+            amount_rub=float(order.total or 0),
+            description=f"Возврат по заказу {order.order_number}",
+        )
 
 def _is_trusted_proxy(ip: str) -> bool:
     try:
