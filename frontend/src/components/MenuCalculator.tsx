@@ -8,7 +8,8 @@ import {
 } from "@/lib/icons";
 import { api } from "@/lib/api";
 import { useToast } from "./Toast";
-import { CheckoutModal } from "./calc/kit";
+import { CheckoutModal, usePricing } from "./calc/kit";
+import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type Material = "Бумага 300 г/м²" | "Бумага 250 г/м²" | "Пластик";
 type Sides = "Односторонняя" | "Двусторонняя";
@@ -19,31 +20,12 @@ type Delivery = "Самовывоз" | "Доставка по Тюмени" | "�
 type Tier = 10 | 50 | 100;
 const TIERS: Tier[] = [10, 50, 100];
 
-const SHEET_PRICE: Record<Material, Record<Sides, Record<Tier, number>>> = {
-  "Бумага 300 г/м²": {
-    "Односторонняя": { 10: 200, 50: 180, 100: 150 },
-    "Двусторонняя":  { 10: 250, 50: 220, 100: 200 },
-  },
-  "Бумага 250 г/м²": {
-    "Односторонняя": { 10: 170, 50: 150, 100: 130 },
-    "Двусторонняя":  { 10: 220, 50: 200, 100: 180 },
-  },
-  "Пластик": {
-    "Односторонняя": { 10: 300, 50: 270, 100: 250 },
-    "Двусторонняя":  { 10: 350, 50: 330, 100: 300 },
-  },
-};
+const MENU_PRICING = PRICING_DEFAULTS["меню-для-кафе"].data;
 
-function getSheetPrice(mat: Material, sides: Sides, qty: number): number {
-  const tierKey: Tier = qty >= 100 ? 100 : qty >= 50 ? 50 : 10;
-  return SHEET_PRICE[mat][sides][tierKey];
+function getSheetPrice(pricing: any, mat: Material, sides: Sides, qty: number): number {
+  const tierKey = qty >= 100 ? "100" : qty >= 50 ? "50" : "10";
+  return pricing.sheet[mat][sides][tierKey];
 }
-
-const LAMINATION_PRICE = 50;
-const ROUNDING_PRICE = 2;
-const SPRING_PRICE = 80;
-const STAPLE_PRICE = 15;
-const DESIGN_FEE = 2000;
 
 const DELIVERY_PRICE: Record<Delivery, number> = {
   "Самовывоз": 0,
@@ -104,16 +86,18 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
     return () => { mounted = false; };
   }, [serviceId]);
 
+  const pricing = usePricing("меню-для-кафе", MENU_PRICING);
+
   const calc = useMemo(() => {
-    const sheetUnit = getSheetPrice(material, sides, quantity);
+    const sheetUnit = getSheetPrice(pricing, material, sides, quantity);
     const printPerCopy = sheetUnit * sheets;
     const printTotal = printPerCopy * quantity;
 
-    const lamTotal = lamination === "Да" ? LAMINATION_PRICE * sheets * quantity : 0;
-    const roundTotal = rounding === "Да" ? ROUNDING_PRICE * 4 * sheets * quantity : 0;
-    const springTotal = spring === "Да" ? SPRING_PRICE * quantity : 0;
-    const stapleTotal = staple === "Да" ? STAPLE_PRICE * quantity : 0;
-    const designTotal = needDesign === "Да" ? DESIGN_FEE : 0;
+    const lamTotal = lamination === "Да" ? pricing.lamination * sheets * quantity : 0;
+    const roundTotal = rounding === "Да" ? pricing.rounding * 4 * sheets * quantity : 0;
+    const springTotal = spring === "Да" ? pricing.spring * quantity : 0;
+    const stapleTotal = staple === "Да" ? pricing.staple * quantity : 0;
+    const designTotal = needDesign === "Да" ? pricing.design : 0;
     const deliveryTotal = DELIVERY_PRICE[delivery];
 
     const grandTotal = printTotal + lamTotal + roundTotal + springTotal + stapleTotal + designTotal + deliveryTotal;
@@ -123,7 +107,7 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
       lamTotal, roundTotal, springTotal, stapleTotal,
       designTotal, deliveryTotal, grandTotal,
     };
-  }, [material, sides, sheets, lamination, rounding, spring, staple, quantity, delivery, needDesign]);
+  }, [material, sides, sheets, lamination, rounding, spring, staple, quantity, delivery, needDesign, pricing]);
 
   const fmt = (n: number) => n.toLocaleString("ru-RU");
 
@@ -201,7 +185,7 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
                   className={`rounded-xl border p-3 text-left transition-colors ${needDesign === "Да" ? "border-amber-400 bg-amber-50" : "border-ink-200 hover:border-ink-300"}`}
                 >
                   <span className="flex items-center gap-2 text-[13px] font-semibold text-ink-900"><Palette size={16} /> Заказ дизайна</span>
-                  <span className="block text-[11px] text-ink-500 mt-0.5">+{fmt(DESIGN_FEE)} ₽</span>
+                  <span className="block text-[11px] text-ink-500 mt-0.5">+{fmt(pricing.design)} ₽</span>
                 </button>
               </div>
 
@@ -236,7 +220,7 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
                       <p className="text-[12px] text-ink-500">Дизайнер сделает меню «с нуля»</p>
                     </div>
                   </div>
-                  <p className="mt-2 text-[12px] text-ink-700">Стоимость — <strong>{fmt(DESIGN_FEE)} ₽</strong>. Включены 2 доработки, каждая последующая — <strong>+100 ₽</strong>. Менеджер свяжется для уточнения ТЗ.</p>
+                  <p className="mt-2 text-[12px] text-ink-700">Стоимость — <strong>{fmt(pricing.design)} ₽</strong>. Включены 2 доработки, каждая последующая — <strong>+100 ₽</strong>. Менеджер свяжется для уточнения ТЗ.</p>
                 </div>
               )}
 
@@ -310,7 +294,7 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
                   values={["Нет", "Да"]}
                   value={lamination}
                   onChange={(v) => setLamination(v as YesNo)}
-                  hint={lamination === "Да" ? `+${LAMINATION_PRICE} ₽/лист` : undefined}
+                  hint={lamination === "Да" ? `+${pricing.lamination} ₽/лист` : undefined}
                 />
               </div>
 
@@ -320,7 +304,7 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
                   values={["Нет", "Да"]}
                   value={rounding}
                   onChange={(v) => setRounding(v as YesNo)}
-                  hint={rounding === "Да" ? `+${ROUNDING_PRICE} ₽/угол × 4` : undefined}
+                  hint={rounding === "Да" ? `+${pricing.rounding} ₽/угол × 4` : undefined}
                 />
               </div>
 
@@ -333,7 +317,7 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
                     setSpring(v as YesNo);
                     if (v === "Да") setStaple("Нет");
                   }}
-                  hint={spring === "Да" ? `+${SPRING_PRICE} ₽/экз.` : undefined}
+                  hint={spring === "Да" ? `+${pricing.spring} ₽/экз.` : undefined}
                 />
                 {spring === "Да" && (
                   <div className="mt-3">
@@ -357,7 +341,7 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
                     setStaple(v as YesNo);
                     if (v === "Да") setSpring("Нет");
                   }}
-                  hint={staple === "Да" ? `+${STAPLE_PRICE} ₽/экз.` : undefined}
+                  hint={staple === "Да" ? `+${pricing.staple} ₽/экз.` : undefined}
                 />
               </div>
 
@@ -416,28 +400,28 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
                 {calc.lamTotal > 0 && (
                   <BreakdownRow
                     label="Ламинация"
-                    hint={`${quantity} × ${sheets} л. × ${LAMINATION_PRICE} ₽`}
+                    hint={`${quantity} × ${sheets} л. × ${pricing.lamination} ₽`}
                     value={`${fmt(calc.lamTotal)} ₽`}
                   />
                 )}
                 {calc.roundTotal > 0 && (
                   <BreakdownRow
                     label="Скругление"
-                    hint={`${quantity} × ${sheets} л. × 4 уг. × ${ROUNDING_PRICE} ₽`}
+                    hint={`${quantity} × ${sheets} л. × 4 уг. × ${pricing.rounding} ₽`}
                     value={`${fmt(calc.roundTotal)} ₽`}
                   />
                 )}
                 {calc.springTotal > 0 && (
                   <BreakdownRow
                     label={`Пружина (${springColor.toLowerCase()})`}
-                    hint={`${quantity} × ${SPRING_PRICE} ₽`}
+                    hint={`${quantity} × ${pricing.spring} ₽`}
                     value={`${fmt(calc.springTotal)} ₽`}
                   />
                 )}
                 {calc.stapleTotal > 0 && (
                   <BreakdownRow
                     label="Скоба"
-                    hint={`${quantity} × ${STAPLE_PRICE} ₽`}
+                    hint={`${quantity} × ${pricing.staple} ₽`}
                     value={`${fmt(calc.stapleTotal)} ₽`}
                   />
                 )}
