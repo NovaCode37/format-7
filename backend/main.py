@@ -1135,11 +1135,11 @@ def pay_init(
                     )
                 if st in client.PENDING_STATUSES:
                     try:
-                        qr = client.get_qr(order.provider_payment_id, "IMAGE")
+                        qr = client.get_qr(order.provider_payment_id, "PAYLOAD")
                         return PaymentInitOut(
                             order_number=order.order_number,
                             provider="tbank",
-                            qr_image=qr,
+                            qr_payload=qr,
                             provider_payment_id=order.provider_payment_id,
                         )
                     except PaymentError:
@@ -1166,14 +1166,14 @@ def pay_init(
         db.commit()
 
         try:
-            qr = client.get_qr(payment_id, "IMAGE")
+            qr = client.get_qr(payment_id, "PAYLOAD")
         except PaymentError as e:
             raise HTTPException(status_code=502, detail=f"Ошибка провайдера: {e}")
 
         return PaymentInitOut(
             order_number=order.order_number,
             provider="tbank",
-            qr_image=qr,
+            qr_payload=qr,
             payment_url=res.get("PaymentURL"),
             provider_payment_id=payment_id,
         )

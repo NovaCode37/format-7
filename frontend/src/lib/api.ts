@@ -180,7 +180,7 @@ export interface PaymentInit {
   provider: "yookassa" | "tbank" | "none" | string;
   confirmation_url?: string | null;
   provider_payment_id?: string | null;
-  qr_image?: string | null;
+  qr_payload?: string | null;
   payment_url?: string | null;
 }
 

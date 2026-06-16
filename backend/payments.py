@@ -239,7 +239,7 @@ class TBankClient:
             raise PaymentError(f"TBank Init: {resp.get('Message')} {resp.get('Details')}")
         return resp
 
-    def get_qr(self, payment_id: str, data_type: str = "IMAGE") -> str:
+    def get_qr(self, payment_id: str, data_type: str = "PAYLOAD") -> str:
 
         params: dict[str, Any] = {
             "TerminalKey": self._terminal_key,

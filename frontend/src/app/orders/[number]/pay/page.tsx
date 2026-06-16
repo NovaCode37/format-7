@@ -3,7 +3,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { CheckCircle2, Loader2, Smartphone, ArrowRight } from "@/lib/icons";
+import { QRCodeSVG } from "qrcode.react";
+import { CheckCircle2, Loader2, ArrowRight } from "@/lib/icons";
 import { api, type PaymentInfo } from "@/lib/api";
 import Reveal, { ScaleIn } from "@/components/Reveal";
 
@@ -14,7 +15,7 @@ export default function PaymentPage() {
   const [info, setInfo] = useState<PaymentInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [tbankQr, setTbankQr] = useState<string | null>(null);
+  const [qrPayload, setQrPayload] = useState<string | null>(null);
   const [qrLoading, setQrLoading] = useState(false);
   const [qrError, setQrError] = useState<string | null>(null);
   const [qrAttempt, setQrAttempt] = useState(0);
@@ -42,15 +43,15 @@ export default function PaymentPage() {
   }, [info, refresh]);
 
   useEffect(() => {
-    if (!info || info.payment_status === "paid" || !paymentToken || tbankQr) return;
+    if (!info || info.payment_status === "paid" || !paymentToken || qrPayload) return;
     let cancelled = false;
     setQrLoading(true);
     setQrError(null);
     api.initPayment(number, paymentToken)
       .then((res) => {
         if (cancelled) return;
-        if (res.qr_image) {
-          setTbankQr(res.qr_image);
+        if (res.qr_payload) {
+          setQrPayload(res.qr_payload);
         } else if (res.provider === "none") {
           setQrError("Онлайн-оплата не настроена. Свяжитесь с менеджером для оплаты.");
         } else {
@@ -142,24 +143,18 @@ export default function PaymentPage() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center">
-                    <div className="mb-6 flex items-center gap-2 text-[12px] uppercase tracking-[0.16em] text-ink-500">
-                      <Smartphone size={14} strokeWidth={2} />
+                    <div className="mb-6 text-[12px] uppercase tracking-[0.16em] text-ink-500">
                       Оплата через СБП
                     </div>
                     <div className="bg-white p-4 border border-ink-200 rounded-md grid place-items-center text-center" style={{ minWidth: 268, minHeight: 268 }}>
-                      {tbankQr ? (
-                        <img
-                          src={`data:image/svg+xml;base64,${tbankQr}`}
-                          alt="QR-код для оплаты по СБП"
-                          width={260}
-                          height={260}
-                        />
+                      {qrPayload ? (
+                        <QRCodeSVG value={qrPayload} size={260} level="M" marginSize={2} />
                       ) : qrError ? (
                         <div className="px-4 max-w-[240px]">
                           <p className="text-[13px] text-ink-600 mb-4">{qrError}</p>
                           <button
                             type="button"
-                            onClick={() => { setTbankQr(null); setQrError(null); setQrAttempt((n) => n + 1); }}
+                            onClick={() => { setQrPayload(null); setQrError(null); setQrAttempt((n) => n + 1); }}
                             className="btn-secondary btn-sm cursor-pointer"
                           >
                             Обновить
