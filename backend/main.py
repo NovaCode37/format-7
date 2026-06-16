@@ -900,7 +900,12 @@ def repeat_order(order_number: str, user: User = Depends(require_user), db: Sess
     return {"ok": True, "added": added}
 
 @app.post("/api/orders/{order_number}/cancel", response_model=OrderOut)
-def cancel_order(order_number: str, user: User = Depends(require_user), db: Session = Depends(get_db)):
+def cancel_order(
+    order_number: str,
+    background: BackgroundTasks,
+    user: User = Depends(require_user),
+    db: Session = Depends(get_db),
+):
     order = db.query(Order).filter(Order.order_number == order_number, Order.user_id == user.id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Заказ не найден")
@@ -915,8 +920,11 @@ def cancel_order(order_number: str, user: User = Depends(require_user), db: Sess
     if refunded or order.payment_status == "paid":
         order.payment_status = "cancelled"
     order.status = "cancelled"
+    refund_amount = float(order.total or 0)
     db.commit()
     db.refresh(order)
+    if refunded:
+        background.add_task(notify_refund, order, refund_amount)
     return order
 
 def _build_payment_info(order: Order) -> PaymentInfoOut:
@@ -1044,9 +1052,11 @@ def _provider_full_refund(order) -> bool:
             raise PaymentError("T-Bank не настроен")
         state = client.get_state(order.provider_payment_id)
         st = state.get("Status")
+        log.info("refund: order=%s paymentId=%s state=%s", order.order_number, order.provider_payment_id, st)
         if st != client.PAID_STATUS:
             return False
-        client.cancel(order.provider_payment_id, amount_rub=None, receipt=_tbank_receipt(order))
+        resp = client.cancel(order.provider_payment_id, amount_rub=None, receipt=_tbank_receipt(order))
+        log.info("refund: order=%s cancel result=%s", order.order_number, resp.get("Status"))
         return True
     if order.payment_provider == "yookassa" and order.provider_payment_id:
         client = get_yookassa_client()
