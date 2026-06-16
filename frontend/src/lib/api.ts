@@ -406,6 +406,15 @@ export const api = {
       method: "POST", headers: authHeaders(token),
     }),
 
+  getPricing: (slug: string) =>
+    fetchApi<Record<string, any>>(`/api/pricing/${encodeURIComponent(slug)}`),
+  adminGetAllPricing: (token: string) =>
+    fetchApi<Record<string, any>>("/api/admin/pricing", { headers: authHeaders(token) }),
+  adminPutPricing: (token: string, slug: string, data: Record<string, any>) =>
+    fetchApi<{ ok: boolean }>(`/api/admin/pricing/${encodeURIComponent(slug)}`, {
+      method: "PUT", headers: authHeaders(token), body: JSON.stringify(data),
+    }),
+
   adminListServices: (token: string) =>
     fetchApi<Service[]>("/api/admin/services", { headers: authHeaders(token) }),
   adminCreateService: (token: string, data: ServiceInput) =>

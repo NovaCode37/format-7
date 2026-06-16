@@ -287,3 +287,10 @@ class Refund(Base):
     status = Column(String(20), default="pending")
     created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+class PricingConfig(Base):
+    __tablename__ = "pricing_configs"
+
+    slug = Column(String(80), primary_key=True)
+    data = Column(Text, default="")
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)

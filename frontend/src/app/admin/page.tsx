@@ -11,6 +11,7 @@ import AdminProducts from "@/components/admin/AdminProducts";
 import AdminCategories from "@/components/admin/AdminCategories";
 import AdminOffices from "@/components/admin/AdminOffices";
 import AdminReviews from "@/components/admin/AdminReviews";
+import AdminPricing from "@/components/admin/AdminPricing";
 
 const STATUS_LABELS: Record<string, string> = {
   new: "Новый",
@@ -49,7 +50,7 @@ export default function AdminPage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
-  const [tab, setTab] = useState<"orders" | "products" | "categories" | "offices" | "reviews">("orders");
+  const [tab, setTab] = useState<"orders" | "products" | "categories" | "offices" | "reviews" | "pricing">("orders");
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -120,7 +121,7 @@ export default function AdminPage() {
             <h1 className="h-display">Управление</h1>
           </Reveal>
           <div className="mt-6 flex gap-1">
-            {([["orders", "Заказы"], ["products", "Товары"], ["categories", "Категории"], ["offices", "Офисы"], ["reviews", "Отзывы"]] as const).map(([key, label]) => (
+            {([["orders", "Заказы"], ["products", "Товары"], ["categories", "Категории"], ["pricing", "Цены"], ["offices", "Офисы"], ["reviews", "Отзывы"]] as const).map(([key, label]) => (
               <button
                 key={key}
                 onClick={() => setTab(key)}
@@ -140,6 +141,9 @@ export default function AdminPage() {
       )}
       {tab === "categories" && token && (
         <div className="container-page py-8"><AdminCategories token={token} /></div>
+      )}
+      {tab === "pricing" && token && (
+        <div className="container-page py-8"><AdminPricing token={token} /></div>
       )}
       {tab === "offices" && token && (
         <div className="container-page py-8"><AdminOffices token={token} /></div>

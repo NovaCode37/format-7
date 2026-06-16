@@ -5,8 +5,9 @@ import { Upload, FileCheck2, Truck, Package, Palette, LayoutTemplate } from "@/l
 import {
   PillsField, QuantityField, TrackCard, BreakdownRow, CheckoutModal, DesignBriefCard,
   TemplateCatalogCard, DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
-  fmt, tierValue, useResolvedServiceId, useUpload,
+  fmt, tierValue, useResolvedServiceId, useUpload, usePricing,
 } from "./calc/kit";
+import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type Format = "А7 (74×105 мм)" | "А6 (105×148 мм)" | "А5 (148×210 мм)" | "А4 (210×297 мм)" | "А3 (297×420 мм)";
 type Orientation = "Горизонтальная" | "Вертикальная";
@@ -24,48 +25,7 @@ type Tier = (typeof QTY_TIERS)[number];
 const QTY_PRESETS = [100, 200, 500, 1000];
 const MIN_QTY = 100;
 
-const PRICE: Record<Format, Record<Mode, Record<Tier, number>>> = {
-  "А7 (74×105 мм)": {
-    "4+0": { 100: 10, 200: 8, 500: 7, 1000: 5 },
-    "4+4": { 100: 16, 200: 14, 500: 10, 1000: 7 },
-    "1+0": { 100: 7, 200: 6, 500: 5, 1000: 4 },
-    "1+1": { 100: 11, 200: 10, 500: 8, 1000: 6 },
-  },
-  "А6 (105×148 мм)": {
-    "4+0": { 100: 15, 200: 13, 500: 9, 1000: 8 },
-    "4+4": { 100: 25, 200: 20, 500: 13, 1000: 10 },
-    "1+0": { 100: 9, 200: 8, 500: 6, 1000: 5 },
-    "1+1": { 100: 13, 200: 12, 500: 10, 1000: 7 },
-  },
-  "А5 (148×210 мм)": {
-    "4+0": { 100: 25, 200: 18, 500: 15, 1000: 13 },
-    "4+4": { 100: 35, 200: 23, 500: 21, 1000: 20 },
-    "1+0": { 100: 12, 200: 11, 500: 9, 1000: 7 },
-    "1+1": { 100: 16, 200: 15, 500: 13, 1000: 11 },
-  },
-  "А4 (210×297 мм)": {
-    "4+0": { 100: 35, 200: 32, 500: 25, 1000: 16 },
-    "4+4": { 100: 60, 200: 55, 500: 36, 1000: 30 },
-    "1+0": { 100: 17, 200: 16, 500: 14, 1000: 12 },
-    "1+1": { 100: 24, 200: 23, 500: 21, 1000: 19 },
-  },
-  "А3 (297×420 мм)": {
-    "4+0": { 100: 100, 200: 90, 500: 80, 1000: 70 },
-    "4+4": { 100: 170, 200: 160, 500: 140, 1000: 120 },
-    "1+0": { 100: 26, 200: 24, 500: 22, 1000: 20 },
-    "1+1": { 100: 36, 200: 34, 500: 32, 1000: 30 },
-  },
-};
-
-const LAMINATION_BY_FORMAT: Record<Format, number> = {
-  "А7 (74×105 мм)": 10,
-  "А6 (105×148 мм)": 15,
-  "А5 (148×210 мм)": 25,
-  "А4 (210×297 мм)": 50,
-  "А3 (297×420 мм)": 100,
-};
-const ROUNDING_PER_UNIT = 2;
-const DESIGN_FEE = 1500;
+const LEAFLET_PRICING = PRICING_DEFAULTS["листовки"].data;
 
 function modeKey(color: Color, sides: Sides): Mode {
   const isColor = color === "Цветная";
@@ -92,19 +52,21 @@ export default function LeafletCalculator({ serviceId }: { serviceId?: number })
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
+  const pricing = usePricing("листовки", LEAFLET_PRICING);
+
   const mode = useMemo(() => modeKey(color, sides), [color, sides]);
 
   const calc = useMemo(() => {
-    const printUnit = tierValue(QTY_TIERS, PRICE[format][mode], quantity);
+    const printUnit = tierValue(QTY_TIERS, (pricing.price as any)[format][mode], quantity);
     const printTotal = printUnit * quantity;
-    const lamUnit = LAMINATION_BY_FORMAT[format];
+    const lamUnit = (pricing.lamination as any)[format];
     const lamTotal = lamination === "Да" ? lamUnit * quantity : 0;
-    const roundTotal = rounding === "Да" ? ROUNDING_PER_UNIT * quantity : 0;
-    const designTotal = track === "design" ? DESIGN_FEE : 0;
+    const roundTotal = rounding === "Да" ? pricing.rounding * quantity : 0;
+    const designTotal = track === "design" ? pricing.design : 0;
     const deliveryTotal = DELIVERY_PRICE[delivery];
     const grandTotal = printTotal + lamTotal + roundTotal + designTotal + deliveryTotal;
     return { printUnit, printTotal, lamUnit, lamTotal, roundTotal, designTotal, deliveryTotal, grandTotal };
-  }, [format, mode, quantity, lamination, rounding, track, delivery]);
+  }, [format, mode, quantity, lamination, rounding, track, delivery, pricing]);
 
   const orderSummary = {
     productLabel: "Листовки",
@@ -113,7 +75,7 @@ export default function LeafletCalculator({ serviceId }: { serviceId?: number })
       "Бумага: глянцевая 170 г/м²",
       rounding === "Да" ? "Скругление углов" : null,
       lamination === "Да" ? "Ламинация" : null,
-      track === "design" ? "Разработка макета дизайнером (1500 ₽)" : null,
+      track === "design" ? `Разработка макета дизайнером (${pricing.design} ₽)` : null,
       `Доставка: ${delivery}`,
     ].filter(Boolean) as string[],
     options: {
@@ -189,7 +151,7 @@ export default function LeafletCalculator({ serviceId }: { serviceId?: number })
               <PillsField label="Стороны печати" values={["Двусторонняя", "Односторонняя"]} value={sides} onChange={(v) => setSides(v as Sides)} hint={`режим ${mode}`} />
 
               <div className="pt-4 border-t border-ink-100">
-                <PillsField label="Скругление углов" values={["Нет", "Да"]} value={rounding} onChange={(v) => setRounding(v as YesNo)} hint={rounding === "Да" ? `+${ROUNDING_PER_UNIT} ₽/шт` : undefined} />
+                <PillsField label="Скругление углов" values={["Нет", "Да"]} value={rounding} onChange={(v) => setRounding(v as YesNo)} hint={rounding === "Да" ? `+${pricing.rounding} ₽/шт` : undefined} />
               </div>
               <div className="pt-4 border-t border-ink-100">
                 <PillsField label="Ламинация" values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${calc.lamUnit} ₽/шт` : undefined} />
@@ -208,7 +170,7 @@ export default function LeafletCalculator({ serviceId }: { serviceId?: number })
               <div className="rounded-xl border border-ink-200 bg-white p-5">
                 <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500 mb-3">Расчёт стоимости</p>
                 <BreakdownRow label={`Печать ${mode}`} hint={`${quantity} × ${fmt(calc.printUnit)} ₽`} value={`${fmt(calc.printTotal)} ₽`} />
-                {calc.roundTotal > 0 && <BreakdownRow label="Скругление углов" hint={`${quantity} × ${ROUNDING_PER_UNIT} ₽`} value={`${fmt(calc.roundTotal)} ₽`} />}
+                {calc.roundTotal > 0 && <BreakdownRow label="Скругление углов" hint={`${quantity} × ${pricing.rounding} ₽`} value={`${fmt(calc.roundTotal)} ₽`} />}
                 {calc.lamTotal > 0 && <BreakdownRow label="Ламинация" hint={`${quantity} × ${calc.lamUnit} ₽`} value={`${fmt(calc.lamTotal)} ₽`} />}
                 {calc.designTotal > 0 && <BreakdownRow label="Разработка макета" hint="2 доработки в стоимости" value={`${fmt(calc.designTotal)} ₽`} />}
                 <BreakdownRow label="Доставка" hint={delivery === "СДЭК (наложенный платёж)" ? "оплачивает получатель" : undefined} value={calc.deliveryTotal ? `${fmt(calc.deliveryTotal)} ₽` : "—"} />

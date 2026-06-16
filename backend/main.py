@@ -113,6 +113,7 @@ from models import (
     WishlistItem,
     SavedAddress,
     PushSubscription,
+    PricingConfig,
 )
 import oauth as oauth_mod
 import push as webpush
@@ -1569,6 +1570,43 @@ def admin_stats(_: User = Depends(require_admin), db: Session = Depends(get_db))
         "revenue": float(revenue),
         "by_status": {k: int(v) for k, v in by_status.items()},
     }
+
+@app.get("/api/pricing/{slug}")
+def get_pricing(slug: str, db: Session = Depends(get_db)):
+    row = db.query(PricingConfig).filter(PricingConfig.slug == slug).first()
+    if not row or not row.data:
+        return {}
+    try:
+        return json.loads(row.data)
+    except Exception:
+        return {}
+
+@app.get("/api/admin/pricing")
+def admin_list_pricing(_: User = Depends(require_admin), db: Session = Depends(get_db)):
+    out: dict = {}
+    for row in db.query(PricingConfig).all():
+        try:
+            out[row.slug] = json.loads(row.data) if row.data else {}
+        except Exception:
+            out[row.slug] = {}
+    return out
+
+@app.put("/api/admin/pricing/{slug}")
+def admin_put_pricing(
+    slug: str,
+    payload: dict,
+    request: Request,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    row = db.query(PricingConfig).filter(PricingConfig.slug == slug).first()
+    if row is None:
+        row = PricingConfig(slug=slug)
+        db.add(row)
+    row.data = json.dumps(payload, ensure_ascii=False)
+    db.commit()
+    audit.record(db, admin=admin, action="pricing.updated", target=slug, diff={}, request=request)
+    return {"ok": True}
 
 @app.post("/api/admin/revenue/reset")
 def admin_reset_revenue(

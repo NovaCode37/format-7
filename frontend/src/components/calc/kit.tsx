@@ -96,6 +96,36 @@ export function useResolvedServiceId(slugs: string[], serviceId?: number) {
   return resolved;
 }
 
+function deepMergeNumbers<T>(base: T, override: any): T {
+  if (override == null) return base;
+  if (typeof base === "number" || typeof base === "string") {
+    return (typeof override === "number" || typeof override === "string") ? (override as T) : base;
+  }
+  if (typeof base === "object" && base !== null && typeof override === "object") {
+    const out: any = Array.isArray(base) ? [...(base as any)] : { ...(base as any) };
+    for (const k of Object.keys(base as any)) {
+      if (k in override) out[k] = deepMergeNumbers((base as any)[k], override[k]);
+    }
+    return out;
+  }
+  return base;
+}
+
+export function usePricing<T>(slug: string, defaults: T): T {
+  const [cfg, setCfg] = useState<T>(defaults);
+  useEffect(() => {
+    let alive = true;
+    api.getPricing(slug)
+      .then((data) => {
+        if (alive && data && Object.keys(data).length) setCfg(deepMergeNumbers(defaults, data));
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug]);
+  return cfg;
+}
+
 export type Delivery = "Самовывоз" | "Доставка по Тюмени" | "СДЭК (наложенный платёж)";
 export const DELIVERY_VALUES: Delivery[] = ["Самовывоз", "Доставка по Тюмени", "СДЭК (наложенный платёж)"];
 export const DELIVERY_PRICE: Record<Delivery, number> = {
