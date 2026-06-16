@@ -1316,18 +1316,24 @@ async def tbank_webhook(
 
     order_id = str(data.get("OrderId", ""))
     status_ = data.get("Status", "")
+    amount = data.get("Amount")
     order = (
         db.query(Order)
         .filter(Order.order_number == order_id, Order.payment_provider == "tbank")
         .first()
     )
+    log.info(
+        "tbank webhook OrderId=%s Status=%s Amount=%s found=%s total_kop=%s",
+        order_id, status_, amount, bool(order),
+        int(round(float(order.total or 0) * 100)) if order else None,
+    )
     if not order:
         return PlainTextResponse("OK")
 
-    amount = data.get("Amount")
     if amount is not None:
         try:
             if abs(int(amount) - int(round(float(order.total or 0) * 100))) > 1:
+                log.warning("tbank webhook amount mismatch: got=%s expected=%s", amount, int(round(float(order.total or 0) * 100)))
                 return PlainTextResponse("OK")
         except (TypeError, ValueError):
             pass
