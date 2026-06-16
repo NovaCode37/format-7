@@ -563,6 +563,19 @@ export const api = {
     return res.json();
   },
   getFileUrl: (id: number) => `${API_BASE}/api/uploads/${id}`,
+  downloadUpload: async (token: string, id: number, name: string) => {
+    const res = await fetch(`${API_BASE}/api/uploads/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) throw new Error(`Ошибка скачивания: ${res.status}`);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name || `file-${id}`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  },
   deleteFile: (token: string, id: number) =>
     fetchApi<{ ok: boolean }>(`/api/uploads/${id}`, { method: "DELETE", headers: authHeaders(token) }),
 

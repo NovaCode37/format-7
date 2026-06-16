@@ -1933,12 +1933,16 @@ def download_file(file_id: int, user: User | None = Depends(get_current_user), d
     if not uf:
         raise HTTPException(status_code=404, detail="Файл не найден")
 
-    if uf.user_id:
-        if not user or user.id != uf.user_id:
-            raise HTTPException(status_code=403, detail="Нет доступа к файлу")
-    else:
-        if uf.order_id:
-            raise HTTPException(status_code=403, detail="Нет доступа к файлу")
+    is_admin = bool(user and getattr(user, "is_admin", False))
+    if not is_admin:
+        if uf.user_id:
+            if not user or user.id != uf.user_id:
+                raise HTTPException(status_code=403, detail="Нет доступа к файлу")
+        elif uf.order_id:
+            ord_row = db.query(Order).filter(Order.id == uf.order_id).first()
+            owner_id = ord_row.user_id if ord_row else None
+            if not (user and owner_id and user.id == owner_id):
+                raise HTTPException(status_code=403, detail="Нет доступа к файлу")
 
     from fastapi.responses import StreamingResponse
 

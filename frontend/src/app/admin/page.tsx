@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Fragment } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { api, type Order } from "@/lib/api";
@@ -51,6 +51,25 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
   const [tab, setTab] = useState<"orders" | "products" | "categories" | "offices" | "reviews" | "pricing">("orders");
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+
+  const downloadFile = async (id: number, name: string) => {
+    if (!token) return;
+    try {
+      await api.downloadUpload(token, id, name);
+    } catch (e: any) {
+      toast.error(e.message || "Не удалось скачать файл");
+    }
+  };
+
+  const parseOpts = (raw: string): Record<string, any> => {
+    try {
+      const o = raw ? JSON.parse(raw) : {};
+      return o && typeof o === "object" ? o : {};
+    } catch {
+      return {};
+    }
+  };
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -238,8 +257,13 @@ export default function AdminPage() {
               </thead>
               <tbody className="divide-y divide-ink-100">
                 {orders.map(o => (
-                  <tr key={o.id} className="hover:bg-ink-50/50">
-                    <td className="px-4 py-3 font-mono text-[12px]">{o.order_number}</td>
+                  <Fragment key={o.id}>
+                  <tr className="hover:bg-ink-50/50 cursor-pointer" onClick={() => setExpandedId(expandedId === o.id ? null : o.id)}>
+                    <td className="px-4 py-3 font-mono text-[12px]">
+                      <span className="text-ink-400 mr-1">{expandedId === o.id ? "▾" : "▸"}</span>
+                      {o.order_number}
+                      {(o.files?.length || 0) > 0 && <span className="ml-1.5 text-brand" title="Есть вложения">📎{o.files.length}</span>}
+                    </td>
                     <td className="px-4 py-3">
                       <div className="text-ink-900">{o.customer_name}</div>
                       <div className="text-[11px] text-ink-500">{o.customer_email}</div>
@@ -256,7 +280,7 @@ export default function AdminPage() {
                     <td className="px-4 py-3 text-[12px] text-ink-500">
                       {new Date(o.created_at).toLocaleDateString("ru-RU")}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                       {(NEXT_STATUS[o.status] || []).length > 0 && (
                         <select
                           disabled={saving === o.order_number}
@@ -275,6 +299,52 @@ export default function AdminPage() {
                       )}
                     </td>
                   </tr>
+                  {expandedId === o.id && (
+                    <tr className="bg-ink-50/40">
+                      <td colSpan={7} className="px-4 py-4">
+                        <div className="grid sm:grid-cols-2 gap-5">
+                          <div>
+                            <p className="text-[11px] uppercase tracking-wide text-ink-400 mb-2">Состав заказа</p>
+                            <ul className="space-y-2">
+                              {(o.items || []).map((it) => {
+                                const opts = parseOpts(it.options);
+                                const specs = Object.entries(opts).filter(([k]) => !k.startsWith("_") && k !== "Товар").map(([k, v]) => `${k}: ${v}`).join(" · ");
+                                return (
+                                  <li key={it.id} className="text-[13px] text-ink-700">
+                                    <span className="font-medium text-ink-900">{opts["Товар"] || it.service?.name || "Позиция"}</span>
+                                    {" — "}{(it.price || 0).toLocaleString("ru-RU")} ₽
+                                    {specs && <div className="text-[11px] text-ink-500">{specs}</div>}
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                            {o.comment && <p className="mt-3 text-[12px] text-ink-600"><span className="text-ink-400">Комментарий:</span> {o.comment}</p>}
+                          </div>
+                          <div>
+                            <p className="text-[11px] uppercase tracking-wide text-ink-400 mb-2">Файлы клиента</p>
+                            {(o.files?.length || 0) === 0 ? (
+                              <p className="text-[12px] text-ink-400">Без вложений</p>
+                            ) : (
+                              <ul className="space-y-1.5">
+                                {o.files.map((f) => (
+                                  <li key={f.id}>
+                                    <button
+                                      onClick={() => downloadFile(f.id, f.original_name)}
+                                      className="inline-flex items-center gap-1.5 text-[13px] text-brand hover:underline cursor-pointer"
+                                    >
+                                      📎 {f.original_name}
+                                      <span className="text-[11px] text-ink-400">({Math.max(1, Math.round((f.size || 0) / 1024))} КБ)</span>
+                                    </button>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  </Fragment>
                 ))}
               </tbody>
             </table>

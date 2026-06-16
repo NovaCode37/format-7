@@ -96,6 +96,7 @@ def send_email(
     body: str,
     *,
     html: str | None = None,
+    attachments: list[tuple[str, bytes, str]] | None = None,
 ) -> None:
 
     cfg = _smtp_cfg()
@@ -105,12 +106,28 @@ def send_email(
     if not recipients:
         return
 
-    if html:
-        msg = MIMEMultipart("alternative")
-        msg.attach(MIMEText(body, "plain", "utf-8"))
-        msg.attach(MIMEText(html, "html", "utf-8"))
+    def _body_part():
+        if html:
+            alt = MIMEMultipart("alternative")
+            alt.attach(MIMEText(body, "plain", "utf-8"))
+            alt.attach(MIMEText(html, "html", "utf-8"))
+            return alt
+        return MIMEText(body, "plain", "utf-8")
+
+    if attachments:
+        from email.mime.base import MIMEBase
+        from email import encoders
+        msg = MIMEMultipart("mixed")
+        msg.attach(_body_part())
+        for fname, data, ctype in attachments:
+            maintype, _, subtype = (ctype or "application/octet-stream").partition("/")
+            part = MIMEBase(maintype or "application", subtype or "octet-stream")
+            part.set_payload(data)
+            encoders.encode_base64(part)
+            part.add_header("Content-Disposition", "attachment", filename=fname)
+            msg.attach(part)
     else:
-        msg = MIMEText(body, "plain", "utf-8")
+        msg = _body_part()
     msg["Subject"] = subject
     msg["From"] = formataddr((cfg["from_name"], cfg["from"]))
     msg["To"] = ", ".join(recipients)
@@ -236,6 +253,8 @@ def _notify_new_order_impl(order) -> None:
     )
     send_email(order.customer_email, f"Заказ {order.order_number} принят", plain, html=html)
 
+    attachments, files_note = _order_attachments(order)
+
     admin_to = (os.environ.get("ORDER_NOTIFY_EMAIL") or os.environ.get("SMTP_FROM") or "").strip()
     if admin_to:
         admin_plain = (
@@ -248,9 +267,49 @@ def _notify_new_order_impl(order) -> None:
             + f"\nСумма: {order.total:.2f} ₽\n\n"
             f"Состав заказа:\n{_fmt_order_lines(order)}\n"
             + (f"\nКомментарий клиента: {order.comment}\n" if order.comment else "")
+            + files_note
             + "\nЗаказ также виден в админке: /admin"
         )
-        send_email(admin_to, f"🧾 Новый заказ {order.order_number} — {order.total:.0f} ₽", admin_plain)
+        send_email(
+            admin_to,
+            f"🧾 Новый заказ {order.order_number} — {order.total:.0f} ₽",
+            admin_plain,
+            attachments=attachments or None,
+        )
+
+def _order_attachments(order) -> tuple[list[tuple[str, bytes, str]], str]:
+
+    files = list(getattr(order, "files", None) or [])
+    if not files:
+        return [], ""
+    names = [f.original_name for f in files]
+    note = "\nПрикреплённые файлы клиента:\n" + "\n".join(f"  • {n}" for n in names) + "\n"
+
+    max_total = int(os.environ.get("EMAIL_ATTACH_MAX_BYTES", str(18 * 1024 * 1024)))
+    attachments: list[tuple[str, bytes, str]] = []
+    total = 0
+    try:
+        import storage
+        for f in files:
+            stream = storage.open_stream(f.stored_name)
+            if stream is None:
+                continue
+            try:
+                data = stream.read()
+            finally:
+                close = getattr(stream, "close", None)
+                if close:
+                    close()
+            if not data:
+                continue
+            if total + len(data) > max_total:
+                note += "  (часть файлов не вложена — слишком большой размер; скачайте в админке)\n"
+                break
+            total += len(data)
+            attachments.append((f.original_name, data, f.content_type or "application/octet-stream"))
+    except Exception as e:
+        log.warning("order attachments failed: %s", e)
+    return attachments, note
 
 def _push_to_order_user(order, title: str, body: str) -> None:
 
