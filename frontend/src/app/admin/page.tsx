@@ -91,6 +91,18 @@ export default function AdminPage() {
     }
   };
 
+  const resetRevenue = async () => {
+    if (!token) return;
+    if (!confirm("Обнулить выручку? Текущие оплаченные заказы перестанут учитываться в выручке (сами заказы останутся). Новые оплаты будут считаться заново.")) return;
+    try {
+      const res = await api.adminResetRevenue(token);
+      toast.success(`Выручка обнулена (исключено заказов: ${res.excluded})`);
+      await load();
+    } catch (err: any) {
+      toast.error(err.message || "Не удалось обнулить выручку");
+    }
+  };
+
   if (authLoading || !user?.is_admin) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
@@ -143,10 +155,19 @@ export default function AdminPage() {
           <div className="container-page py-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
             <StatBlock label="Всего заказов" value={stats.total_orders} />
             <StatBlock label="Оплачено" value={stats.paid_orders} />
-            <StatBlock
-              label="Выручка"
-              value={`${Math.round(stats.revenue).toLocaleString("ru-RU")} ₽`}
-            />
+            <div className="relative">
+              <StatBlock
+                label="Выручка"
+                value={`${Math.round(stats.revenue).toLocaleString("ru-RU")} ₽`}
+              />
+              <button
+                onClick={resetRevenue}
+                className="absolute top-2 right-2 text-[11px] text-ink-400 hover:text-red-600 underline underline-offset-2 cursor-pointer"
+                title="Исключить текущие оплаченные заказы из выручки"
+              >
+                Обнулить
+              </button>
+            </div>
             <StatBlock
               label="В работе"
               value={stats.by_status?.processing || 0}

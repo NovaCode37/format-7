@@ -401,6 +401,11 @@ export const api = {
       by_status: Record<string, number>;
     }>("/api/admin/stats", { headers: authHeaders(token) }),
 
+  adminResetRevenue: (token: string) =>
+    fetchApi<{ ok: boolean; excluded: number }>("/api/admin/revenue/reset", {
+      method: "POST", headers: authHeaders(token),
+    }),
+
   adminListServices: (token: string) =>
     fetchApi<Service[]>("/api/admin/services", { headers: authHeaders(token) }),
   adminCreateService: (token: string, data: ServiceInput) =>

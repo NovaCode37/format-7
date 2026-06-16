@@ -152,6 +152,7 @@ class Order(Base):
     payment_provider = Column(String(30), default="")
     provider_payment_id = Column(String(80), default="")
     provider_payment_url = Column(String(500), default="")
+    revenue_excluded = Column(Boolean, default=False, nullable=False)
     paid_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 

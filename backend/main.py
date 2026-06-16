@@ -151,6 +151,7 @@ def _auto_migrate():
                 "ALTER TABLE cart_items ADD COLUMN IF NOT EXISTS price DOUBLE PRECISION DEFAULT 0",
                 "ALTER TABLE cart_items ADD COLUMN IF NOT EXISTS options TEXT DEFAULT ''",
                 "ALTER TABLE orders ADD COLUMN IF NOT EXISTS provider_payment_url VARCHAR(500) DEFAULT ''",
+                "ALTER TABLE orders ADD COLUMN IF NOT EXISTS revenue_excluded BOOLEAN DEFAULT FALSE NOT NULL",
             ):
                 conn.exec_driver_sql(sql)
             conn.commit()
@@ -1549,8 +1550,18 @@ def admin_stats(_: User = Depends(require_admin), db: Session = Depends(get_db))
     from sqlalchemy import func
 
     total_orders = db.query(func.count(Order.id)).scalar() or 0
-    paid_orders = db.query(func.count(Order.id)).filter(Order.payment_status == "paid").scalar() or 0
-    revenue = db.query(func.coalesce(func.sum(Order.total), 0)).filter(Order.payment_status == "paid").scalar() or 0
+    paid_orders = (
+        db.query(func.count(Order.id))
+        .filter(Order.payment_status == "paid", Order.revenue_excluded.is_(False))
+        .scalar()
+        or 0
+    )
+    revenue = (
+        db.query(func.coalesce(func.sum(Order.total), 0))
+        .filter(Order.payment_status == "paid", Order.revenue_excluded.is_(False))
+        .scalar()
+        or 0
+    )
     by_status = dict(db.query(Order.status, func.count(Order.id)).group_by(Order.status).all())
     return {
         "total_orders": int(total_orders),
@@ -1558,6 +1569,28 @@ def admin_stats(_: User = Depends(require_admin), db: Session = Depends(get_db))
         "revenue": float(revenue),
         "by_status": {k: int(v) for k, v in by_status.items()},
     }
+
+@app.post("/api/admin/revenue/reset")
+def admin_reset_revenue(
+    request: Request,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    affected = (
+        db.query(Order)
+        .filter(Order.payment_status == "paid", Order.revenue_excluded.is_(False))
+        .update({Order.revenue_excluded: True}, synchronize_session=False)
+    )
+    db.commit()
+    audit.record(
+        db,
+        admin=admin,
+        action="revenue.reset",
+        target="stats",
+        diff={"excluded_orders": int(affected or 0)},
+        request=request,
+    )
+    return {"ok": True, "excluded": int(affected or 0)}
 
 _IMAGE_EXT = {
     "image/jpeg": "jpg", "image/jpg": "jpg", "image/png": "png",
