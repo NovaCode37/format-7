@@ -5,8 +5,9 @@ import { Upload, FileCheck2, Truck, Package, Palette, LayoutTemplate } from "@/l
 import {
   PillsField, QuantityField, TrackCard, BreakdownRow, CheckoutModal,
   TemplateCatalogCard, DesignBriefCard, DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
-  fmt, tierValue, useResolvedServiceId, useUpload,
+  fmt, tierValue, useResolvedServiceId, useUpload, usePricing,
 } from "./calc/kit";
+import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type Kind = "Е65 (110×220 мм)" | "С5 (162×229 мм)" | "С4 (229×324 мм)";
 type Track = "template" | "upload" | "design";
@@ -18,19 +19,13 @@ type Tier = (typeof QTY_TIERS)[number];
 const QTY_PRESETS = [20, 50, 100, 200, 500];
 const MIN_QTY = 20;
 
-const PRICE: Record<Kind, Record<Tier, number>> = {
-  "Е65 (110×220 мм)": { 20: 28, 50: 24, 100: 20, 500: 16 },
-  "С5 (162×229 мм)":  { 20: 30, 50: 26, 100: 22, 500: 18 },
-  "С4 (229×324 мм)":  { 20: 50, 50: 46, 100: 42, 500: 38 },
-};
+const ENVELOPE_PRICING = PRICING_DEFAULTS["конверты"].data;
 
 const PRINT_AREA: Record<Kind, string> = {
   "Е65 (110×220 мм)": "90×200 мм",
   "С5 (162×229 мм)":  "142×209 мм",
   "С4 (229×324 мм)":  "209×304 мм",
 };
-
-const DESIGN_FEE = 1000;
 
 export default function EnvelopeCalculator({ serviceId }: { serviceId?: number }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -43,20 +38,22 @@ export default function EnvelopeCalculator({ serviceId }: { serviceId?: number }
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
+  const pricing = usePricing("конверты", ENVELOPE_PRICING);
+
   const calc = useMemo(() => {
-    const printUnit = tierValue(QTY_TIERS, PRICE[kind], quantity);
+    const printUnit = tierValue(QTY_TIERS, (pricing.price as any)[kind], quantity);
     const printTotal = printUnit * quantity;
-    const designTotal = track === "design" ? DESIGN_FEE : 0;
+    const designTotal = track === "design" ? pricing.design : 0;
     const deliveryTotal = DELIVERY_PRICE[delivery];
     const grandTotal = printTotal + designTotal + deliveryTotal;
     return { printUnit, printTotal, designTotal, deliveryTotal, grandTotal };
-  }, [kind, quantity, track, delivery]);
+  }, [kind, quantity, track, delivery, pricing]);
 
   const orderSummary = {
     productLabel: `Конверты ${kind}, 4+0`,
     lines: [
       `${kind} · область печати ${PRINT_AREA[kind]} · ${quantity} шт.`,
-      track === "design" ? "Разработка макета дизайнером (1000 ₽)" : null,
+      track === "design" ? `Разработка макета дизайнером (${pricing.design} ₽)` : null,
       `Доставка: ${delivery}`,
     ].filter(Boolean) as string[],
     options: {

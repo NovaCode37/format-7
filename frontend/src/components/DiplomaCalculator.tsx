@@ -5,8 +5,9 @@ import { Upload, FileCheck2, Truck, Package, Palette, LayoutTemplate } from "@/l
 import {
   PillsField, QuantityField, TrackCard, BreakdownRow, CheckoutModal,
   TemplateCatalogCard, DesignBriefCard, DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
-  fmt, tierValue, useResolvedServiceId, useUpload,
+  fmt, tierValue, useResolvedServiceId, useUpload, usePricing,
 } from "./calc/kit";
+import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type Density = "200 г/м²" | "250 г/м²" | "300 г/м²";
 type Orientation = "Вертикальная" | "Горизонтальная";
@@ -19,14 +20,7 @@ const QTY_TIERS = [1, 10, 20, 50, 100] as const;
 type Tier = (typeof QTY_TIERS)[number];
 const QTY_PRESETS = [1, 10, 20, 50, 100];
 
-const PRICE: Record<Density, Record<Tier, number>> = {
-  "200 г/м²": { 1: 700, 10: 70, 20: 65, 50: 60, 100: 55 },
-  "250 г/м²": { 1: 900, 10: 90, 20: 85, 50: 80, 100: 75 },
-  "300 г/м²": { 1: 1100, 10: 110, 20: 105, 50: 100, 100: 95 },
-};
-
-const LAMINATION_PER_UNIT = 50;
-const DESIGN_FEE = 1000;
+const DIPLOMA_PRICING = PRICING_DEFAULTS["грамоты-и-дипломы"].data;
 
 export default function DiplomaCalculator({ serviceId }: { serviceId?: number }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -41,22 +35,24 @@ export default function DiplomaCalculator({ serviceId }: { serviceId?: number })
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
+  const pricing = usePricing("грамоты-и-дипломы", DIPLOMA_PRICING);
+
   const calc = useMemo(() => {
-    const printUnit = tierValue(QTY_TIERS, PRICE[density], quantity);
+    const printUnit = tierValue(QTY_TIERS, (pricing.price as any)[density], quantity);
     const printTotal = printUnit * quantity;
-    const lamTotal = lamination === "Да" ? LAMINATION_PER_UNIT * quantity : 0;
-    const designTotal = track === "design" ? DESIGN_FEE : 0;
+    const lamTotal = lamination === "Да" ? pricing.lamination * quantity : 0;
+    const designTotal = track === "design" ? pricing.design : 0;
     const deliveryTotal = DELIVERY_PRICE[delivery];
     const grandTotal = printTotal + lamTotal + designTotal + deliveryTotal;
     return { printUnit, printTotal, lamTotal, designTotal, deliveryTotal, grandTotal };
-  }, [density, quantity, lamination, track, delivery]);
+  }, [density, quantity, lamination, track, delivery, pricing]);
 
   const orderSummary = {
     productLabel: `Грамоты и дипломы А4, ${density}, 4+0`,
     lines: [
       `А4 · ${density} · ${orientation} · ${quantity} шт.`,
       lamination === "Да" ? "Ламинирование" : null,
-      track === "design" ? "Разработка макета дизайнером (от 1000 ₽)" : null,
+      track === "design" ? `Разработка макета дизайнером (от ${pricing.design} ₽)` : null,
       `Доставка: ${delivery}`,
     ].filter(Boolean) as string[],
     options: {
@@ -133,7 +129,7 @@ export default function DiplomaCalculator({ serviceId }: { serviceId?: number })
               <PillsField label="Ориентация" values={["Вертикальная", "Горизонтальная"]} value={orientation} onChange={(v) => setOrientation(v as Orientation)} hint="на цену не влияет" />
 
               <div className="pt-4 border-t border-ink-100">
-                <PillsField label="Ламинирование" values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${LAMINATION_PER_UNIT} ₽/шт` : undefined} />
+                <PillsField label="Ламинирование" values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${pricing.lamination} ₽/шт` : undefined} />
               </div>
               <div className="pt-4 border-t border-ink-100">
                 <QuantityField presets={QTY_PRESETS} value={quantity} onChange={setQuantity} min={1} />
@@ -149,7 +145,7 @@ export default function DiplomaCalculator({ serviceId }: { serviceId?: number })
               <div className="rounded-xl border border-ink-200 bg-white p-5">
                 <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500 mb-3">Расчёт стоимости</p>
                 <BreakdownRow label="Печать" hint={`${quantity} × ${fmt(calc.printUnit)} ₽`} value={`${fmt(calc.printTotal)} ₽`} />
-                {calc.lamTotal > 0 && <BreakdownRow label="Ламинирование" hint={`${quantity} × ${LAMINATION_PER_UNIT} ₽`} value={`${fmt(calc.lamTotal)} ₽`} />}
+                {calc.lamTotal > 0 && <BreakdownRow label="Ламинирование" hint={`${quantity} × ${pricing.lamination} ₽`} value={`${fmt(calc.lamTotal)} ₽`} />}
                 {calc.designTotal > 0 && <BreakdownRow label="Разработка макета" hint="2 доработки в стоимости" value={`${fmt(calc.designTotal)} ₽`} />}
                 <BreakdownRow label="Доставка" hint={delivery === "СДЭК (наложенный платёж)" ? "оплачивает получатель" : undefined} value={calc.deliveryTotal ? `${fmt(calc.deliveryTotal)} ₽` : "—"} />
                 <div className="mt-3 pt-3 border-t border-ink-200">
