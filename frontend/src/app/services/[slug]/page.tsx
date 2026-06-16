@@ -548,6 +548,7 @@ function OtherServices({ excludeSlug }: { excludeSlug?: string }) {
                 src={s.image}
                 alt={s.title}
                 loading="lazy"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }}
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
             </div>

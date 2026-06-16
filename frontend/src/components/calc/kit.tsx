@@ -327,13 +327,20 @@ export function CheckoutModal({
   const { token, refreshCart } = useAuth();
   const router = useRouter();
   const [comment, setComment] = useState("");
+  const [address, setAddress] = useState("");
   const [adding, setAdding] = useState(false);
+
+  const needsAddress = summary.delivery !== "Самовывоз";
 
   const addToCartAndGo = async () => {
     if (!token) {
       toast.error("Войдите, чтобы оформить заказ");
       onClose();
       router.push("/login");
+      return;
+    }
+    if (needsAddress && !address.trim()) {
+      toast.error("Укажите адрес доставки");
       return;
     }
     setAdding(true);
@@ -344,6 +351,7 @@ export function CheckoutModal({
         Тираж: summary.quantity,
         Доставка: summary.delivery,
       };
+      if (needsAddress) options["Адрес доставки"] = address.trim();
       if (comment.trim()) options.Комментарий = comment.trim();
       if (summary.fileId) options._fileId = summary.fileId;
       const note = [summary.productLabel, ...summary.lines].filter(Boolean).join(" · ");
@@ -389,6 +397,23 @@ export function CheckoutModal({
           {summary.lines.map((l, i) => <p key={i}>{l}</p>)}
           <p className="pt-1 font-semibold text-ink-900">Итого: {summary.total.toLocaleString("ru-RU")} ₽</p>
         </div>
+
+        {needsAddress && (
+          <div className="mt-4">
+            <label className="block text-[12px] font-semibold text-ink-700 mb-1.5">
+              Адрес доставки <span className="text-red-500">*</span>
+            </label>
+            <input
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="Город, улица, дом, квартира/офис"
+              className="input w-full"
+            />
+            <p className="mt-1 text-[11px] text-ink-500">
+              {summary.delivery} — укажите, куда доставить заказ.
+            </p>
+          </div>
+        )}
 
         <textarea
           value={comment}

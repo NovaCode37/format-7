@@ -1,6 +1,7 @@
 from __future__ import annotations
 import os
 import ssl
+import json
 import smtplib
 import logging
 from email.mime.multipart import MIMEMultipart
@@ -146,11 +147,30 @@ def _html_wrap(title: str, body_html: str, *, cta: dict | None = None) -> str:
   </div>
 </body></html>"""
 
+_DELIVERY_RU = {
+    "pickup": "Самовывоз",
+    "delivery": "Доставка по Тюмени",
+    "cdek": "СДЭК",
+    "courier": "Курьер",
+}
+
+def _delivery_ru(value: str) -> str:
+    return _DELIVERY_RU.get((value or "").strip().lower(), value or "—")
+
 def _fmt_order_lines(order) -> str:
     lines = []
     for it in order.items or []:
-        name = getattr(it.service, "name", f"#{it.service_id}") if hasattr(it, "service") else f"#{it.service_id}"
+        name = getattr(it.service, "name", f"#{it.service_id}") if getattr(it, "service", None) else f"#{it.service_id}"
         lines.append(f"  • {name} × {it.quantity} — {it.price:.2f} ₽")
+        try:
+            opts = json.loads(it.options) if getattr(it, "options", "") else {}
+        except Exception:
+            opts = {}
+        if isinstance(opts, dict):
+            for k, v in opts.items():
+                if not k or k.startswith("_") or k == "Товар":
+                    continue
+                lines.append(f"      {k}: {v}")
     return "\n".join(lines) or "  (без позиций)"
 
 def notify_new_order(order_id) -> None:
@@ -184,7 +204,7 @@ def _notify_new_order_impl(order) -> None:
         f"Клиент: {order.customer_name}\n"
         f"Email: {order.customer_email}\n"
         f"Телефон: {order.customer_phone or '—'}\n"
-        f"Доставка: {order.delivery_type}"
+        f"Доставка: {_delivery_ru(order.delivery_type)}"
         + (f" — {order.delivery_address}" if order.delivery_address else "")
         + f"\nСумма: <b>{order.total:.2f} ₽</b>\n\n"
         f"<i>Состав:</i>\n{_fmt_order_lines(order)}"
@@ -223,7 +243,7 @@ def _notify_new_order_impl(order) -> None:
             f"Клиент: {order.customer_name}\n"
             f"Email: {order.customer_email}\n"
             f"Телефон: {order.customer_phone or '—'}\n"
-            f"Доставка: {order.delivery_type}"
+            f"Доставка: {_delivery_ru(order.delivery_type)}"
             + (f" — {order.delivery_address}" if order.delivery_address else "")
             + f"\nСумма: {order.total:.2f} ₽\n\n"
             f"Состав заказа:\n{_fmt_order_lines(order)}\n"
