@@ -3,6 +3,7 @@
 import { useAuth } from "@/lib/auth-context";
 import { api, type CartItem } from "@/lib/api";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Trash2, ShoppingBag } from "@/lib/icons";
 import { useState } from "react";
 import { useToast } from "@/components/Toast";
@@ -18,6 +19,7 @@ function parseOptions(raw: string): Record<string, any> {
 
 export default function CartPage() {
   const { user, token, cart, cartCount, removeFromCart, refreshCart } = useAuth();
+  const router = useRouter();
   const toast = useToast();
   const [orderLoading, setOrderLoading] = useState(false);
   const [comment, setComment] = useState("");
@@ -92,8 +94,12 @@ export default function CartPage() {
         items,
         file_ids: fileIds,
       }, token);
-      setOrderResult({ number: order.order_number });
       await refreshCart();
+      if (order.payment_token) {
+        router.push(`/orders/${encodeURIComponent(order.order_number)}/pay?pt=${encodeURIComponent(order.payment_token)}`);
+        return;
+      }
+      setOrderResult({ number: order.order_number });
     } catch (err: any) {
       toast.error(err.message || "Ошибка оформления заказа");
     } finally {
