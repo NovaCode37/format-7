@@ -150,6 +150,7 @@ def _auto_migrate():
                 "ALTER TABLE services ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE NOT NULL",
                 "ALTER TABLE cart_items ADD COLUMN IF NOT EXISTS price DOUBLE PRECISION DEFAULT 0",
                 "ALTER TABLE cart_items ADD COLUMN IF NOT EXISTS options TEXT DEFAULT ''",
+                "ALTER TABLE orders ADD COLUMN IF NOT EXISTS provider_payment_url VARCHAR(500) DEFAULT ''",
             ):
                 conn.exec_driver_sql(sql)
             conn.commit()
@@ -1209,6 +1210,13 @@ def pay_init(
                         provider="tbank",
                         provider_payment_id=order.provider_payment_id,
                     )
+                if st in client.PENDING_STATUSES and (order.provider_payment_url or ""):
+                    return PaymentInitOut(
+                        order_number=order.order_number,
+                        provider="tbank",
+                        payment_url=order.provider_payment_url,
+                        provider_payment_id=order.provider_payment_id,
+                    )
             except PaymentError:
                 pass
 
@@ -1227,14 +1235,16 @@ def pay_init(
             raise HTTPException(status_code=502, detail=f"Ошибка провайдера: {e}")
 
         payment_id = str(res.get("PaymentId", ""))
+        payment_url = res.get("PaymentURL", "") or ""
         order.payment_provider = "tbank"
         order.provider_payment_id = payment_id
+        order.provider_payment_url = payment_url
         db.commit()
 
         return PaymentInitOut(
             order_number=order.order_number,
             provider="tbank",
-            payment_url=res.get("PaymentURL"),
+            payment_url=payment_url,
             provider_payment_id=payment_id,
         )
 

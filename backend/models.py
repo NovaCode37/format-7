@@ -151,6 +151,7 @@ class Order(Base):
     payment_token = Column(String(64), default="")
     payment_provider = Column(String(30), default="")
     provider_payment_id = Column(String(80), default="")
+    provider_payment_url = Column(String(500), default="")
     paid_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
