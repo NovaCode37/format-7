@@ -8,7 +8,7 @@ import {
 } from "@/lib/icons";
 import { api } from "@/lib/api";
 import { useToast } from "./Toast";
-import { DesignBriefCard } from "./calc/kit";
+import { DesignBriefCard, CheckoutModal } from "./calc/kit";
 
 type Track = "template" | "upload" | "design";
 type Color = "Цветная" | "Чёрно-белая";
@@ -129,16 +129,37 @@ export default function FlyerCalculator({ serviceId }: { serviceId?: number }) {
     }
   };
 
+  const trackLabel: Record<Track, string> = {
+    template: "Шаблон из каталога",
+    upload: "Загрузка готового макета",
+    design: "Заказ дизайна",
+  };
+
   const orderSummary = {
-    track, color, sides, orient,
-    mode: calc.mode,
-    lamination,
+    productLabel: "Флаеры",
+    lines: [
+      `Евро 98×210 · ${calc.mode} · ${quantity} шт.`,
+      `${sides} · ${orient}`,
+      `Макет: ${trackLabel[track]}`,
+      lamination !== "Нет" ? `Ламинация: ${lamination}` : null,
+      calc.designTotal > 0 ? `Разработка макета: от ${calc.designTotal} ₽` : null,
+      `Доставка: ${delivery}`,
+    ].filter(Boolean) as string[],
+    options: {
+      Макет: trackLabel[track],
+      Формат: "Евро 98×210",
+      Режим: calc.mode,
+      Цветность: color,
+      Стороны: sides,
+      Ориентация: orient,
+      Ламинация: lamination,
+      Бумага: "130 г/м² мелованная",
+      Файл: uploadedFile?.name || "—",
+    },
     delivery,
     quantity,
-    fileName: uploadedFile?.name || null,
-    fileId: uploadedFile?.id ?? null,
     total: calc.grandTotal,
-    designFee: calc.designTotal,
+    fileId: uploadedFile?.id ?? null,
   };
 
   return (
@@ -532,236 +553,6 @@ function BreakdownRow({
         {hint && <p className="text-[11px] text-ink-500">{hint}</p>}
       </div>
       <p className="text-[13px] font-semibold text-ink-900 tabular whitespace-nowrap">{value}</p>
-    </div>
-  );
-}
-
-type Summary = {
-  track: Track;
-  color: string; sides: string; orient: string;
-  mode: string;
-  lamination: string;
-  delivery: string;
-  quantity: number;
-  fileName: string | null;
-  fileId: number | null;
-  total: number;
-  designFee: number;
-};
-
-function CheckoutModal({
-  summary,
-  serviceId,
-  onClose,
-}: {
-  summary: Summary;
-  serviceId: number | null;
-  onClose: () => void;
-}) {
-  const toast = useToast();
-  const [step, setStep] = useState<"form" | "done">("form");
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [address, setAddress] = useState("");
-  const [comment, setComment] = useState("");
-  const [orderNumber, setOrderNumber] = useState("");
-  const [sending, setSending] = useState(false);
-
-  const trackLabel: Record<Track, string> = {
-    template: "Шаблон из каталога",
-    upload: "Загрузка готового макета",
-    design: "Заказ дизайна",
-  };
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim() || !phone.trim() || !email.trim()) {
-      toast.error("Укажите имя, телефон и email");
-      return;
-    }
-    const resolvedSid = serviceId || 0;
-
-    const deliveryType = summary.delivery === "Самовывоз" ? "pickup" : "delivery";
-    if (deliveryType === "delivery" && !address.trim()) {
-      toast.error("Укажите адрес доставки");
-      return;
-    }
-
-    setSending(true);
-
-    try {
-      const options = {
-        product: "Флаер Евро 98×210, 130 г/м² мелованная",
-        track: trackLabel[summary.track],
-        mode: summary.mode,
-        color: summary.color,
-        sides: summary.sides,
-        orientation: summary.orient,
-        quantity: summary.quantity,
-        lamination: summary.lamination,
-        design_fee: summary.designFee,
-        delivery: summary.delivery,
-        file: summary.fileName || "—",
-      };
-
-      const fullComment = [
-        `Флаеры (${trackLabel[summary.track]})`,
-        `Итого: ${summary.total} ₽`,
-        `Адрес: ${address || "—"}`,
-        comment || "",
-      ].filter(Boolean).join(" | ");
-
-      const order = await api.createOrder({
-        customer_name: name,
-        customer_email: email,
-        customer_phone: phone,
-        comment: fullComment,
-        items: [{
-          service_id: resolvedSid,
-          quantity: 1,
-          price: summary.total,
-          options,
-        }],
-        delivery_type: deliveryType,
-        delivery_address: deliveryType === "delivery" ? address : "",
-        office_id: null,
-        file_ids: summary.fileId ? [summary.fileId] : [],
-      });
-      setOrderNumber(order.order_number);
-      setSending(false);
-      setStep("done");
-    } catch (e: any) {
-      setSending(false);
-      toast.error(e?.message || "Не удалось оформить заказ");
-    }
-  };
-
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      className="fixed inset-0 z-[100] grid place-items-center bg-ink-900/50 backdrop-blur-sm p-4 overflow-y-auto"
-      onClick={onClose}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-lg bg-white rounded-2xl border border-ink-200 p-6 sm:p-7 relative my-8"
-      >
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Закрыть"
-          className="absolute top-3 right-3 h-9 w-9 grid place-items-center rounded-md text-ink-500 hover:text-ink-900 hover:bg-ink-100"
-        >
-          <X size={16} />
-        </button>
-
-        {step === "form" ? (
-          <form onSubmit={submit}>
-            <h3 className="font-heading text-xl font-bold text-ink-900">Оформление заказа</h3>
-            <p className="mt-1 text-sm text-ink-600">
-              Менеджер свяжется для подтверждения и оплаты.
-            </p>
-
-            <div className="mt-4 rounded-lg bg-ink-50 border border-ink-200 p-3 text-[12px] text-ink-700 space-y-0.5">
-              <p>{trackLabel[summary.track]} · Евро 98×210 · {summary.mode}</p>
-              <p>{summary.sides} · {summary.orient} · {summary.quantity} шт.</p>
-              {summary.lamination !== "Нет" && <p>Ламинация: {summary.lamination}</p>}
-              {summary.designFee > 0 && <p>Разработка макета: от {summary.designFee} ₽</p>}
-              <p>Доставка: {summary.delivery}</p>
-              <p className="pt-1 font-semibold text-ink-900">Итого: {summary.total.toLocaleString("ru-RU")} ₽</p>
-            </div>
-
-            <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input
-                value={name} onChange={(e) => setName(e.target.value)}
-                placeholder="Ваше имя *"
-                className="input h-11" required
-              />
-              <input
-                type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
-                placeholder="Телефон *"
-                className="input h-11 tabular" required
-              />
-              <input
-                type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email (для чека)"
-                className="input h-11 sm:col-span-2"
-              />
-              <input
-                value={address} onChange={(e) => setAddress(e.target.value)}
-                placeholder={summary.delivery === "Самовывоз" ? "Офис самовывоза (опц.)" : "Адрес доставки"}
-                className="input h-11 sm:col-span-2"
-              />
-              <textarea
-                value={comment} onChange={(e) => setComment(e.target.value)}
-                placeholder="Комментарий / пожелания к макету (опц.)"
-                rows={3}
-                className="input sm:col-span-2 py-2 resize-none"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={sending}
-              className="mt-5 w-full h-11 rounded-lg flex items-center justify-center gap-2 font-semibold text-[14px] bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-60 transition-colors"
-            >
-              {sending ? "Отправляем…" : "Передать менеджеру"}
-            </button>
-
-            <p className="mt-3 text-[11px] text-ink-500 text-center">
-              Нажимая кнопку, вы соглашаетесь с{" "}
-              <Link href="/legal/privacy" className="text-brand hover:underline">
-                политикой обработки данных
-              </Link>
-            </p>
-          </form>
-        ) : (
-          <div>
-            <div className="grid place-items-center w-14 h-14 rounded-full bg-emerald-100 text-emerald-700 mx-auto">
-              <CheckCircle2 size={26} />
-            </div>
-            <h3 className="mt-4 font-heading text-xl font-bold text-ink-900 text-center">
-              Заказ принят
-            </h3>
-            <p className="mt-2 text-sm text-ink-600 text-center">
-              Менеджер проверит макет и свяжется для оплаты по телефону {phone}
-              {email ? <> и {email}</> : null}. После оплаты заказ уйдёт в работу.
-            </p>
-            {!!orderNumber && (
-              <p className="mt-1 text-[12px] text-ink-500 text-center">
-                Номер заказа: <span className="font-semibold text-ink-900">{orderNumber}</span>
-              </p>
-            )}
-
-            <div className="mt-5 rounded-lg border border-ink-200 bg-ink-50 p-4 flex items-center gap-3">
-              <span className="grid place-items-center w-11 h-11 rounded-md bg-white border border-ink-200 text-ink-700">
-                <QrCode size={22} />
-              </span>
-              <div className="text-[12px] text-ink-700">
-                <p className="font-semibold text-ink-900">Оплата по согласованию</p>
-                <p>Менеджер согласует способ оплаты после проверки макета</p>
-              </div>
-            </div>
-
-            <div className="mt-5 flex gap-2">
-              <a
-                href="tel:+79324759511"
-                className="flex-1 h-11 rounded-lg flex items-center justify-center gap-2 border border-ink-200 text-ink-900 text-[13px] font-medium hover:bg-ink-50"
-              >
-                <Phone size={14} /> Позвонить
-              </a>
-              <button
-                onClick={onClose}
-                className="flex-1 h-11 rounded-lg bg-ink-900 text-white text-[13px] font-medium hover:bg-ink-800"
-              >
-                Готово
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   );
 }

@@ -8,6 +8,7 @@ import {
 } from "@/lib/icons";
 import { api } from "@/lib/api";
 import { useToast } from "./Toast";
+import { CheckoutModal } from "./calc/kit";
 
 type Material = "Бумага 300 г/м²" | "Бумага 250 г/м²" | "Пластик";
 type Sides = "Односторонняя" | "Двусторонняя";
@@ -140,12 +141,31 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
   };
 
   const orderSummary = {
-    material, sides, sheets, lamination, rounding,
-    spring, springColor: spring === "Да" ? springColor : null,
-    staple, quantity, delivery, needDesign,
-    fileName: uploadedFile?.name || null,
-    fileId: uploadedFile?.id ?? null,
+    productLabel: "Меню для кафе",
+    lines: [
+      `${material} · ${sides} · ${sheets} л. · ${quantity} экз.`,
+      lamination === "Да" ? "Ламинация" : null,
+      rounding === "Да" ? "Скругление углов" : null,
+      spring === "Да" ? `Пружина (${springColor})` : null,
+      staple === "Да" ? "Скоба" : null,
+      needDesign === "Да" ? "Разработка макета дизайнером" : null,
+      `Доставка: ${delivery}`,
+    ].filter(Boolean) as string[],
+    options: {
+      Материал: material,
+      Стороны: sides,
+      Листов: sheets,
+      Ламинация: lamination,
+      Скругление: rounding,
+      Пружина: spring === "Да" ? `Да (${springColor})` : "Нет",
+      Скоба: staple,
+      Дизайн: needDesign,
+      Файл: uploadedFile?.name || "—",
+    },
+    delivery,
+    quantity,
     total: calc.grandTotal,
+    fileId: uploadedFile?.id ?? null,
   };
 
   return (
@@ -547,197 +567,6 @@ function BreakdownRow({
         {hint && <p className="text-[11px] text-ink-500">{hint}</p>}
       </div>
       {value && <p className="text-[13px] font-semibold text-ink-900 tabular whitespace-nowrap">{value}</p>}
-    </div>
-  );
-}
-
-type Summary = {
-  material: string; sides: string; sheets: number;
-  lamination: string; rounding: string;
-  spring: string; springColor: string | null;
-  staple: string; quantity: number; delivery: string;
-  needDesign: string;
-  fileName: string | null; fileId: number | null;
-  total: number;
-};
-
-function CheckoutModal({
-  summary, serviceId, onClose,
-}: {
-  summary: Summary; serviceId: number | null; onClose: () => void;
-}) {
-  const toast = useToast();
-  const [step, setStep] = useState<"form" | "done">("form");
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [address, setAddress] = useState("");
-  const [comment, setComment] = useState("");
-  const [orderNumber, setOrderNumber] = useState("");
-  const [sending, setSending] = useState(false);
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim() || !phone.trim() || !email.trim()) {
-      toast.error("Укажите имя, телефон и email");
-      return;
-    }
-    const resolvedSid = serviceId || 0;
-
-    const deliveryType = summary.delivery === "Самовывоз" ? "pickup" : "delivery";
-    if (deliveryType === "delivery" && !address.trim()) {
-      toast.error("Укажите адрес доставки");
-      return;
-    }
-
-    setSending(true);
-    try {
-      const options = {
-        material: summary.material,
-        sides: summary.sides,
-        sheets: summary.sheets,
-        lamination: summary.lamination,
-        rounding: summary.rounding,
-        spring: summary.spring,
-        spring_color: summary.springColor || "—",
-        staple: summary.staple,
-        quantity: summary.quantity,
-        delivery: summary.delivery,
-        design: summary.needDesign,
-        file: summary.fileName || "—",
-      };
-
-      const fullComment = [
-        `Меню: ${summary.material}, ${summary.sides}, ${summary.sheets} л., ${summary.quantity} экз.`,
-        summary.lamination === "Да" ? "ламинация" : null,
-        summary.rounding === "Да" ? "скругление" : null,
-        summary.spring === "Да" ? `пружина (${summary.springColor})` : null,
-        summary.staple === "Да" ? "скоба" : null,
-        summary.needDesign === "Да" ? "дизайн" : null,
-        `Итого: ${summary.total} ₽`,
-        `Адрес: ${address || "—"}`,
-        comment || "",
-      ].filter(Boolean).join(" | ");
-
-      const order = await api.createOrder({
-        customer_name: name,
-        customer_email: email,
-        customer_phone: phone,
-        comment: fullComment,
-        items: [{
-          service_id: resolvedSid,
-          quantity: summary.quantity,
-          price: summary.total,
-          options,
-        }],
-        delivery_type: deliveryType,
-        delivery_address: deliveryType === "delivery" ? address : "",
-        office_id: null,
-        file_ids: summary.fileId ? [summary.fileId] : [],
-      });
-      setOrderNumber(order.order_number);
-      setSending(false);
-      setStep("done");
-    } catch (e: any) {
-      setSending(false);
-      toast.error(e?.message || "Не удалось оформить заказ");
-    }
-  };
-
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      className="fixed inset-0 z-[100] grid place-items-center bg-ink-900/50 backdrop-blur-sm p-4 overflow-y-auto"
-      onClick={onClose}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-lg bg-white rounded-2xl border border-ink-200 p-6 sm:p-7 relative my-8"
-      >
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Закрыть"
-          className="absolute top-3 right-3 h-9 w-9 grid place-items-center rounded-md text-ink-500 hover:text-ink-900 hover:bg-ink-100"
-        >
-          <X size={16} />
-        </button>
-
-        {step === "form" ? (
-          <form onSubmit={submit}>
-            <h3 className="font-heading text-xl font-bold text-ink-900">Оформление заказа</h3>
-            <p className="mt-1 text-sm text-ink-600">Менеджер проверит макет и свяжется для оплаты.</p>
-
-            <div className="mt-4 rounded-lg bg-ink-50 border border-ink-200 p-3 text-[12px] text-ink-700 space-y-0.5">
-              <p>{summary.material} · {summary.sides} · {summary.sheets} л. · {summary.quantity} экз.</p>
-              {summary.lamination === "Да" && <p>Ламинация</p>}
-              {summary.rounding === "Да" && <p>Скругление углов</p>}
-              {summary.spring === "Да" && <p>Пружина ({summary.springColor})</p>}
-              {summary.staple === "Да" && <p>Скоба</p>}
-              {summary.needDesign === "Да" && <p>Разработка макета дизайнером</p>}
-              <p>Доставка: {summary.delivery}</p>
-              <p className="pt-1 font-semibold text-ink-900">Итого: {summary.total.toLocaleString("ru-RU")} ₽</p>
-            </div>
-
-            <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ваше имя *" className="input h-11" required />
-              <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Телефон *" className="input h-11 tabular" required />
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email (для чека)" className="input h-11 sm:col-span-2" />
-              <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder={summary.delivery === "Самовывоз" ? "Офис самовывоза (опц.)" : "Адрес доставки"} className="input h-11 sm:col-span-2" />
-              <textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Комментарий к заказу (опц.)" rows={3} className="input sm:col-span-2 py-2 resize-none" />
-            </div>
-
-            <button
-              type="submit"
-              disabled={sending}
-              className="mt-5 w-full h-11 rounded-lg flex items-center justify-center gap-2 font-semibold text-[14px] bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-60 transition-colors"
-            >
-              {sending ? "Отправляем…" : "Передать менеджеру"}
-            </button>
-
-            <p className="mt-3 text-[11px] text-ink-500 text-center">
-              Нажимая кнопку, вы соглашаетесь с{" "}
-              <Link href="/legal/privacy" className="text-brand hover:underline">политикой обработки данных</Link>
-            </p>
-          </form>
-        ) : (
-          <div>
-            <div className="grid place-items-center w-14 h-14 rounded-full bg-emerald-100 text-emerald-700 mx-auto">
-              <CheckCircle2 size={26} />
-            </div>
-            <h3 className="mt-4 font-heading text-xl font-bold text-ink-900 text-center">Заказ принят</h3>
-            <p className="mt-2 text-sm text-ink-600 text-center">
-              Менеджер проверит макет и свяжется для оплаты по телефону {phone}
-              {email ? <> и {email}</> : null}.
-            </p>
-            {!!orderNumber && (
-              <p className="mt-1 text-[12px] text-ink-500 text-center">
-                Номер заказа: <span className="font-semibold text-ink-900">{orderNumber}</span>
-              </p>
-            )}
-
-            <div className="mt-5 rounded-lg border border-ink-200 bg-ink-50 p-4 flex items-center gap-3">
-              <span className="grid place-items-center w-11 h-11 rounded-md bg-white border border-ink-200 text-ink-700">
-                <QrCode size={22} />
-              </span>
-              <div className="text-[12px] text-ink-700">
-                <p className="font-semibold text-ink-900">Оплата по согласованию</p>
-                <p>Менеджер согласует способ оплаты после проверки макета</p>
-              </div>
-            </div>
-
-            <div className="mt-5 flex gap-2">
-              <a href="tel:+79324759511" className="flex-1 h-11 rounded-lg flex items-center justify-center gap-2 border border-ink-200 text-ink-900 text-[13px] font-medium hover:bg-ink-50">
-                <Phone size={14} /> Позвонить
-              </a>
-              <button onClick={onClose} className="flex-1 h-11 rounded-lg bg-ink-900 text-white text-[13px] font-medium hover:bg-ink-800">
-                Готово
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   );
 }
