@@ -1,24 +1,17 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
-import { QRCodeSVG } from "qrcode.react";
 import { CheckCircle2, Loader2, ArrowRight } from "@/lib/icons";
 import { api, type PaymentInfo } from "@/lib/api";
 import Reveal, { ScaleIn } from "@/components/Reveal";
 
 export default function PaymentPage() {
   const { number } = useParams<{ number: string }>();
-  const searchParams = useSearchParams();
-  const paymentToken = searchParams.get("pt") || "";
   const [info, setInfo] = useState<PaymentInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [payUrl, setPayUrl] = useState<string | null>(null);
-  const [qrLoading, setQrLoading] = useState(false);
-  const [qrError, setQrError] = useState<string | null>(null);
-  const [qrAttempt, setQrAttempt] = useState(0);
 
   const refresh = useCallback(async () => {
     try {
@@ -38,31 +31,9 @@ export default function PaymentPage() {
 
   useEffect(() => {
     if (!info || info.payment_status === "paid") return;
-    const id = setInterval(refresh, 4000);
+    const id = setInterval(refresh, 5000);
     return () => clearInterval(id);
   }, [info, refresh]);
-
-  useEffect(() => {
-    if (!info || info.payment_status === "paid" || !paymentToken || payUrl) return;
-    let cancelled = false;
-    setQrLoading(true);
-    setQrError(null);
-    api.initPayment(number, paymentToken)
-      .then((res) => {
-        if (cancelled) return;
-        if (res.payment_url) {
-          setPayUrl(res.payment_url);
-        } else if (res.provider === "none") {
-          setQrError("Онлайн-оплата не настроена. Свяжитесь с менеджером для оплаты.");
-        } else {
-          setQrError("Не удалось сформировать оплату. Попробуйте обновить.");
-        }
-      })
-      .catch((e: any) => { if (!cancelled) setQrError(e?.message || "Ошибка платёжного сервиса"); })
-      .finally(() => { if (!cancelled) setQrLoading(false); });
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [info?.payment_status, paymentToken, number, qrAttempt]);
 
   if (loading) {
     return (
@@ -143,33 +114,18 @@ export default function PaymentPage() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center">
-                    <div className="mb-6 text-[12px] uppercase tracking-[0.16em] text-ink-500">
-                      Оплата по QR-коду
-                    </div>
-                    <div className="bg-white p-4 border border-ink-200 rounded-md grid place-items-center text-center" style={{ minWidth: 268, minHeight: 268 }}>
-                      {payUrl ? (
-                        <a href={payUrl} aria-label="Открыть страницу оплаты" className="block">
-                          <QRCodeSVG value={payUrl} size={260} level="M" marginSize={2} />
-                        </a>
-                      ) : qrError ? (
-                        <div className="px-4 max-w-[240px]">
-                          <p className="text-[13px] text-ink-600 mb-4">{qrError}</p>
-                          <button
-                            type="button"
-                            onClick={() => { setPayUrl(null); setQrError(null); setQrAttempt((n) => n + 1); }}
-                            className="btn-secondary btn-sm cursor-pointer"
-                          >
-                            Обновить
-                          </button>
-                        </div>
-                      ) : (
-                        <Loader2 className="animate-spin text-ink-400" size={32} strokeWidth={2} />
-                      )}
+                    <img src="/sbp-logo.png" alt="Система быстрых платежей" className="h-9 mb-6 object-contain" />
+                    <div className="rounded-2xl overflow-hidden border border-ink-200 shadow-sm">
+                      <img
+                        src="/sbp-pay-qr.png"
+                        alt="QR-код для оплаты по СБП"
+                        className="block w-[300px] max-w-full h-auto"
+                      />
                     </div>
                     <p className="mt-6 text-sm text-ink-700 text-center max-w-sm">
-                      Наведите камеру телефона на&nbsp;код — откроется{" "}
-                      <span className="font-semibold">страница оплаты Т-Банка</span>{" "}
-                      (карта, СБП или T-Pay).
+                      Откройте камеру телефона или приложение банка, наведите на&nbsp;код и&nbsp;оплатите{" "}
+                      <span className="font-semibold tabular">{info.total.toLocaleString("ru-RU")} ₽</span>{" "}
+                      по&nbsp;СБП.
                     </p>
                     <div className="mt-2 flex items-center gap-2 text-[12px] text-ink-500">
                       <Loader2 size={12} className="animate-spin" strokeWidth={2} />
@@ -205,26 +161,18 @@ export default function PaymentPage() {
               </div>
             </Reveal>
 
-            {!isPaid && payUrl && (
+            {!isPaid && (
               <Reveal delay={0.12}>
-                <div className="card p-6 space-y-3">
-                  <p className="eyebrow">Быстрая оплата</p>
-                  <p className="text-[13px] text-ink-600">
-                    T-Pay — оплата в&nbsp;один тап через приложение Т-Банка.
+                <div className="card p-6 space-y-2">
+                  <p className="eyebrow">Как оплатить</p>
+                  <ol className="text-[13px] text-ink-600 space-y-1.5 list-decimal list-inside">
+                    <li>Наведите камеру телефона на&nbsp;QR-код.</li>
+                    <li>Выберите банк и&nbsp;подтвердите оплату по&nbsp;СБП.</li>
+                    <li>Укажите сумму заказа — <span className="font-semibold text-ink-900 tabular">{info.total.toLocaleString("ru-RU")} ₽</span>.</li>
+                  </ol>
+                  <p className="text-[12px] text-ink-500 pt-1">
+                    После оплаты менеджер подтвердит заказ. Статус — в&nbsp;личном кабинете.
                   </p>
-                  <a
-                    href={payUrl}
-                    aria-label="Оплатить через T-Pay"
-                    className="block rounded-xl overflow-hidden hover:opacity-90 transition-opacity"
-                  >
-                    <img src="/tpay-button.svg" alt="T-Pay" className="w-full h-12 object-contain" />
-                  </a>
-                  <a
-                    href={payUrl}
-                    className="btn-secondary btn-sm w-full cursor-pointer text-center"
-                  >
-                    Картой или другим способом
-                  </a>
                 </div>
               </Reveal>
             )}
