@@ -3,26 +3,21 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { QRCodeSVG } from "qrcode.react";
-import { CheckCircle2, Loader2, Copy, Smartphone, ArrowRight, CreditCard } from "@/lib/icons";
+import { CheckCircle2, Loader2, Smartphone, ArrowRight } from "@/lib/icons";
 import { api, type PaymentInfo } from "@/lib/api";
 import Reveal, { ScaleIn } from "@/components/Reveal";
-import { useToast } from "@/components/Toast";
 
 export default function PaymentPage() {
   const { number } = useParams<{ number: string }>();
   const searchParams = useSearchParams();
   const paymentToken = searchParams.get("pt") || "";
-  const toast = useToast();
   const [info, setInfo] = useState<PaymentInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [marking, setMarking] = useState(false);
-  const [initiating, setInitiating] = useState(false);
   const [tbankQr, setTbankQr] = useState<string | null>(null);
-  const [payUrl, setPayUrl] = useState<string | null>(null);
   const [qrLoading, setQrLoading] = useState(false);
+  const [qrError, setQrError] = useState<string | null>(null);
+  const [qrAttempt, setQrAttempt] = useState(0);
 
   const refresh = useCallback(async () => {
     try {
@@ -47,66 +42,26 @@ export default function PaymentPage() {
   }, [info, refresh]);
 
   useEffect(() => {
-    if (!info || info.payment_status === "paid" || !paymentToken || tbankQr || qrLoading) return;
+    if (!info || info.payment_status === "paid" || !paymentToken || tbankQr) return;
     let cancelled = false;
     setQrLoading(true);
+    setQrError(null);
     api.initPayment(number, paymentToken)
       .then((res) => {
         if (cancelled) return;
-        if (res.provider === "tbank" && res.qr_image) setTbankQr(res.qr_image);
-        if (res.payment_url) setPayUrl(res.payment_url);
-        if (res.confirmation_url) setPayUrl(res.confirmation_url);
+        if (res.qr_image) {
+          setTbankQr(res.qr_image);
+        } else if (res.provider === "none") {
+          setQrError("Онлайн-оплата не настроена. Свяжитесь с менеджером для оплаты.");
+        } else {
+          setQrError("Не удалось сформировать QR-код. Попробуйте обновить.");
+        }
       })
-      .catch(() => {})
+      .catch((e: any) => { if (!cancelled) setQrError(e?.message || "Ошибка платёжного сервиса"); })
       .finally(() => { if (!cancelled) setQrLoading(false); });
     return () => { cancelled = true; };
-  }, [info, paymentToken, number, tbankQr, qrLoading]);
-
-  const handleCopy = async () => {
-    if (!info) return;
-    try {
-      await navigator.clipboard.writeText(info.sbp_payload);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
-    } catch {}
-  };
-
-  const handleCardPay = async () => {
-    if (!paymentToken) {
-      toast.error("Отсутствует токен оплаты");
-      return;
-    }
-    setInitiating(true);
-    try {
-      const res = await api.initPayment(number, paymentToken);
-      const url = res.confirmation_url || res.payment_url || payUrl;
-      if (url) {
-        window.location.href = url;
-        return;
-      }
-      toast.info("Оплата картой временно недоступна. Воспользуйтесь QR-кодом СБП.");
-    } catch (err: any) {
-      toast.error(err.message || "Ошибка инициализации оплаты");
-    } finally {
-      setInitiating(false);
-    }
-  };
-
-  const handleMarkPaid = async () => {
-    if (!paymentToken) {
-      toast.error("Откройте страницу оплаты по ссылке из корзины");
-      return;
-    }
-    setMarking(true);
-    try {
-      const data = await api.markOrderPaid(number, paymentToken);
-      setInfo(data);
-    } catch (err: any) {
-      toast.error(err.message || "Ошибка");
-    } finally {
-      setMarking(false);
-    }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [info?.payment_status, paymentToken, number, qrAttempt]);
 
   if (loading) {
     return (
@@ -191,7 +146,7 @@ export default function PaymentPage() {
                       <Smartphone size={14} strokeWidth={2} />
                       Оплата через СБП
                     </div>
-                    <div className="bg-white p-4 border border-ink-200 rounded-md grid place-items-center" style={{ minWidth: 268, minHeight: 268 }}>
+                    <div className="bg-white p-4 border border-ink-200 rounded-md grid place-items-center text-center" style={{ minWidth: 268, minHeight: 268 }}>
                       {tbankQr ? (
                         <img
                           src={`data:image/svg+xml;base64,${tbankQr}`}
@@ -199,15 +154,19 @@ export default function PaymentPage() {
                           width={260}
                           height={260}
                         />
-                      ) : qrLoading ? (
-                        <Loader2 className="animate-spin text-ink-400" size={32} strokeWidth={2} />
+                      ) : qrError ? (
+                        <div className="px-4 max-w-[240px]">
+                          <p className="text-[13px] text-ink-600 mb-4">{qrError}</p>
+                          <button
+                            type="button"
+                            onClick={() => { setTbankQr(null); setQrError(null); setQrAttempt((n) => n + 1); }}
+                            className="btn-secondary btn-sm cursor-pointer"
+                          >
+                            Обновить
+                          </button>
+                        </div>
                       ) : (
-                        <QRCodeSVG
-                          value={info.sbp_payload}
-                          size={260}
-                          level="M"
-                          marginSize={2}
-                        />
+                        <Loader2 className="animate-spin text-ink-400" size={32} strokeWidth={2} />
                       )}
                     </div>
                     <p className="mt-6 text-sm text-ink-700 text-center max-w-sm">
@@ -248,64 +207,6 @@ export default function PaymentPage() {
                 </div>
               </div>
             </Reveal>
-
-            {!isPaid && paymentToken && (
-              <Reveal delay={0.12}>
-                <div className="card p-6 space-y-3">
-                  <p className="eyebrow">Оплатить картой</p>
-                  <p className="text-[13px] text-ink-600">
-                    Банковская карта через Т-Банк. Безопасное соединение, 3-D&nbsp;Secure.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleCardPay}
-                    disabled={initiating}
-                    className="btn-primary btn-sm w-full cursor-pointer disabled:opacity-60"
-                  >
-                    <CreditCard size={14} strokeWidth={2} />
-                    {initiating ? "Переход…" : "Оплатить картой"}
-                  </button>
-                </div>
-              </Reveal>
-            )}
-
-            {!isPaid && (
-              <Reveal delay={0.15}>
-                <div className="card p-6 space-y-3">
-                  <p className="eyebrow">Альтернатива</p>
-                  <p className="text-[13px] text-ink-600">
-                    Скопируйте платёжную строку и&nbsp;вставьте в&nbsp;приложение банка вручную.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleCopy}
-                    className="btn-secondary btn-sm w-full cursor-pointer"
-                  >
-                    <Copy size={14} strokeWidth={2} />
-                    {copied ? "Скопировано ✓" : "Скопировать данные"}
-                  </button>
-                </div>
-              </Reveal>
-            )}
-
-            {!isPaid && paymentToken && (
-              <Reveal delay={0.2}>
-                <div className="card p-6 space-y-3 border-dashed">
-                  <p className="eyebrow text-amber-700">DEV / Тест</p>
-                  <p className="text-[12px] text-ink-500">
-                    Имитация колбэка от&nbsp;банка. В&nbsp;продакшене статус приходит через webhook.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleMarkPaid}
-                    disabled={marking}
-                    className="btn btn-sm w-full cursor-pointer disabled:opacity-60"
-                  >
-                    {marking ? "…" : "Отметить как оплачено"}
-                  </button>
-                </div>
-              </Reveal>
-            )}
           </aside>
         </div>
       </div>
