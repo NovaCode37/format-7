@@ -1231,15 +1231,9 @@ def pay_init(
         order.provider_payment_id = payment_id
         db.commit()
 
-        try:
-            qr = client.get_qr(payment_id, "PAYLOAD")
-        except PaymentError as e:
-            raise HTTPException(status_code=502, detail=f"Ошибка провайдера: {e}")
-
         return PaymentInitOut(
             order_number=order.order_number,
             provider="tbank",
-            qr_payload=qr,
             payment_url=res.get("PaymentURL"),
             provider_payment_id=payment_id,
         )

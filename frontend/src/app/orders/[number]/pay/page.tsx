@@ -15,7 +15,6 @@ export default function PaymentPage() {
   const [info, setInfo] = useState<PaymentInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [qrPayload, setQrPayload] = useState<string | null>(null);
   const [payUrl, setPayUrl] = useState<string | null>(null);
   const [qrLoading, setQrLoading] = useState(false);
   const [qrError, setQrError] = useState<string | null>(null);
@@ -44,21 +43,20 @@ export default function PaymentPage() {
   }, [info, refresh]);
 
   useEffect(() => {
-    if (!info || info.payment_status === "paid" || !paymentToken || qrPayload) return;
+    if (!info || info.payment_status === "paid" || !paymentToken || payUrl) return;
     let cancelled = false;
     setQrLoading(true);
     setQrError(null);
     api.initPayment(number, paymentToken)
       .then((res) => {
         if (cancelled) return;
-        if (res.qr_payload) {
-          setQrPayload(res.qr_payload);
+        if (res.payment_url) {
+          setPayUrl(res.payment_url);
         } else if (res.provider === "none") {
           setQrError("Онлайн-оплата не настроена. Свяжитесь с менеджером для оплаты.");
         } else {
-          setQrError("Не удалось сформировать QR-код. Попробуйте обновить.");
+          setQrError("Не удалось сформировать оплату. Попробуйте обновить.");
         }
-        if (res.payment_url) setPayUrl(res.payment_url);
       })
       .catch((e: any) => { if (!cancelled) setQrError(e?.message || "Ошибка платёжного сервиса"); })
       .finally(() => { if (!cancelled) setQrLoading(false); });
@@ -146,17 +144,19 @@ export default function PaymentPage() {
                 ) : (
                   <div className="flex flex-col items-center">
                     <div className="mb-6 text-[12px] uppercase tracking-[0.16em] text-ink-500">
-                      Оплата через СБП
+                      Оплата по QR-коду
                     </div>
                     <div className="bg-white p-4 border border-ink-200 rounded-md grid place-items-center text-center" style={{ minWidth: 268, minHeight: 268 }}>
-                      {qrPayload ? (
-                        <QRCodeSVG value={qrPayload} size={260} level="M" marginSize={2} />
+                      {payUrl ? (
+                        <a href={payUrl} aria-label="Открыть страницу оплаты" className="block">
+                          <QRCodeSVG value={payUrl} size={260} level="M" marginSize={2} />
+                        </a>
                       ) : qrError ? (
                         <div className="px-4 max-w-[240px]">
                           <p className="text-[13px] text-ink-600 mb-4">{qrError}</p>
                           <button
                             type="button"
-                            onClick={() => { setQrPayload(null); setQrError(null); setQrAttempt((n) => n + 1); }}
+                            onClick={() => { setPayUrl(null); setQrError(null); setQrAttempt((n) => n + 1); }}
                             className="btn-secondary btn-sm cursor-pointer"
                           >
                             Обновить
@@ -167,9 +167,9 @@ export default function PaymentPage() {
                       )}
                     </div>
                     <p className="mt-6 text-sm text-ink-700 text-center max-w-sm">
-                      Откройте приложение&nbsp;вашего&nbsp;банка, выберите{" "}
-                      <span className="font-semibold">«Оплата по&nbsp;QR&nbsp;/ СБП»</span>{" "}
-                      и&nbsp;наведите камеру на&nbsp;код.
+                      Наведите камеру телефона на&nbsp;код — откроется{" "}
+                      <span className="font-semibold">страница оплаты Т-Банка</span>{" "}
+                      (карта, СБП или T-Pay).
                     </p>
                     <div className="mt-2 flex items-center gap-2 text-[12px] text-ink-500">
                       <Loader2 size={12} className="animate-spin" strokeWidth={2} />
