@@ -994,6 +994,43 @@ def _to_ascii_url(url: str) -> str:
     except Exception:
         return url
 
+def _tbank_receipt(order) -> dict:
+    taxation = (os.environ.get("TBANK_TAXATION", "usn_income").strip() or "usn_income")
+    tax = (os.environ.get("TBANK_VAT", "none").strip() or "none")
+    total_kop = int(round(float(order.total or 0) * 100))
+    items = []
+    for it in order.items or []:
+        price_kop = int(round(float(it.price or 0) * 100))
+        qty = max(int(it.quantity or 1), 1)
+        if price_kop <= 0:
+            continue
+        name = (getattr(it.service, "name", None) or f"Услуга #{it.service_id}")[:128]
+        items.append({
+            "Name": name,
+            "Price": price_kop,
+            "Quantity": qty,
+            "Amount": price_kop * qty,
+            "Tax": tax,
+            "PaymentMethod": "full_prepayment",
+            "PaymentObject": "service",
+        })
+    if not items or sum(i["Amount"] for i in items) != total_kop:
+        items = [{
+            "Name": f"Заказ {order.order_number}"[:128],
+            "Price": total_kop,
+            "Quantity": 1,
+            "Amount": total_kop,
+            "Tax": tax,
+            "PaymentMethod": "full_prepayment",
+            "PaymentObject": "service",
+        }]
+    receipt: dict = {"Taxation": taxation, "Items": items}
+    if order.customer_email:
+        receipt["Email"] = order.customer_email
+    if order.customer_phone:
+        receipt["Phone"] = order.customer_phone
+    return receipt
+
 def _is_trusted_proxy(ip: str) -> bool:
     try:
         addr = ipaddress.ip_address(ip)
@@ -1156,6 +1193,7 @@ def pay_init(
                 success_url=success_url,
                 fail_url=fail_url,
                 customer_email=order.customer_email,
+                receipt=_tbank_receipt(order),
             )
         except PaymentError as e:
             raise HTTPException(status_code=502, detail=f"Ошибка провайдера: {e}")
@@ -1408,9 +1446,31 @@ def admin_refund(
             db.commit()
             raise HTTPException(status_code=502, detail=f"Возврат отклонён: {e}")
 
+    elif order.payment_provider == "tbank" and order.provider_payment_id:
+        client = get_tbank_client()
+        if client is None:
+            refund.status = "failed"
+            db.commit()
+            raise HTTPException(status_code=503, detail="Провайдер не настроен")
+        is_full = data.amount >= order.total - 0.01
+        try:
+            resp = client.cancel(
+                order.provider_payment_id,
+                amount_rub=None if is_full else data.amount,
+                receipt=_tbank_receipt(order) if is_full else None,
+            )
+            refund.provider_refund_id = str(resp.get("PaymentId", ""))
+            st = resp.get("Status", "")
+            refund.status = "succeeded" if st in ("REFUNDED", "PARTIAL_REFUNDED", "REVERSED") else "pending"
+        except PaymentError as e:
+            refund.status = "failed"
+            db.commit()
+            raise HTTPException(status_code=502, detail=f"Возврат отклонён: {e}")
+
     total_refunded = already + (data.amount if refund.status == "succeeded" else 0)
     if total_refunded >= order.total - 0.01:
         order.status = "cancelled"
+        order.payment_status = "cancelled"
 
     db.commit()
     db.refresh(refund)

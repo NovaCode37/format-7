@@ -219,6 +219,7 @@ class TBankClient:
         success_url: str,
         fail_url: str,
         customer_email: str = "",
+        receipt: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
 
         params: dict[str, Any] = {
@@ -230,6 +231,8 @@ class TBankClient:
             "SuccessURL": success_url,
             "FailURL": fail_url,
         }
+        if receipt:
+            params["Receipt"] = receipt
         params["Token"] = self.gen_token(params)
         try:
             resp = self._post("/Init", params)
@@ -237,6 +240,31 @@ class TBankClient:
             raise PaymentError(f"TBank API unreachable: {e}") from e
         if not resp.get("Success"):
             raise PaymentError(f"TBank Init: {resp.get('Message')} {resp.get('Details')}")
+        return resp
+
+    def cancel(
+        self,
+        payment_id: str,
+        *,
+        amount_rub: float | None = None,
+        receipt: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+
+        params: dict[str, Any] = {
+            "TerminalKey": self._terminal_key,
+            "PaymentId": str(payment_id),
+        }
+        if amount_rub is not None:
+            params["Amount"] = int(round(float(amount_rub) * 100))
+        if receipt:
+            params["Receipt"] = receipt
+        params["Token"] = self.gen_token(params)
+        try:
+            resp = self._post("/Cancel", params)
+        except httpx.HTTPError as e:
+            raise PaymentError(f"TBank API unreachable: {e}") from e
+        if not resp.get("Success"):
+            raise PaymentError(f"TBank Cancel: {resp.get('Message')} {resp.get('Details')}")
         return resp
 
     def get_qr(self, payment_id: str, data_type: str = "PAYLOAD") -> str:

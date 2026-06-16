@@ -16,6 +16,7 @@ export default function PaymentPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [qrPayload, setQrPayload] = useState<string | null>(null);
+  const [payUrl, setPayUrl] = useState<string | null>(null);
   const [qrLoading, setQrLoading] = useState(false);
   const [qrError, setQrError] = useState<string | null>(null);
   const [qrAttempt, setQrAttempt] = useState(0);
@@ -57,6 +58,7 @@ export default function PaymentPage() {
         } else {
           setQrError("Не удалось сформировать QR-код. Попробуйте обновить.");
         }
+        if (res.payment_url) setPayUrl(res.payment_url);
       })
       .catch((e: any) => { if (!cancelled) setQrError(e?.message || "Ошибка платёжного сервиса"); })
       .finally(() => { if (!cancelled) setQrLoading(false); });
@@ -202,6 +204,23 @@ export default function PaymentPage() {
                 </div>
               </div>
             </Reveal>
+
+            {!isPaid && payUrl && (
+              <Reveal delay={0.12}>
+                <div className="card p-6 space-y-3">
+                  <p className="eyebrow">Оплатить картой</p>
+                  <p className="text-[13px] text-ink-600">
+                    Банковская карта на&nbsp;защищённой странице Т-Банка, 3-D&nbsp;Secure.
+                  </p>
+                  <a
+                    href={payUrl}
+                    className="btn-primary btn-sm w-full cursor-pointer text-center"
+                  >
+                    Оплатить картой
+                  </a>
+                </div>
+              </Reveal>
+            )}
           </aside>
         </div>
       </div>
