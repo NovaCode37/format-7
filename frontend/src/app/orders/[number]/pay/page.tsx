@@ -208,15 +208,22 @@ export default function PaymentPage() {
             {!isPaid && payUrl && (
               <Reveal delay={0.12}>
                 <div className="card p-6 space-y-3">
-                  <p className="eyebrow">Оплатить картой</p>
+                  <p className="eyebrow">Быстрая оплата</p>
                   <p className="text-[13px] text-ink-600">
-                    Банковская карта на&nbsp;защищённой странице Т-Банка, 3-D&nbsp;Secure.
+                    T-Pay — оплата в&nbsp;один тап через приложение Т-Банка.
                   </p>
                   <a
                     href={payUrl}
-                    className="btn-primary btn-sm w-full cursor-pointer text-center"
+                    aria-label="Оплатить через T-Pay"
+                    className="block rounded-xl overflow-hidden hover:opacity-90 transition-opacity"
                   >
-                    Оплатить картой
+                    <img src="/tpay-button.svg" alt="T-Pay" className="w-full h-12 object-contain" />
+                  </a>
+                  <a
+                    href={payUrl}
+                    className="btn-secondary btn-sm w-full cursor-pointer text-center"
+                  >
+                    Картой или другим способом
                   </a>
                 </div>
               </Reveal>
