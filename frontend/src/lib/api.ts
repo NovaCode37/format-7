@@ -177,9 +177,11 @@ export interface PaymentInfo {
 
 export interface PaymentInit {
   order_number: string;
-  provider: "yookassa" | "none" | string;
+  provider: "yookassa" | "tbank" | "none" | string;
   confirmation_url?: string | null;
   provider_payment_id?: string | null;
+  qr_image?: string | null;
+  payment_url?: string | null;
 }
 
 export interface Quote {

@@ -20,6 +20,9 @@ export default function PaymentPage() {
   const [copied, setCopied] = useState(false);
   const [marking, setMarking] = useState(false);
   const [initiating, setInitiating] = useState(false);
+  const [tbankQr, setTbankQr] = useState<string | null>(null);
+  const [payUrl, setPayUrl] = useState<string | null>(null);
+  const [qrLoading, setQrLoading] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
@@ -43,6 +46,22 @@ export default function PaymentPage() {
     return () => clearInterval(id);
   }, [info, refresh]);
 
+  useEffect(() => {
+    if (!info || info.payment_status === "paid" || !paymentToken || tbankQr || qrLoading) return;
+    let cancelled = false;
+    setQrLoading(true);
+    api.initPayment(number, paymentToken)
+      .then((res) => {
+        if (cancelled) return;
+        if (res.provider === "tbank" && res.qr_image) setTbankQr(res.qr_image);
+        if (res.payment_url) setPayUrl(res.payment_url);
+        if (res.confirmation_url) setPayUrl(res.confirmation_url);
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setQrLoading(false); });
+    return () => { cancelled = true; };
+  }, [info, paymentToken, number, tbankQr, qrLoading]);
+
   const handleCopy = async () => {
     if (!info) return;
     try {
@@ -60,8 +79,9 @@ export default function PaymentPage() {
     setInitiating(true);
     try {
       const res = await api.initPayment(number, paymentToken);
-      if (res.provider === "yookassa" && res.confirmation_url) {
-        window.location.href = res.confirmation_url;
+      const url = res.confirmation_url || res.payment_url || payUrl;
+      if (url) {
+        window.location.href = url;
         return;
       }
       toast.info("Оплата картой временно недоступна. Воспользуйтесь QR-кодом СБП.");
@@ -171,13 +191,24 @@ export default function PaymentPage() {
                       <Smartphone size={14} strokeWidth={2} />
                       Оплата через СБП
                     </div>
-                    <div className="bg-white p-4 border border-ink-200 rounded-md">
-                      <QRCodeSVG
-                        value={info.sbp_payload}
-                        size={260}
-                        level="M"
-                        marginSize={2}
-                      />
+                    <div className="bg-white p-4 border border-ink-200 rounded-md grid place-items-center" style={{ minWidth: 268, minHeight: 268 }}>
+                      {tbankQr ? (
+                        <img
+                          src={`data:image/svg+xml;base64,${tbankQr}`}
+                          alt="QR-код для оплаты по СБП"
+                          width={260}
+                          height={260}
+                        />
+                      ) : qrLoading ? (
+                        <Loader2 className="animate-spin text-ink-400" size={32} strokeWidth={2} />
+                      ) : (
+                        <QRCodeSVG
+                          value={info.sbp_payload}
+                          size={260}
+                          level="M"
+                          marginSize={2}
+                        />
+                      )}
                     </div>
                     <p className="mt-6 text-sm text-ink-700 text-center max-w-sm">
                       Откройте приложение&nbsp;вашего&nbsp;банка, выберите{" "}
@@ -223,7 +254,7 @@ export default function PaymentPage() {
                 <div className="card p-6 space-y-3">
                   <p className="eyebrow">Оплатить картой</p>
                   <p className="text-[13px] text-ink-600">
-                    Банковская карта через ЮKassa. Безопасное соединение, 3-D&nbsp;Secure.
+                    Банковская карта через Т-Банк. Безопасное соединение, 3-D&nbsp;Secure.
                   </p>
                   <button
                     type="button"

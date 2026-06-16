@@ -9,7 +9,7 @@ import uuid
 from pathlib import Path
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Header, Request, BackgroundTasks, Cookie
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, Response, RedirectResponse
+from fastapi.responses import FileResponse, Response, RedirectResponse, PlainTextResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.datastructures import MutableHeaders
 from sqlalchemy.orm import Session
@@ -68,6 +68,7 @@ from sbp import build_payload, get_merchant
 from rate_limit import make_limiter
 from payments import (
     get_yookassa_client,
+    get_tbank_client,
     provider_enabled,
     is_yookassa_ip,
     PaymentError,
@@ -982,6 +983,17 @@ def _trusted_proxy_networks() -> list[ipaddress.IPv4Network | ipaddress.IPv6Netw
             log.warning("invalid TRUSTED_PROXY_CIDRS entry: %s", cidr)
     return networks
 
+def _to_ascii_url(url: str) -> str:
+    from urllib.parse import urlsplit, urlunsplit
+    try:
+        parts = urlsplit(url)
+        host = parts.hostname or ""
+        ascii_host = host.encode("idna").decode("ascii") if host else host
+        netloc = f"{ascii_host}:{parts.port}" if parts.port else ascii_host
+        return urlunsplit((parts.scheme, netloc, parts.path, parts.query, parts.fragment))
+    except Exception:
+        return url
+
 def _is_trusted_proxy(ip: str) -> bool:
     try:
         addr = ipaddress.ip_address(ip)
@@ -1096,6 +1108,76 @@ def pay_init(
             provider_payment_id=order.provider_payment_id,
         )
 
+    if provider == "tbank":
+        client = get_tbank_client()
+        if client is None:
+            raise HTTPException(status_code=503, detail="Платёжный провайдер не настроен")
+
+        public_url = os.environ.get("PUBLIC_SITE_URL", "http://localhost:3000").rstrip("/")
+        notify_url = _to_ascii_url(f"{public_url}/api/payments/webhook/tbank")
+        success_url = _to_ascii_url(f"{public_url}/orders/{order.order_number}/pay?done=1")
+        fail_url = _to_ascii_url(f"{public_url}/orders/{order.order_number}/pay?fail=1")
+
+        if (order.payment_provider or "") == "tbank" and (order.provider_payment_id or ""):
+            try:
+                state = client.get_state(order.provider_payment_id)
+                st = state.get("Status")
+                if st == client.PAID_STATUS and order.payment_status != "paid":
+                    order.payment_status = "paid"
+                    order.paid_at = _dt.datetime.utcnow()
+                    if order.status == "new":
+                        order.status = "paid"
+                    db.commit()
+                    return PaymentInitOut(
+                        order_number=order.order_number,
+                        provider="tbank",
+                        provider_payment_id=order.provider_payment_id,
+                    )
+                if st in client.PENDING_STATUSES:
+                    try:
+                        qr = client.get_qr(order.provider_payment_id, "IMAGE")
+                        return PaymentInitOut(
+                            order_number=order.order_number,
+                            provider="tbank",
+                            qr_image=qr,
+                            provider_payment_id=order.provider_payment_id,
+                        )
+                    except PaymentError:
+                        pass
+            except PaymentError:
+                pass
+
+        try:
+            res = client.init(
+                amount_rub=float(order.total or 0),
+                order_id=order.order_number,
+                description=f"Заказ {order.order_number}",
+                notification_url=notify_url,
+                success_url=success_url,
+                fail_url=fail_url,
+                customer_email=order.customer_email,
+            )
+        except PaymentError as e:
+            raise HTTPException(status_code=502, detail=f"Ошибка провайдера: {e}")
+
+        payment_id = str(res.get("PaymentId", ""))
+        order.payment_provider = "tbank"
+        order.provider_payment_id = payment_id
+        db.commit()
+
+        try:
+            qr = client.get_qr(payment_id, "IMAGE")
+        except PaymentError as e:
+            raise HTTPException(status_code=502, detail=f"Ошибка провайдера: {e}")
+
+        return PaymentInitOut(
+            order_number=order.order_number,
+            provider="tbank",
+            qr_image=qr,
+            payment_url=res.get("PaymentURL"),
+            provider_payment_id=payment_id,
+        )
+
     return PaymentInitOut(order_number=order.order_number, provider="none")
 
 @app.post("/api/payments/webhook/yookassa", dependencies=[Depends(webhook_limit)])
@@ -1157,6 +1239,56 @@ async def yookassa_webhook(
         db.commit()
 
     return {"ok": True}
+
+@app.post("/api/payments/webhook/tbank", dependencies=[Depends(webhook_limit)])
+async def tbank_webhook(
+    request: Request,
+    background: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
+
+    try:
+        data = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Malformed JSON")
+
+    client = get_tbank_client()
+    if client is None:
+        raise HTTPException(status_code=503, detail="Provider not configured")
+    if not client.verify_token(data):
+        raise HTTPException(status_code=403, detail="Bad token")
+
+    order_id = str(data.get("OrderId", ""))
+    status_ = data.get("Status", "")
+    order = (
+        db.query(Order)
+        .filter(Order.order_number == order_id, Order.payment_provider == "tbank")
+        .first()
+    )
+    if not order:
+        return PlainTextResponse("OK")
+
+    amount = data.get("Amount")
+    if amount is not None:
+        try:
+            if abs(int(amount) - int(round(float(order.total or 0) * 100))) > 1:
+                return PlainTextResponse("OK")
+        except (TypeError, ValueError):
+            pass
+
+    if status_ == client.PAID_STATUS and order.payment_status != "paid":
+        order.payment_status = "paid"
+        order.paid_at = _dt.datetime.utcnow()
+        if order.status == "new":
+            order.status = "paid"
+        db.commit()
+        db.refresh(order)
+        background.add_task(notify_order_paid, order)
+    elif status_ in client.FAILED_STATUSES and order.payment_status != "paid":
+        order.payment_status = "failed"
+        db.commit()
+
+    return PlainTextResponse("OK")
 
 ALLOWED_STATUSES = {"new", "paid", "processing", "ready", "completed", "cancelled"}
 

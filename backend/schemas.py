@@ -251,6 +251,8 @@ class PaymentInitOut(BaseModel):
     provider: str
     confirmation_url: str | None = None
     provider_payment_id: str | None = None
+    qr_image: str | None = None
+    payment_url: str | None = None
 
 class OrderStatusOut(BaseModel):
     order_number: str
