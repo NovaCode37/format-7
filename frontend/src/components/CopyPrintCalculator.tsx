@@ -8,7 +8,8 @@ import {
 } from "@/lib/icons";
 import { api } from "@/lib/api";
 import { useToast } from "./Toast";
-import { CheckoutModal } from "./calc/kit";
+import { CheckoutModal, usePricing } from "./calc/kit";
+import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type Format = "А4" | "А3";
 type Color = "Ч/Б" | "Цветная";
@@ -39,35 +40,12 @@ function printMode(color: Color, sides: Sides): PrintMode {
   return "1+0";
 }
 
-const PAGE_PRICE: Record<Format, Record<PrintMode, Record<Density, [number, number, number, number, number, number]>>> = {
-  "А4": {
-    "1+0": { "80": [11, 10, 9, 8, 7, 6], "120": [20, 19, 18, 17, 16, 15], "160": [25, 24, 23, 22, 21, 20], "200": [30, 29, 28, 27, 26, 25], "250": [40, 39, 38, 37, 36, 35], "300": [55, 54, 53, 52, 51, 50] },
-    "1+1": { "80": [22, 20, 18, 16, 14, 12], "120": [40, 38, 36, 34, 32, 30], "160": [50, 48, 46, 44, 42, 40], "200": [60, 58, 56, 54, 52, 50], "250": [80, 78, 76, 74, 72, 70], "300": [110, 108, 106, 104, 102, 100] },
-    "4+0": { "80": [35, 32, 30, 27, 24, 20], "120": [45, 42, 40, 37, 34, 30], "160": [50, 47, 45, 42, 39, 35], "200": [60, 57, 55, 52, 49, 45], "250": [70, 67, 65, 62, 59, 55], "300": [85, 82, 80, 77, 74, 70] },
-    "4+4": { "80": [70, 64, 60, 54, 48, 40], "120": [90, 84, 80, 74, 68, 60], "160": [100, 94, 90, 84, 78, 70], "200": [120, 114, 110, 104, 98, 90], "250": [140, 134, 130, 124, 118, 110], "300": [170, 164, 160, 154, 148, 140] },
-  },
-  "А3": {
-    "1+0": { "80": [26, 24, 21, 18, 14, 10], "120": [58, 56, 53, 50, 47, 43], "160": [70, 66, 62, 59, 56, 52], "200": [85, 81, 77, 74, 71, 67], "250": [95, 91, 87, 84, 81, 77], "300": [110, 106, 102, 99, 96, 92] },
-    "1+1": { "80": [52, 48, 42, 36, 28, 20], "120": [116, 112, 106, 100, 94, 86], "160": [140, 132, 124, 118, 112, 104], "200": [170, 162, 154, 148, 142, 134], "250": [190, 182, 174, 168, 162, 154], "300": [220, 212, 204, 198, 192, 184] },
-    "4+0": { "80": [58, 55, 52, 48, 42, 32], "120": [80, 77, 74, 70, 64, 60], "160": [100, 97, 94, 90, 84, 80], "200": [120, 117, 114, 110, 104, 100], "250": [130, 127, 124, 120, 114, 110], "300": [145, 142, 139, 135, 129, 125] },
-    "4+4": { "80": [116, 110, 104, 96, 84, 64], "120": [160, 154, 148, 140, 128, 120], "160": [200, 194, 188, 180, 168, 160], "200": [240, 234, 228, 220, 208, 200], "250": [260, 254, 248, 240, 228, 220], "300": [290, 284, 278, 270, 258, 250] },
-  },
-};
+const COPYPRINT_PRICING = PRICING_DEFAULTS["копирование-и-печать-документов"].data;
 
-const BINDING_PRICE: Record<Binding, number> = {
-  "Без брошюровки": 0,
-  "Пластиковая пружина": 250,
-  "Металлическая пружина": 200,
-};
 const BINDING_LIMIT: Record<Binding, number | null> = {
   "Без брошюровки": null,
   "Пластиковая пружина": 500,
   "Металлическая пружина": 120,
-};
-
-const LAMINATION_PRICE: Record<Lamination, number> = {
-  "Нет": 0,
-  "Да": 50,
 };
 
 const DELIVERY_PRICE: Record<Delivery, number> = {
@@ -121,15 +99,18 @@ export default function CopyPrintCalculator({ serviceId }: { serviceId?: number 
     };
   }, [serviceId]);
 
+  const pricing = usePricing("копирование-и-печать-документов", COPYPRINT_PRICING);
+
   const calc = useMemo(() => {
     const mode = printMode(color, sides);
-    const pagePrice = PAGE_PRICE[format][mode][density][pageTierIndex(quantity)];
+    const pagePrice = (pricing.page as any)[format][mode][density][pageTierIndex(quantity)];
     const printTotal = Math.round(pagePrice * quantity);
 
-    const bindingUnit = BINDING_PRICE[binding] * (format === "А3" ? 1.4 : 1);
+    const bindingBase = (pricing.binding as any)[binding] || 0;
+    const bindingUnit = bindingBase * (format === "А3" ? 1.4 : 1);
     const bindingTotal = binding === "Без брошюровки" ? 0 : Math.round(bindingUnit * bindingCopies);
 
-    const laminationUnit = LAMINATION_PRICE[lamination] * (format === "А3" ? 2 : 1);
+    const laminationUnit = (lamination === "Да" ? pricing.lamination : 0) * (format === "А3" ? 2 : 1);
     const laminationTotal =
       lamination === "Нет" ? 0 : Math.round(laminationUnit * laminationSheets);
 
@@ -147,7 +128,7 @@ export default function CopyPrintCalculator({ serviceId }: { serviceId?: number 
       deliveryTotal,
       grandTotal,
     };
-  }, [format, color, sides, density, quantity, binding, bindingCopies, lamination, laminationSheets, delivery]);
+  }, [format, color, sides, density, quantity, binding, bindingCopies, lamination, laminationSheets, delivery, pricing]);
 
   const fmt = (n: number) => n.toLocaleString("ru-RU");
 

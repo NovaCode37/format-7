@@ -8,56 +8,27 @@ import {
 } from "@/lib/icons";
 import { api } from "@/lib/api";
 import { useToast } from "./Toast";
-import { CheckoutModal } from "./calc/kit";
+import { CheckoutModal, usePricing } from "./calc/kit";
+import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type SpringType = "Пластиковая" | "Металлическая";
 type Format = "А4" | "А3";
 type Orientation = "По короткой стороне" | "По длинной стороне";
 type Delivery = "Самовывоз" | "Доставка по Тюмени" | "СДЭК (наложенный платёж)";
 
-const PLASTIC_PRICE_A4: { maxSheets: number; price: number }[] = [
-  { maxSheets: 30,  price: 80 },
-  { maxSheets: 70,  price: 85 },
-  { maxSheets: 150, price: 90 },
-  { maxSheets: 200, price: 95 },
-  { maxSheets: 300, price: 100 },
-  { maxSheets: 400, price: 105 },
-  { maxSheets: 498, price: 110 },
-];
+const BINDING_PRICING = PRICING_DEFAULTS["переплёт-и-брошюровка"].data;
 
-const PLASTIC_PRICE_A3: { maxSheets: number; price: number }[] = [
-  { maxSheets: 30,  price: 85 },
-  { maxSheets: 70,  price: 90 },
-  { maxSheets: 150, price: 95 },
-  { maxSheets: 200, price: 100 },
-  { maxSheets: 300, price: 105 },
-  { maxSheets: 400, price: 110 },
-  { maxSheets: 498, price: 115 },
-];
-
-const METAL_PRICE_A4: { maxSheets: number; price: number }[] = [
-  { maxSheets: 30,  price: 100 },
-  { maxSheets: 70,  price: 105 },
-  { maxSheets: 120, price: 110 },
-];
-
-const METAL_PRICE_A3: { maxSheets: number; price: number }[] = [
-  { maxSheets: 30,  price: 105 },
-  { maxSheets: 70,  price: 110 },
-  { maxSheets: 120, price: 115 },
-];
-
-function getPriceTable(spring: SpringType, format: Format) {
-  if (spring === "Пластиковая") return format === "А4" ? PLASTIC_PRICE_A4 : PLASTIC_PRICE_A3;
-  return format === "А4" ? METAL_PRICE_A4 : METAL_PRICE_A3;
+function getPriceTable(pricing: any, spring: SpringType, format: Format): { maxSheets: number; price: number }[] {
+  if (spring === "Пластиковая") return format === "А4" ? pricing.plasticA4 : pricing.plasticA3;
+  return format === "А4" ? pricing.metalA4 : pricing.metalA3;
 }
 
 function getMaxSheets(spring: SpringType): number {
   return spring === "Пластиковая" ? 498 : 120;
 }
 
-function getBindingPrice(spring: SpringType, format: Format, sheets: number): number | null {
-  const table = getPriceTable(spring, format);
+function getBindingPrice(pricing: any, spring: SpringType, format: Format, sheets: number): number | null {
+  const table = getPriceTable(pricing, spring, format);
   for (const tier of table) {
     if (sheets <= tier.maxSheets) return tier.price;
   }
@@ -119,11 +90,13 @@ export default function BindingCalculator({ serviceId }: { serviceId?: number })
     return () => { mounted = false; };
   }, [serviceId]);
 
+  const pricing = usePricing("переплёт-и-брошюровка", BINDING_PRICING);
+
   const sheetPresets = spring === "Пластиковая" ? SHEET_PRESETS_PLASTIC : SHEET_PRESETS_METAL;
   const maxSheets = getMaxSheets(spring);
 
   const calc = useMemo(() => {
-    const unitPrice = getBindingPrice(spring, format, sheets);
+    const unitPrice = getBindingPrice(pricing, spring, format, sheets);
     if (unitPrice === null) return { unitPrice: 0, bindingTotal: 0, deliveryTotal: 0, grandTotal: 0, error: true };
 
     const bindingTotal = unitPrice * copies;
@@ -131,7 +104,7 @@ export default function BindingCalculator({ serviceId }: { serviceId?: number })
     const grandTotal = bindingTotal + deliveryTotal;
 
     return { unitPrice, bindingTotal, deliveryTotal, grandTotal, error: false };
-  }, [spring, format, sheets, copies, delivery]);
+  }, [spring, format, sheets, copies, delivery, pricing]);
 
   const fmt = (n: number) => n.toLocaleString("ru-RU");
 
