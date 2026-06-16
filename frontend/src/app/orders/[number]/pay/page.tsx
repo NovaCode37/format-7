@@ -177,9 +177,11 @@ export default function PaymentPage() {
           <aside className="col-span-12 lg:col-span-5 space-y-4">
             <Reveal delay={0.1}>
               <div className="card p-6 space-y-4">
-                <div className="flex items-baseline justify-between border-b border-ink-100 pb-3">
+                <div className="border-b border-ink-100 pb-3">
                   <span className="eyebrow">Получатель</span>
-                  <span className="text-[13px] text-ink-700 text-right">{info.merchant_name}</span>
+                  <p className="mt-1.5 text-[13px] font-medium text-ink-900">ИП Голубев Александр Александрович</p>
+                  <p className="text-[12px] text-ink-500 tabular">ИНН 720319019022</p>
+                  <p className="text-[12px] text-ink-500 tabular">ОГРНИП 322723200035243</p>
                 </div>
                 <div className="flex items-baseline justify-between border-b border-ink-100 pb-3">
                   <span className="eyebrow">Заказ</span>
