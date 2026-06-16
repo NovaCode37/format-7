@@ -1,17 +1,25 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { QRCodeSVG } from "qrcode.react";
 import { CheckCircle2, Loader2, ArrowRight } from "@/lib/icons";
 import { api, type PaymentInfo } from "@/lib/api";
 import Reveal, { ScaleIn } from "@/components/Reveal";
 
+const SBP_PURPLE = "#1d1346";
+
 export default function PaymentPage() {
   const { number } = useParams<{ number: string }>();
+  const searchParams = useSearchParams();
+  const paymentToken = searchParams.get("pt") || "";
   const [info, setInfo] = useState<PaymentInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [qrValue, setQrValue] = useState<string | null>(null);
+  const [qrError, setQrError] = useState<string | null>(null);
+  const [qrAttempt, setQrAttempt] = useState(0);
 
   const refresh = useCallback(async () => {
     try {
@@ -31,9 +39,30 @@ export default function PaymentPage() {
 
   useEffect(() => {
     if (!info || info.payment_status === "paid") return;
-    const id = setInterval(refresh, 5000);
+    const id = setInterval(refresh, 4000);
     return () => clearInterval(id);
   }, [info, refresh]);
+
+  useEffect(() => {
+    if (!info || info.payment_status === "paid" || !paymentToken || qrValue) return;
+    let cancelled = false;
+    setQrError(null);
+    api.initPayment(number, paymentToken)
+      .then((res) => {
+        if (cancelled) return;
+        const value = res.qr_payload || res.payment_url;
+        if (value) {
+          setQrValue(value);
+        } else if (res.provider === "none") {
+          setQrError("Онлайн-оплата не настроена. Свяжитесь с менеджером для оплаты.");
+        } else {
+          setQrError("Не удалось сформировать QR-код. Попробуйте обновить.");
+        }
+      })
+      .catch((e: any) => { if (!cancelled) setQrError(e?.message || "Ошибка платёжного сервиса"); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [info?.payment_status, paymentToken, number, qrAttempt]);
 
   if (loading) {
     return (
@@ -56,6 +85,7 @@ export default function PaymentPage() {
   }
 
   const isPaid = info.payment_status === "paid";
+  const amount = info.total.toLocaleString("ru-RU");
 
   return (
     <div className="bg-white min-h-screen">
@@ -77,9 +107,7 @@ export default function PaymentPage() {
             <h1 className="h-display mb-2">№ {info.order_number}</h1>
             <p className="text-ink-500">
               К оплате:{" "}
-              <span className="text-ink-900 font-semibold tabular">
-                {info.total.toLocaleString("ru-RU")} ₽
-              </span>
+              <span className="text-ink-900 font-semibold tabular">{amount} ₽</span>
             </p>
           </Reveal>
         </div>
@@ -93,11 +121,7 @@ export default function PaymentPage() {
               <div className="card p-6 sm:p-10">
                 {isPaid ? (
                   <div className="flex flex-col items-center text-center py-8">
-                    <CheckCircle2
-                      size={64}
-                      strokeWidth={1.25}
-                      className="text-emerald-600 mb-4"
-                    />
+                    <CheckCircle2 size={64} strokeWidth={1.25} className="text-emerald-600 mb-4" />
                     <h2 className="h-section mb-2">Заказ оплачен</h2>
                     <p className="text-ink-500 mb-6 max-w-sm">
                       Спасибо! Мы получили оплату и&nbsp;уже&nbsp;приступили к&nbsp;вашему заказу.
@@ -107,27 +131,40 @@ export default function PaymentPage() {
                         Мои заказы
                         <ArrowRight size={14} strokeWidth={2} />
                       </Link>
-                      <Link href="/" className="btn-secondary btn-sm">
-                        На главную
-                      </Link>
+                      <Link href="/" className="btn-secondary btn-sm">На главную</Link>
                     </div>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center">
-                    <img src="/sbp-logo.png" alt="Система быстрых платежей" className="h-9 mb-6 object-contain" />
-                    <div className="rounded-2xl overflow-hidden border border-ink-200 shadow-sm">
-                      <img
-                        src="/sbp-pay-qr.png"
-                        alt="QR-код для оплаты по СБП"
-                        className="block w-[300px] max-w-full h-auto"
-                      />
+                    <img src="/sbp-logo.png" alt="Система быстрых платежей" className="h-9 mb-2 object-contain" />
+                    <div className="text-[12px] text-ink-500 mb-5">QR-код для оплаты</div>
+
+                    <div className="bg-white p-4 border border-ink-200 rounded-xl grid place-items-center text-center" style={{ minWidth: 268, minHeight: 268 }}>
+                      {qrValue ? (
+                        <QRCodeSVG value={qrValue} size={260} level="M" marginSize={2} fgColor={SBP_PURPLE} />
+                      ) : qrError ? (
+                        <div className="px-4 max-w-[240px]">
+                          <p className="text-[13px] text-ink-600 mb-4">{qrError}</p>
+                          <button
+                            type="button"
+                            onClick={() => { setQrValue(null); setQrError(null); setQrAttempt((n) => n + 1); }}
+                            className="btn-secondary btn-sm cursor-pointer"
+                          >
+                            Обновить
+                          </button>
+                        </div>
+                      ) : (
+                        <Loader2 className="animate-spin text-ink-400" size={32} strokeWidth={2} />
+                      )}
                     </div>
-                    <p className="mt-6 text-sm text-ink-700 text-center max-w-sm">
-                      Откройте камеру телефона или приложение банка, наведите на&nbsp;код и&nbsp;оплатите{" "}
-                      <span className="font-semibold tabular">{info.total.toLocaleString("ru-RU")} ₽</span>{" "}
-                      по&nbsp;СБП.
+
+                    <p className="mt-5 text-[15px] text-ink-700 text-center">
+                      к оплате: <span className="font-bold text-ink-900 tabular">{amount} рублей</span>
                     </p>
-                    <div className="mt-2 flex items-center gap-2 text-[12px] text-ink-500">
+                    <p className="mt-2 text-[13px] text-ink-500 text-center max-w-sm">
+                      Наведите камеру телефона или приложение банка на&nbsp;код и&nbsp;подтвердите оплату по&nbsp;СБП.
+                    </p>
+                    <div className="mt-3 flex items-center gap-2 text-[12px] text-ink-500">
                       <Loader2 size={12} className="animate-spin" strokeWidth={2} />
                       Ожидаем оплату…
                     </div>
@@ -154,28 +191,10 @@ export default function PaymentPage() {
                 </div>
                 <div className="flex items-baseline justify-between">
                   <span className="eyebrow">Сумма</span>
-                  <span className="font-heading text-xl font-semibold text-ink-900 tabular">
-                    {info.total.toLocaleString("ru-RU")} ₽
-                  </span>
+                  <span className="font-heading text-xl font-semibold text-ink-900 tabular">{amount} ₽</span>
                 </div>
               </div>
             </Reveal>
-
-            {!isPaid && (
-              <Reveal delay={0.12}>
-                <div className="card p-6 space-y-2">
-                  <p className="eyebrow">Как оплатить</p>
-                  <ol className="text-[13px] text-ink-600 space-y-1.5 list-decimal list-inside">
-                    <li>Наведите камеру телефона на&nbsp;QR-код.</li>
-                    <li>Выберите банк и&nbsp;подтвердите оплату по&nbsp;СБП.</li>
-                    <li>Укажите сумму заказа — <span className="font-semibold text-ink-900 tabular">{info.total.toLocaleString("ru-RU")} ₽</span>.</li>
-                  </ol>
-                  <p className="text-[12px] text-ink-500 pt-1">
-                    После оплаты менеджер подтвердит заказ. Статус — в&nbsp;личном кабинете.
-                  </p>
-                </div>
-              </Reveal>
-            )}
           </aside>
         </div>
       </div>

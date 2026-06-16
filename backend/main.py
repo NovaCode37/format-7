@@ -1211,9 +1211,14 @@ def pay_init(
                         provider_payment_id=order.provider_payment_id,
                     )
                 if st in client.PENDING_STATUSES and (order.provider_payment_url or ""):
+                    try:
+                        qr = client.get_qr(order.provider_payment_id, "PAYLOAD") or None
+                    except PaymentError:
+                        qr = None
                     return PaymentInitOut(
                         order_number=order.order_number,
                         provider="tbank",
+                        qr_payload=qr,
                         payment_url=order.provider_payment_url,
                         provider_payment_id=order.provider_payment_id,
                     )
@@ -1241,9 +1246,15 @@ def pay_init(
         order.provider_payment_url = payment_url
         db.commit()
 
+        try:
+            qr = client.get_qr(payment_id, "PAYLOAD") or None
+        except PaymentError:
+            qr = None
+
         return PaymentInitOut(
             order_number=order.order_number,
             provider="tbank",
+            qr_payload=qr,
             payment_url=payment_url,
             provider_payment_id=payment_id,
         )
