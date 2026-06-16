@@ -8,18 +8,14 @@ import {
 } from "@/lib/icons";
 import { api } from "@/lib/api";
 import { useToast } from "./Toast";
-import { CheckoutModal } from "./calc/kit";
+import { CheckoutModal, usePricing } from "./calc/kit";
+import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type Format = "А4" | "А3";
 type ScanMethod = "Автоподатчик" | "Со стекла";
 type StorageOption = "Нет" | "Да";
 
-const SCAN_PRICE: Record<ScanMethod, Record<Format, number>> = {
-  "Автоподатчик": { "А4": 10, "А3": 20 },
-  "Со стекла":    { "А4": 20, "А3": 40 },
-};
-
-const STORAGE_PRICE = 600;
+const SCAN_PRICING = PRICING_DEFAULTS["сканирование-документов"].data;
 
 const QTY_PRESETS = [1, 5, 10, 25, 50, 100, 250, 500];
 
@@ -49,14 +45,16 @@ export default function ScanCalculator({ serviceId }: { serviceId?: number }) {
     return () => { mounted = false; };
   }, [serviceId]);
 
+  const pricing = usePricing("сканирование-документов", SCAN_PRICING);
+
   const calc = useMemo(() => {
-    const pagePrice = SCAN_PRICE[method][format];
+    const pagePrice = (pricing.scan as any)[method][format];
     const scanTotal = pagePrice * quantity;
-    const storageTotal = storage === "Да" ? STORAGE_PRICE : 0;
+    const storageTotal = storage === "Да" ? pricing.storage : 0;
     const grandTotal = scanTotal + storageTotal;
 
     return { pagePrice, scanTotal, storageTotal, grandTotal };
-  }, [format, method, storage, quantity]);
+  }, [format, method, storage, quantity, pricing]);
 
   const fmt = (n: number) => n.toLocaleString("ru-RU");
 
@@ -64,12 +62,12 @@ export default function ScanCalculator({ serviceId }: { serviceId?: number }) {
     productLabel: "Сканирование документов",
     lines: [
       `${format} · ${method} · ${quantity} стр.`,
-      `Носитель: ${storage === "Да" ? "наш (+600 ₽)" : "email / носитель клиента"}`,
+      `Носитель: ${storage === "Да" ? `наш (+${pricing.storage} ₽)` : "email / носитель клиента"}`,
     ],
     options: {
       Формат: format,
       Метод: method,
-      Носитель: storage === "Да" ? "На наш носитель (+600 ₽)" : "Email / носитель клиента",
+      Носитель: storage === "Да" ? `На наш носитель (+${pricing.storage} ₽)` : "Email / носитель клиента",
       Страниц: quantity,
     },
     delivery: "Самовывоз",
@@ -132,7 +130,7 @@ export default function ScanCalculator({ serviceId }: { serviceId?: number }) {
                   или запись на <strong className="text-ink-900">один носитель клиента</strong> — <span className="text-emerald-700 font-semibold">бесплатно</span>.
                 </p>
                 <p>
-                  Сохранение на <strong className="text-ink-900">наши носители</strong> (флешка/диск) — <span className="font-semibold text-ink-900">600 ₽</span>.
+                  Сохранение на <strong className="text-ink-900">наши носители</strong> (флешка/диск) — <span className="font-semibold text-ink-900">{pricing.storage} ₽</span>.
                 </p>
                 <p className="pt-1 border-t border-ink-200 text-ink-500">
                   Сканирование документов, фото и т.д. форматом менее А4 рассчитывается по стоимости формата А4.
@@ -195,7 +193,7 @@ export default function ScanCalculator({ serviceId }: { serviceId?: number }) {
                   values={["Нет", "Да"]}
                   value={storage}
                   onChange={(v) => setStorage(v as StorageOption)}
-                  hint={storage === "Да" ? "+600 ₽" : "email / носитель клиента — бесплатно"}
+                  hint={storage === "Да" ? `+${pricing.storage} ₽` : "email / носитель клиента — бесплатно"}
                 />
               </div>
             </div>

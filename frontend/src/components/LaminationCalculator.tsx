@@ -8,11 +8,12 @@ import {
 } from "@/lib/icons";
 import { api } from "@/lib/api";
 import { useToast } from "./Toast";
-import { CheckoutModal } from "./calc/kit";
+import { CheckoutModal, usePricing } from "./calc/kit";
+import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type Format = "А4" | "А3";
 
-const PRICE: Record<Format, number> = { "А4": 50, "А3": 100 };
+const LAM_PRICING = PRICING_DEFAULTS["ламинирование"].data;
 
 const QTY_PRESETS = [1, 5, 10, 25, 50, 100];
 
@@ -37,11 +38,13 @@ export default function LaminationCalculator({ serviceId }: { serviceId?: number
     return () => { mounted = false; };
   }, [serviceId]);
 
+  const pricing = usePricing("ламинирование", LAM_PRICING);
+
   const calc = useMemo(() => {
-    const unitPrice = PRICE[format];
+    const unitPrice = (pricing.price as any)[format];
     const total = unitPrice * quantity;
     return { unitPrice, total };
-  }, [format, quantity]);
+  }, [format, quantity, pricing]);
 
   const fmt = (n: number) => n.toLocaleString("ru-RU");
 
@@ -74,8 +77,8 @@ export default function LaminationCalculator({ serviceId }: { serviceId?: number
               </div>
 
               <div className="rounded-xl border border-ink-200 bg-ink-50 p-4 text-[12px] text-ink-600 space-y-2">
-                <p><strong className="text-ink-900">А4</strong> — {PRICE["А4"]} ₽ / шт.</p>
-                <p><strong className="text-ink-900">А3</strong> — {PRICE["А3"]} ₽ / шт.</p>
+                <p><strong className="text-ink-900">А4</strong> — {(pricing.price as any)["А4"]} ₽ / шт.</p>
+                <p><strong className="text-ink-900">А3</strong> — {(pricing.price as any)["А3"]} ₽ / шт.</p>
                 <p className="pt-1 border-t border-ink-200 text-ink-500">Плёнка 80–100 мкм</p>
               </div>
             </div>

@@ -5,8 +5,9 @@ import { Upload, FileCheck2, Truck, Package, Palette, Info } from "@/lib/icons";
 import {
   PillsField, QuantityField, TrackCard, BreakdownRow, CheckoutModal, DesignBriefCard,
   DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
-  fmt, useResolvedServiceId, useUpload,
+  fmt, useResolvedServiceId, useUpload, usePricing,
 } from "./calc/kit";
+import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type Format = "А6 (105×148 мм)" | "А5 (148×210 мм)" | "А4 (210×297 мм)";
 type Sides = "Односторонняя" | "Двусторонняя";
@@ -18,18 +19,7 @@ type Track = "upload" | "design";
 
 const NOTEBOOK_SLUGS = ["блокноты", "блокнот"];
 
-const PRICE: Record<Format, Record<BlockColor, number>> = {
-  "А6 (105×148 мм)": { "Без печати": 110, "Чёрно-белая": 180, "Цветная": 250 },
-  "А5 (148×210 мм)": { "Без печати": 160, "Чёрно-белая": 225, "Цветная": 370 },
-  "А4 (210×297 мм)": { "Без печати": 250, "Чёрно-белая": 285, "Цветная": 430 },
-};
-
-const LAMINATION_BY_FORMAT: Record<Format, number> = {
-  "А6 (105×148 мм)": 15,
-  "А5 (148×210 мм)": 25,
-  "А4 (210×297 мм)": 50,
-};
-const DESIGN_FEE = 1000;
+const NOTEBOOK_PRICING = PRICING_DEFAULTS["блокноты"].data;
 const QTY_PRESETS = [1, 10, 25, 50, 100];
 
 export default function NotebookCalculator({ serviceId }: { serviceId?: number }) {
@@ -49,16 +39,18 @@ export default function NotebookCalculator({ serviceId }: { serviceId?: number }
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
+  const pricing = usePricing("блокноты", NOTEBOOK_PRICING);
+
   const calc = useMemo(() => {
-    const printUnit = PRICE[format][blockColor];
+    const printUnit = (pricing.price as any)[format][blockColor];
     const printTotal = printUnit * quantity;
-    const lamUnit = LAMINATION_BY_FORMAT[format];
+    const lamUnit = (pricing.lamination as any)[format];
     const lamTotal = lamination === "Да" ? lamUnit * quantity : 0;
-    const designTotal = track === "design" ? DESIGN_FEE : 0;
+    const designTotal = track === "design" ? pricing.design : 0;
     const deliveryTotal = DELIVERY_PRICE[delivery];
     const grandTotal = printTotal + lamTotal + designTotal + deliveryTotal;
     return { printUnit, printTotal, lamUnit, lamTotal, designTotal, deliveryTotal, grandTotal };
-  }, [format, blockColor, quantity, lamination, track, delivery]);
+  }, [format, blockColor, quantity, lamination, track, delivery, pricing]);
 
   const orderSummary = {
     productLabel: `Блокнот ${format}, блок ${blockColor.toLowerCase()}`,
@@ -66,7 +58,7 @@ export default function NotebookCalculator({ serviceId }: { serviceId?: number }
       `${format} · блок ${blockColor} · ${sheets} · ${quantity} шт.`,
       `Обложка: ${coverSides.toLowerCase()} · блок: ${blockSides.toLowerCase()} · скругление ${orientation.toLowerCase()}`,
       lamination === "Да" ? "Ламинация обложки и подложки" : null,
-      track === "design" ? "Разработка макета дизайнером (1000 ₽)" : null,
+      track === "design" ? `Разработка макета дизайнером (${pricing.design} ₽)` : null,
       `Доставка: ${delivery}`,
     ].filter(Boolean) as string[],
     options: {
