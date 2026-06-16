@@ -1,6 +1,8 @@
 // Единый источник дефолтных цен для калькуляторов и редактора матриц в админке.
 // Калькулятор берёт отсюда дефолт, админка показывает и сохраняет переопределения.
 
+import { STICKER_PRICES } from "./stickerPrices";
+
 export type PricingMatrix = Record<string, any>;
 
 export interface PricingEntry {
@@ -184,6 +186,15 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
     label: "Ламинирование",
     data: {
       price: { "А4": 50, "А3": 100 },
+    },
+  },
+
+  "наклейки": {
+    label: "Наклейки и стикеры",
+    data: {
+      prices: STICKER_PRICES,
+      lamination: 100,
+      design: 1000,
     },
   },
 

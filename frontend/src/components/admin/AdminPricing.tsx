@@ -136,6 +136,9 @@ function Node({
       />
     );
   }
+  if (typeof value === "string") {
+    return <span className="text-[12px] font-medium text-ink-700">{value}</span>;
+  }
   if (value && typeof value === "object") {
     const entries = Object.entries(value);
     const leafGroup = entries.every(([, v]) => typeof v === "number");
