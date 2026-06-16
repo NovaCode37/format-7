@@ -5,8 +5,9 @@ import { Upload, FileCheck2, Truck, Package, Palette } from "@/lib/icons";
 import {
   PillsField, QuantityField, TrackCard, BreakdownRow, CheckoutModal, DesignBriefCard,
   DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
-  fmt, tierValue, useResolvedServiceId, useUpload,
+  fmt, tierValue, useResolvedServiceId, useUpload, usePricing,
 } from "./calc/kit";
+import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type Track = "upload" | "design";
 type Orientation = "По горизонтали" | "По вертикали";
@@ -18,12 +19,7 @@ const QTY_TIERS = [1, 5, 10, 30, 50] as const;
 type Tier = (typeof QTY_TIERS)[number];
 const QTY_PRESETS = [1, 5, 10, 30, 50];
 
-const PRICE: Record<"Нет" | "Да", Record<Tier, number>> = {
-  "Нет": { 1: 300, 5: 285, 10: 270, 30: 245, 50: 230 },
-  "Да":  { 1: 430, 5: 415, 10: 400, 30: 375, 50: 360 },
-};
-
-const DESIGN_FEE = 1000;
+const CALENDAR_PRICING = PRICING_DEFAULTS["плакатный-календарь"].data;
 
 export default function CalendarCalculator({ serviceId }: { serviceId?: number }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -37,20 +33,22 @@ export default function CalendarCalculator({ serviceId }: { serviceId?: number }
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
+  const pricing = usePricing("плакатный-календарь", CALENDAR_PRICING);
+
   const calc = useMemo(() => {
-    const printUnit = tierValue(QTY_TIERS, PRICE[lamination], quantity);
+    const printUnit = tierValue(QTY_TIERS, (pricing.price as any)[lamination], quantity);
     const printTotal = printUnit * quantity;
-    const designTotal = track === "design" ? DESIGN_FEE : 0;
+    const designTotal = track === "design" ? pricing.design : 0;
     const deliveryTotal = DELIVERY_PRICE[delivery];
     const grandTotal = printTotal + designTotal + deliveryTotal;
     return { printUnit, printTotal, designTotal, deliveryTotal, grandTotal };
-  }, [lamination, quantity, track, delivery]);
+  }, [lamination, quantity, track, delivery, pricing]);
 
   const orderSummary = {
     productLabel: "Плакатный календарь А3, 200 г/м², 4+0",
     lines: [
       `А3 · ${orientation} · ${lamination === "Да" ? "с ламинацией" : "без ламинации"} · ${quantity} шт.`,
-      track === "design" ? "Разработка макета дизайнером (1000 ₽)" : null,
+      track === "design" ? `Разработка макета дизайнером (${pricing.design} ₽)` : null,
       `Доставка: ${delivery}`,
     ].filter(Boolean) as string[],
     options: {

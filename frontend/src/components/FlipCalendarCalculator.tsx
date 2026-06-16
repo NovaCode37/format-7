@@ -5,8 +5,9 @@ import { Upload, FileCheck2, Truck, Package, Info } from "@/lib/icons";
 import {
   PillsField, QuantityField, BreakdownRow, CheckoutModal,
   DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
-  fmt, tierValue, useResolvedServiceId, useUpload,
+  fmt, tierValue, useResolvedServiceId, useUpload, usePricing,
 } from "./calc/kit";
+import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type Format = "А4 (210×297 мм)" | "А3 (297×420 мм)";
 type Orientation = "Горизонтальная" | "Вертикальная";
@@ -19,15 +20,7 @@ const QTY_TIERS = [1, 5, 10] as const;
 type Tier = (typeof QTY_TIERS)[number];
 const QTY_PRESETS = [1, 5, 10];
 
-const PRICE: Record<Format, Record<Tier, number>> = {
-  "А4 (210×297 мм)": { 1: 1400, 5: 1200, 10: 730 },
-  "А3 (297×420 мм)": { 1: 1600, 5: 1400, 10: 1250 },
-};
-
-const LAMINATION_BY_FORMAT: Record<Format, number> = {
-  "А4 (210×297 мм)": 50,
-  "А3 (297×420 мм)": 100,
-};
+const FLIP_PRICING = PRICING_DEFAULTS["перекидной-календарь"].data;
 
 export default function FlipCalendarCalculator({ serviceId }: { serviceId?: number }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -42,15 +35,17 @@ export default function FlipCalendarCalculator({ serviceId }: { serviceId?: numb
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
+  const pricing = usePricing("перекидной-календарь", FLIP_PRICING);
+
   const calc = useMemo(() => {
-    const printUnit = tierValue(QTY_TIERS, PRICE[format], quantity);
+    const printUnit = tierValue(QTY_TIERS, (pricing.price as any)[format], quantity);
     const printTotal = printUnit * quantity;
-    const lamUnit = LAMINATION_BY_FORMAT[format];
+    const lamUnit = (pricing.lamination as any)[format];
     const lamTotal = lamination === "Да" ? lamUnit * quantity : 0;
     const deliveryTotal = DELIVERY_PRICE[delivery];
     const grandTotal = printTotal + lamTotal + deliveryTotal;
     return { printUnit, printTotal, lamUnit, lamTotal, deliveryTotal, grandTotal };
-  }, [format, quantity, lamination, delivery]);
+  }, [format, quantity, lamination, delivery, pricing]);
 
   const isA3 = format.startsWith("А3");
 

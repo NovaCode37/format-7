@@ -5,8 +5,9 @@ import { Upload, FileCheck2, Truck, Package, Palette, LayoutTemplate } from "@/l
 import {
   PillsField, QuantityField, TrackCard, BreakdownRow, CheckoutModal, DesignBriefCard,
   TemplateCatalogCard, DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
-  fmt, tierValue, useResolvedServiceId, useUpload,
+  fmt, tierValue, useResolvedServiceId, useUpload, usePricing,
 } from "./calc/kit";
+import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type Orientation = "По вертикали" | "По горизонтали";
 type YesNo = "Да" | "Нет";
@@ -20,11 +21,7 @@ const QTY_PRESETS = [10, 25, 50];
 const MIN_QTY = 1;
 const MAX_QTY = 50;
 
-const PRICE: Record<Tier, number> = { 50: 18 };
-
-const LAMINATION_PER_UNIT = 10;
-const ROUNDING_PER_UNIT = 2;
-const DESIGN_FEE = 1000;
+const POCKET_PRICING = PRICING_DEFAULTS["карманные-календари"].data;
 
 export default function PocketCalendarCalculator({ serviceId }: { serviceId?: number }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -39,16 +36,18 @@ export default function PocketCalendarCalculator({ serviceId }: { serviceId?: nu
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
+  const pricing = usePricing("карманные-календари", POCKET_PRICING);
+
   const calc = useMemo(() => {
-    const printUnit = tierValue(QTY_TIERS, PRICE, quantity);
+    const printUnit = tierValue(QTY_TIERS, pricing.price as any, quantity);
     const printTotal = printUnit * quantity;
-    const lamTotal = lamination === "Да" ? LAMINATION_PER_UNIT * quantity : 0;
-    const roundTotal = rounding === "Да" ? ROUNDING_PER_UNIT * quantity : 0;
-    const designTotal = track === "design" ? DESIGN_FEE : 0;
+    const lamTotal = lamination === "Да" ? pricing.lamination * quantity : 0;
+    const roundTotal = rounding === "Да" ? pricing.rounding * quantity : 0;
+    const designTotal = track === "design" ? pricing.design : 0;
     const deliveryTotal = DELIVERY_PRICE[delivery];
     const grandTotal = printTotal + lamTotal + roundTotal + designTotal + deliveryTotal;
     return { printUnit, printTotal, lamTotal, roundTotal, designTotal, deliveryTotal, grandTotal };
-  }, [quantity, lamination, rounding, track, delivery]);
+  }, [quantity, lamination, rounding, track, delivery, pricing]);
 
   const orderSummary = {
     productLabel: "Карманный календарь 70×100 мм, 4+4",
@@ -132,10 +131,10 @@ export default function PocketCalendarCalculator({ serviceId }: { serviceId?: nu
               <PillsField label="Ориентация" values={["По вертикали", "По горизонтали"]} value={orientation} onChange={(v) => setOrientation(v as Orientation)} hint="на цену не влияет" />
 
               <div className="pt-4 border-t border-ink-100">
-                <PillsField label="Ламинация" values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${LAMINATION_PER_UNIT} ₽/шт` : undefined} />
+                <PillsField label="Ламинация" values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${pricing.lamination} ₽/шт` : undefined} />
               </div>
               <div className="pt-4 border-t border-ink-100">
-                <PillsField label="Скругление углов" values={["Нет", "Да"]} value={rounding} onChange={(v) => setRounding(v as YesNo)} hint={rounding === "Да" ? `+${ROUNDING_PER_UNIT} ₽/шт` : undefined} />
+                <PillsField label="Скругление углов" values={["Нет", "Да"]} value={rounding} onChange={(v) => setRounding(v as YesNo)} hint={rounding === "Да" ? `+${pricing.rounding} ₽/шт` : undefined} />
               </div>
               <div className="pt-4 border-t border-ink-100">
                 <QuantityField presets={QTY_PRESETS} value={quantity} onChange={setQuantity} min={MIN_QTY} max={MAX_QTY} step={5} />
@@ -151,8 +150,8 @@ export default function PocketCalendarCalculator({ serviceId }: { serviceId?: nu
               <div className="rounded-xl border border-ink-200 bg-white p-5">
                 <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500 mb-3">Расчёт стоимости</p>
                 <BreakdownRow label="Печать" hint={`${quantity} × ${fmt(calc.printUnit)} ₽`} value={`${fmt(calc.printTotal)} ₽`} />
-                {calc.lamTotal > 0 && <BreakdownRow label="Ламинация" hint={`${quantity} × ${LAMINATION_PER_UNIT} ₽`} value={`${fmt(calc.lamTotal)} ₽`} />}
-                {calc.roundTotal > 0 && <BreakdownRow label="Скругление углов" hint={`${quantity} × ${ROUNDING_PER_UNIT} ₽`} value={`${fmt(calc.roundTotal)} ₽`} />}
+                {calc.lamTotal > 0 && <BreakdownRow label="Ламинация" hint={`${quantity} × ${pricing.lamination} ₽`} value={`${fmt(calc.lamTotal)} ₽`} />}
+                {calc.roundTotal > 0 && <BreakdownRow label="Скругление углов" hint={`${quantity} × ${pricing.rounding} ₽`} value={`${fmt(calc.roundTotal)} ₽`} />}
                 {calc.designTotal > 0 && <BreakdownRow label="Разработка макета" hint="2 доработки в стоимости" value={`${fmt(calc.designTotal)} ₽`} />}
                 <BreakdownRow label="Доставка" hint={delivery === "СДЭК (наложенный платёж)" ? "оплачивает получатель" : undefined} value={calc.deliveryTotal ? `${fmt(calc.deliveryTotal)} ₽` : "—"} />
                 <div className="mt-3 pt-3 border-t border-ink-200">

@@ -5,8 +5,9 @@ import { Upload, FileCheck2, Truck, Package, Palette, Info, LayoutTemplate } fro
 import {
   PillsField, QuantityField, TrackCard, BreakdownRow, CheckoutModal, DesignBriefCard,
   TemplateCatalogCard, DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
-  fmt, tierValue, useResolvedServiceId, useUpload,
+  fmt, tierValue, useResolvedServiceId, useUpload, usePricing,
 } from "./calc/kit";
+import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type Kind = "Безблочный" | "С 12 блоками";
 type YesNo = "Да" | "Нет";
@@ -18,13 +19,7 @@ const QTY_TIERS = [1, 5, 10, 50, 100] as const;
 type Tier = (typeof QTY_TIERS)[number];
 const QTY_PRESETS = [1, 5, 10, 50, 100];
 
-const PRICE: Record<Kind, Record<Tier, number>> = {
-  "Безблочный":   { 1: 500, 5: 250, 10: 130, 50: 110, 100: 100 },
-  "С 12 блоками": { 1: 1000, 5: 500, 10: 375, 50: 270, 100: 235 },
-};
-
-const LAMINATION_PER_UNIT = 25;
-const DESIGN_FEE = 1000;
+const DESK_PRICING = PRICING_DEFAULTS["настольный-календарь-домик"].data;
 
 export default function DeskCalendarCalculator({ serviceId }: { serviceId?: number }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -38,22 +33,24 @@ export default function DeskCalendarCalculator({ serviceId }: { serviceId?: numb
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
+  const pricing = usePricing("настольный-календарь-домик", DESK_PRICING);
+
   const calc = useMemo(() => {
-    const printUnit = tierValue(QTY_TIERS, PRICE[kind], quantity);
+    const printUnit = tierValue(QTY_TIERS, (pricing.price as any)[kind], quantity);
     const printTotal = printUnit * quantity;
-    const lamTotal = lamination === "Да" ? LAMINATION_PER_UNIT * quantity : 0;
-    const designTotal = track === "design" ? DESIGN_FEE : 0;
+    const lamTotal = lamination === "Да" ? pricing.lamination * quantity : 0;
+    const designTotal = track === "design" ? pricing.design : 0;
     const deliveryTotal = DELIVERY_PRICE[delivery];
     const grandTotal = printTotal + lamTotal + designTotal + deliveryTotal;
     return { printUnit, printTotal, lamTotal, designTotal, deliveryTotal, grandTotal };
-  }, [kind, quantity, lamination, track, delivery]);
+  }, [kind, quantity, lamination, track, delivery, pricing]);
 
   const orderSummary = {
     productLabel: `Настольный календарь-домик А5, ${kind.toLowerCase()}`,
     lines: [
       `А5 · ${kind} · ${quantity} шт.`,
       lamination === "Да" ? "Ламинация" : null,
-      track === "design" ? "Разработка макета дизайнером (1000 ₽)" : null,
+      track === "design" ? `Разработка макета дизайнером (${pricing.design} ₽)` : null,
       `Доставка: ${delivery}`,
     ].filter(Boolean) as string[],
     options: {
@@ -149,7 +146,7 @@ export default function DeskCalendarCalculator({ serviceId }: { serviceId?: numb
               <PillsField label="Вид календаря" values={["Безблочный", "С 12 блоками"]} value={kind} onChange={(v) => setKind(v as Kind)} />
 
               <div className="pt-4 border-t border-ink-100">
-                <PillsField label="Ламинация" values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${LAMINATION_PER_UNIT} ₽/шт` : undefined} />
+                <PillsField label="Ламинация" values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${pricing.lamination} ₽/шт` : undefined} />
               </div>
 
               <div className="pt-4 border-t border-ink-100">
@@ -168,7 +165,7 @@ export default function DeskCalendarCalculator({ serviceId }: { serviceId?: numb
                 <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500 mb-3">Расчёт стоимости</p>
 
                 <BreakdownRow label="Печать" hint={`${quantity} × ${fmt(calc.printUnit)} ₽`} value={`${fmt(calc.printTotal)} ₽`} />
-                {calc.lamTotal > 0 && <BreakdownRow label="Ламинация" hint={`${quantity} × ${LAMINATION_PER_UNIT} ₽`} value={`${fmt(calc.lamTotal)} ₽`} />}
+                {calc.lamTotal > 0 && <BreakdownRow label="Ламинация" hint={`${quantity} × ${pricing.lamination} ₽`} value={`${fmt(calc.lamTotal)} ₽`} />}
                 {calc.designTotal > 0 && <BreakdownRow label="Разработка макета" hint="2 доработки в стоимости" value={`${fmt(calc.designTotal)} ₽`} />}
                 <BreakdownRow label="Доставка" hint={delivery === "СДЭК (наложенный платёж)" ? "оплачивает получатель" : undefined} value={calc.deliveryTotal ? `${fmt(calc.deliveryTotal)} ₽` : "—"} />
 
