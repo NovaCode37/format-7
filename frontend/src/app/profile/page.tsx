@@ -181,7 +181,7 @@ export default function ProfilePage() {
           <div className="border border-ink-200 rounded-md overflow-hidden divide-y divide-ink-200">
             {orders.map((o) => {
               const expanded = expandedId === o.id;
-              const canCancel = o.status === "new" || o.status === "processing";
+              const canCancel = o.status === "new" || o.status === "processing" || o.status === "paid";
               return (
                 <div key={o.id} className="bg-white">
                   <button
