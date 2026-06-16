@@ -1170,17 +1170,6 @@ def pay_init(
                         provider="tbank",
                         provider_payment_id=order.provider_payment_id,
                     )
-                if st in client.PENDING_STATUSES:
-                    try:
-                        qr = client.get_qr(order.provider_payment_id, "PAYLOAD")
-                        return PaymentInitOut(
-                            order_number=order.order_number,
-                            provider="tbank",
-                            qr_payload=qr,
-                            provider_payment_id=order.provider_payment_id,
-                        )
-                    except PaymentError:
-                        pass
             except PaymentError:
                 pass
 
