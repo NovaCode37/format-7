@@ -5,8 +5,9 @@ import { Upload, FileCheck2, Truck, Package, Palette, LayoutTemplate } from "@/l
 import {
   PillsField, QuantityField, TrackCard, BreakdownRow, CheckoutModal, DesignBriefCard,
   TemplateCatalogCard, DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
-  fmt, tierValue, useResolvedServiceId, useUpload,
+  fmt, tierValue, useResolvedServiceId, useUpload, usePricing,
 } from "./calc/kit";
+import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type Track = "template" | "upload" | "design";
 type Material = "Картон" | "Пластик";
@@ -22,20 +23,7 @@ type Tier = (typeof QTY_TIERS)[number];
 const QTY_PRESETS = [50, 100, 200, 300, 500, 1000];
 const MIN_QTY = 50;
 
-const CARTON_PRICE: Record<Mode, Record<Tier, number>> = {
-  "1+0": { 50: 7, 100: 6, 200: 5, 300: 4, 500: 3, 1000: 2 },
-  "1+1": { 50: 8, 100: 7, 200: 6, 300: 5, 500: 4, 1000: 3 },
-  "4+0": { 50: 9, 100: 8, 200: 7, 300: 6, 500: 5, 1000: 4 },
-  "4+4": { 50: 12, 100: 10, 200: 9, 300: 8, 500: 7, 1000: 6 },
-};
-const PLASTIC_PRICE: Record<"4+0" | "4+4", Record<Tier, number>> = {
-  "4+0": { 50: 50, 100: 35, 200: 26, 300: 25, 500: 22, 1000: 20 },
-  "4+4": { 50: 75, 100: 55, 200: 48, 300: 45, 500: 42, 1000: 40 },
-};
-
-const LAMINATION_PER_CARD = 4;
-const ROUNDING_PER_CARD = 2;
-const DESIGN_FEE = 1000;
+const CARD_PRICING = PRICING_DEFAULTS["визитки"].data;
 
 function modeKey(color: Color, sides: Sides): Mode {
   const isColor = color === "Цветные";
@@ -46,12 +34,12 @@ function modeKey(color: Color, sides: Sides): Mode {
   return "1+0";
 }
 
-function unitPrice(material: Material, mode: Mode, qty: number): number {
+function unitPrice(pricing: any, material: Material, mode: Mode, qty: number): number {
   if (material === "Пластик") {
     const m = mode === "4+4" ? "4+4" : "4+0";
-    return tierValue(QTY_TIERS, PLASTIC_PRICE[m], qty);
+    return tierValue(QTY_TIERS, pricing.plastic[m], qty);
   }
-  return tierValue(QTY_TIERS, CARTON_PRICE[mode], qty);
+  return tierValue(QTY_TIERS, pricing.carton[mode], qty);
 }
 
 export default function BusinessCardCalculator({ serviceId }: { serviceId?: number }) {
@@ -74,18 +62,20 @@ export default function BusinessCardCalculator({ serviceId }: { serviceId?: numb
     if (material === "Пластик" && color !== "Цветные") setColor("Цветные");
   }, [material, color]);
 
+  const pricing = usePricing("визитки", CARD_PRICING);
+
   const mode = useMemo(() => modeKey(color, sides), [color, sides]);
 
   const calc = useMemo(() => {
-    const printUnit = unitPrice(material, mode, quantity);
+    const printUnit = unitPrice(pricing, material, mode, quantity);
     const printTotal = printUnit * quantity;
-    const lamTotal = lamination === "Да" ? LAMINATION_PER_CARD * quantity : 0;
-    const roundTotal = rounding === "Да" ? ROUNDING_PER_CARD * quantity : 0;
-    const designTotal = track === "design" ? DESIGN_FEE : 0;
+    const lamTotal = lamination === "Да" ? pricing.lamination * quantity : 0;
+    const roundTotal = rounding === "Да" ? pricing.rounding * quantity : 0;
+    const designTotal = track === "design" ? pricing.design : 0;
     const deliveryTotal = DELIVERY_PRICE[delivery];
     const grandTotal = printTotal + lamTotal + roundTotal + designTotal + deliveryTotal;
     return { printUnit, printTotal, lamTotal, roundTotal, designTotal, deliveryTotal, grandTotal };
-  }, [material, mode, quantity, lamination, rounding, track, delivery]);
+  }, [material, mode, quantity, lamination, rounding, track, delivery, pricing]);
 
   const orderSummary = {
     productLabel: `Визитки ${material.toLowerCase()}, ${mode}`,
@@ -191,11 +181,11 @@ export default function BusinessCardCalculator({ serviceId }: { serviceId?: numb
               <PillsField label="Стороны печати" values={["Двусторонние", "Односторонние"]} value={sides} onChange={(v) => setSides(v as Sides)} hint={`режим ${mode}`} />
 
               <div className="pt-4 border-t border-ink-100">
-                <PillsField label="Ламинирование" values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${LAMINATION_PER_CARD} ₽/шт` : undefined} />
+                <PillsField label="Ламинирование" values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${pricing.lamination} ₽/шт` : undefined} />
               </div>
 
               <div className="pt-4 border-t border-ink-100">
-                <PillsField label="Скругление углов" values={["Нет", "Да"]} value={rounding} onChange={(v) => setRounding(v as YesNo)} hint={rounding === "Да" ? `+${ROUNDING_PER_CARD} ₽/шт` : undefined} />
+                <PillsField label="Скругление углов" values={["Нет", "Да"]} value={rounding} onChange={(v) => setRounding(v as YesNo)} hint={rounding === "Да" ? `+${pricing.rounding} ₽/шт` : undefined} />
               </div>
 
               <div className="pt-4 border-t border-ink-100">
@@ -214,8 +204,8 @@ export default function BusinessCardCalculator({ serviceId }: { serviceId?: numb
                 <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500 mb-3">Расчёт стоимости</p>
 
                 <BreakdownRow label={`Печать ${mode}`} hint={`${quantity} × ${fmt(calc.printUnit)} ₽`} value={`${fmt(calc.printTotal)} ₽`} />
-                {calc.lamTotal > 0 && <BreakdownRow label="Ламинирование" hint={`${quantity} × ${LAMINATION_PER_CARD} ₽`} value={`${fmt(calc.lamTotal)} ₽`} />}
-                {calc.roundTotal > 0 && <BreakdownRow label="Скругление углов" hint={`${quantity} × ${ROUNDING_PER_CARD} ₽`} value={`${fmt(calc.roundTotal)} ₽`} />}
+                {calc.lamTotal > 0 && <BreakdownRow label="Ламинирование" hint={`${quantity} × ${pricing.lamination} ₽`} value={`${fmt(calc.lamTotal)} ₽`} />}
+                {calc.roundTotal > 0 && <BreakdownRow label="Скругление углов" hint={`${quantity} × ${pricing.rounding} ₽`} value={`${fmt(calc.roundTotal)} ₽`} />}
                 {calc.designTotal > 0 && <BreakdownRow label="Разработка макета" hint="2 доработки в стоимости" value={`${fmt(calc.designTotal)} ₽`} />}
                 <BreakdownRow label="Доставка" hint={delivery === "СДЭК (наложенный платёж)" ? "оплачивает получатель" : undefined} value={calc.deliveryTotal ? `${fmt(calc.deliveryTotal)} ₽` : "—"} />
 

@@ -8,7 +8,8 @@ import {
 } from "@/lib/icons";
 import { api } from "@/lib/api";
 import { useToast } from "./Toast";
-import { DesignBriefCard, CheckoutModal } from "./calc/kit";
+import { DesignBriefCard, CheckoutModal, usePricing } from "./calc/kit";
+import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type Track = "template" | "upload" | "design";
 type Color = "Цветная" | "Чёрно-белая";
@@ -22,17 +23,7 @@ const FLYER_SLUG = "флаеры";
 const PRINT_TIERS = [100, 200, 500, 1000] as const;
 type Tier = (typeof PRINT_TIERS)[number];
 
-const PRINT_PRICE: Record<"4+4" | "4+0" | "1+1" | "1+0", Record<Tier, number>> = {
-  "4+4": { 100: 21, 200: 17, 500: 12, 1000: 9 },
-  "4+0": { 100: 14, 200: 12, 500: 9,  1000: 7 },
-  "1+1": { 100: 12, 200: 11, 500: 9,  1000: 7 },
-  "1+0": { 100: 8,  200: 7,  500: 6,  1000: 5 },
-};
-
-const LAMINATION_PRICE: Record<Lamination, number> = {
-  "Нет": 0,
-  "Да": 15,
-};
+const FLYER_PRICING = PRICING_DEFAULTS["флаеры"].data;
 
 const DELIVERY_PRICE: Record<Delivery, number> = {
   "Самовывоз": 0,
@@ -40,16 +31,15 @@ const DELIVERY_PRICE: Record<Delivery, number> = {
   "СДЭК (наложенный платёж)": 0,
 };
 
-const DESIGN_FEE = 1200;
 const MIN_QTY = 100;
 const QTY_PRESETS = [100, 200, 500, 1000];
 
-function unitPrintPrice(mode: "4+4" | "4+0" | "1+1" | "1+0", qty: number): number {
-  const tierKey: Tier =
-    qty >= 1000 ? 1000 :
-    qty >= 500  ? 500  :
-    qty >= 200  ? 200  : 100;
-  return PRINT_PRICE[mode][tierKey];
+function unitPrintPrice(pricing: any, mode: "4+4" | "4+0" | "1+1" | "1+0", qty: number): number {
+  const tierKey =
+    qty >= 1000 ? "1000" :
+    qty >= 500  ? "500"  :
+    qty >= 200  ? "200"  : "100";
+  return pricing.print[mode][tierKey];
 }
 
 function modeKey(color: Color, sides: Sides): "4+4" | "4+0" | "1+1" | "1+0" {
@@ -91,15 +81,17 @@ export default function FlyerCalculator({ serviceId }: { serviceId?: number }) {
     return () => { mounted = false; };
   }, [serviceId]);
 
+  const pricing = usePricing("флаеры", FLYER_PRICING);
+
   const calc = useMemo(() => {
     const mode = modeKey(color, sides);
-    const printUnit = unitPrintPrice(mode, quantity);
+    const printUnit = unitPrintPrice(pricing, mode, quantity);
     const printTotal = printUnit * quantity;
 
-    const laminationUnit = LAMINATION_PRICE[lamination];
+    const laminationUnit = lamination === "Да" ? pricing.lamination : 0;
     const laminationTotal = laminationUnit * quantity;
 
-    const designTotal = track === "design" ? DESIGN_FEE : 0;
+    const designTotal = track === "design" ? pricing.design : 0;
 
     const deliveryTotal = DELIVERY_PRICE[delivery];
 
@@ -112,7 +104,7 @@ export default function FlyerCalculator({ serviceId }: { serviceId?: number }) {
       deliveryTotal,
       grandTotal,
     };
-  }, [color, sides, quantity, lamination, delivery, track]);
+  }, [color, sides, quantity, lamination, delivery, track, pricing]);
 
   const fmt = (n: number) => n.toLocaleString("ru-RU");
 
