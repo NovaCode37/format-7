@@ -5,8 +5,9 @@ import { Upload, FileCheck2, Truck, Package, Palette, LayoutTemplate } from "@/l
 import {
   PillsField, QuantityField, TrackCard, BreakdownRow, CheckoutModal, DesignBriefCard,
   TemplateCatalogCard, DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
-  fmt, tierValue, useResolvedServiceId, useUpload,
+  fmt, tierValue, useResolvedServiceId, useUpload, usePricing,
 } from "./calc/kit";
+import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type Size = "Евро (98×210 мм)" | "А6 (105×148 мм)" | "А5 (148×210 мм)";
 type Color = "Цветная" | "Цветная + ч/б" | "Чёрно-белая";
@@ -23,33 +24,7 @@ type Tier = (typeof QTY_TIERS)[number];
 const QTY_PRESETS = [50, 100, 200];
 const MIN_QTY = 50;
 
-const PRICE: Record<Size, Record<Mode, Record<Tier, number>>> = {
-  "Евро (98×210 мм)": {
-    one:   { 50: 35, 100: 30, 200: 24 },
-    combo: { 50: 38, 100: 33, 200: 28 },
-    two:   { 50: 42, 100: 37, 200: 32 },
-  },
-  "А6 (105×148 мм)": {
-    one:   { 50: 32, 100: 21, 200: 14 },
-    combo: { 50: 35, 100: 25, 200: 18 },
-    two:   { 50: 38, 100: 27, 200: 21 },
-  },
-  "А5 (148×210 мм)": {
-    one:   { 50: 43, 100: 33, 200: 26 },
-    combo: { 50: 47, 100: 37, 200: 30 },
-    two:   { 50: 50, 100: 40, 200: 34 },
-  },
-};
-
-const LAMINATION_BY_SIZE: Record<Size, number> = {
-  "Евро (98×210 мм)": 25,
-  "А6 (105×148 мм)": 15,
-  "А5 (148×210 мм)": 25,
-};
-const BIGOVKA_PER_UNIT = 10;
-const FOIL_ONE = 50;
-const FOIL_TWO = 100;
-const DESIGN_FEE = 1000;
+const POSTCARD_PRICING = PRICING_DEFAULTS["открытки"].data;
 
 function resolveMode(color: Color, sides: Sides): { mode: Mode; approx: boolean } {
   if (color === "Цветная") return { mode: sides === "Двусторонняя" ? "two" : "one", approx: false };
@@ -75,21 +50,23 @@ export default function PostcardCalculator({ serviceId }: { serviceId?: number }
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
+  const pricing = usePricing("открытки", POSTCARD_PRICING);
+
   const { mode, approx } = useMemo(() => resolveMode(color, sides), [color, sides]);
 
   const calc = useMemo(() => {
-    const printUnit = tierValue(QTY_TIERS, PRICE[size][mode], quantity);
+    const printUnit = tierValue(QTY_TIERS, (pricing.price as any)[size][mode], quantity);
     const printTotal = printUnit * quantity;
-    const lamUnit = LAMINATION_BY_SIZE[size];
+    const lamUnit = (pricing.lamination as any)[size];
     const lamTotal = lamination === "Да" ? lamUnit * quantity : 0;
-    const bigTotal = bigovka === "Да" ? BIGOVKA_PER_UNIT * quantity : 0;
-    const foilUnit = sides === "Двусторонняя" ? FOIL_TWO : FOIL_ONE;
+    const bigTotal = bigovka === "Да" ? pricing.bigovka * quantity : 0;
+    const foilUnit = sides === "Двусторонняя" ? pricing.foilTwo : pricing.foilOne;
     const foilTotal = foil === "Да" ? foilUnit * quantity : 0;
-    const designTotal = track === "design" ? DESIGN_FEE : 0;
+    const designTotal = track === "design" ? pricing.design : 0;
     const deliveryTotal = DELIVERY_PRICE[delivery];
     const grandTotal = printTotal + lamTotal + bigTotal + foilTotal + designTotal + deliveryTotal;
     return { printUnit, printTotal, lamUnit, lamTotal, bigTotal, foilUnit, foilTotal, designTotal, deliveryTotal, grandTotal };
-  }, [size, mode, quantity, lamination, bigovka, foil, sides, track, delivery]);
+  }, [size, mode, quantity, lamination, bigovka, foil, sides, track, delivery, pricing]);
 
   const orderSummary = {
     productLabel: `Открытки ${size}, ${color.toLowerCase()}, ${sides.toLowerCase()}`,
@@ -179,7 +156,7 @@ export default function PostcardCalculator({ serviceId }: { serviceId?: number }
                 <PillsField label="Ламинация" values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${calc.lamUnit} ₽/шт` : undefined} />
               </div>
               <div className="pt-4 border-t border-ink-100">
-                <PillsField label="Биговка" values={["Нет", "Да"]} value={bigovka} onChange={(v) => setBigovka(v as YesNo)} hint={bigovka === "Да" ? `+${BIGOVKA_PER_UNIT} ₽/шт` : undefined} />
+                <PillsField label="Биговка" values={["Нет", "Да"]} value={bigovka} onChange={(v) => setBigovka(v as YesNo)} hint={bigovka === "Да" ? `+${pricing.bigovka} ₽/шт` : undefined} />
               </div>
               <div className="pt-4 border-t border-ink-100">
                 <PillsField label="Фольгирование" values={["Нет", "Да"]} value={foil} onChange={(v) => setFoil(v as YesNo)} hint={foil === "Да" ? `+${calc.foilUnit} ₽/шт (${sides === "Двусторонняя" ? "двустороннее" : "одностороннее"})` : undefined} />
@@ -199,7 +176,7 @@ export default function PostcardCalculator({ serviceId }: { serviceId?: number }
                 <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500 mb-3">Расчёт стоимости</p>
                 <BreakdownRow label="Печать" hint={`${quantity} × ${fmt(calc.printUnit)} ₽`} value={`${fmt(calc.printTotal)} ₽`} />
                 {calc.lamTotal > 0 && <BreakdownRow label="Ламинация" hint={`${quantity} × ${calc.lamUnit} ₽`} value={`${fmt(calc.lamTotal)} ₽`} />}
-                {calc.bigTotal > 0 && <BreakdownRow label="Биговка" hint={`${quantity} × ${BIGOVKA_PER_UNIT} ₽`} value={`${fmt(calc.bigTotal)} ₽`} />}
+                {calc.bigTotal > 0 && <BreakdownRow label="Биговка" hint={`${quantity} × ${pricing.bigovka} ₽`} value={`${fmt(calc.bigTotal)} ₽`} />}
                 {calc.foilTotal > 0 && <BreakdownRow label="Фольгирование" hint={`${quantity} × ${calc.foilUnit} ₽`} value={`${fmt(calc.foilTotal)} ₽`} />}
                 {calc.designTotal > 0 && <BreakdownRow label="Разработка макета" hint="2 доработки в стоимости" value={`${fmt(calc.designTotal)} ₽`} />}
                 <BreakdownRow label="Доставка" hint={delivery === "СДЭК (наложенный платёж)" ? "оплачивает получатель" : undefined} value={calc.deliveryTotal ? `${fmt(calc.deliveryTotal)} ₽` : "—"} />

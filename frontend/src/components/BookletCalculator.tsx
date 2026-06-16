@@ -5,8 +5,9 @@ import { Upload, FileCheck2, Truck, Package, Palette, Info, LayoutTemplate } fro
 import {
   PillsField, QuantityField, TrackCard, BreakdownRow, CheckoutModal, DesignBriefCard,
   TemplateCatalogCard, DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
-  fmt, tierValue, useResolvedServiceId, useUpload,
+  fmt, tierValue, useResolvedServiceId, useUpload, usePricing,
 } from "./calc/kit";
+import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type Track = "template" | "upload" | "design";
 type Color = "Цветная" | "Цветная + ч/б" | "Чёрно-белая";
@@ -20,18 +21,8 @@ const QTY_PRESETS = [10, 50, 100, 200, 500, 1000];
 const MIN_QTY = 10;
 const MAX_QTY = 1000;
 
-const PRINT_PRICE: Record<Color, Record<Tier, number>> = {
-  "Цветная":       { 10: 70, 50: 64, 100: 60, 200: 55, 500: 50, 1000: 45 },
-  "Цветная + ч/б": { 10: 50, 50: 45, 100: 41, 200: 38, 500: 34, 1000: 30 },
-  "Чёрно-белая":   { 10: 30, 50: 25, 100: 23, 200: 21, 500: 18, 1000: 15 },
-};
-
-const LAMINATION_PER_COPY = 50;
+const BOOKLET_PRICING = PRICING_DEFAULTS["буклеты"].data;
 const FOLD_PRESETS = [1, 2];
-
-function designFee(folds: number): number {
-  return folds <= 1 ? 1500 : 2000;
-}
 
 export default function BookletCalculator({ serviceId }: { serviceId?: number }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -46,15 +37,19 @@ export default function BookletCalculator({ serviceId }: { serviceId?: number })
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
+  const pricing = usePricing("буклеты", BOOKLET_PRICING);
+  const designFee = (f: number) => (f <= 1 ? pricing.design1 : pricing.design2);
+
   const calc = useMemo(() => {
-    const printUnit = tierValue(QTY_TIERS, PRINT_PRICE[color], quantity);
+    const printUnit = tierValue(QTY_TIERS, (pricing.print as any)[color], quantity);
     const printTotal = printUnit * quantity;
-    const lamTotal = lamination === "Да" ? LAMINATION_PER_COPY * quantity : 0;
+    const lamTotal = lamination === "Да" ? pricing.lamination * quantity : 0;
     const designTotal = track === "design" ? designFee(folds) : 0;
     const deliveryTotal = DELIVERY_PRICE[delivery];
     const grandTotal = printTotal + lamTotal + designTotal + deliveryTotal;
     return { printUnit, printTotal, lamTotal, designTotal, deliveryTotal, grandTotal };
-  }, [color, quantity, lamination, track, folds, delivery]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [color, quantity, lamination, track, folds, delivery, pricing]);
 
   const orderSummary = {
     productLabel: `Буклеты ${color.toLowerCase()}, ${folds} сгиб(а)`,
@@ -165,7 +160,7 @@ export default function BookletCalculator({ serviceId }: { serviceId?: number })
               </div>
 
               <div className="pt-4 border-t border-ink-100">
-                <PillsField label="Ламинация" values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${LAMINATION_PER_COPY} ₽/шт` : undefined} />
+                <PillsField label="Ламинация" values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${pricing.lamination} ₽/шт` : undefined} />
               </div>
 
               <div className="pt-4 border-t border-ink-100">
@@ -184,7 +179,7 @@ export default function BookletCalculator({ serviceId }: { serviceId?: number })
                 <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500 mb-3">Расчёт стоимости</p>
 
                 <BreakdownRow label="Печать" hint={`${quantity} × ${fmt(calc.printUnit)} ₽`} value={`${fmt(calc.printTotal)} ₽`} />
-                {calc.lamTotal > 0 && <BreakdownRow label="Ламинация" hint={`${quantity} × ${LAMINATION_PER_COPY} ₽`} value={`${fmt(calc.lamTotal)} ₽`} />}
+                {calc.lamTotal > 0 && <BreakdownRow label="Ламинация" hint={`${quantity} × ${pricing.lamination} ₽`} value={`${fmt(calc.lamTotal)} ₽`} />}
                 {calc.designTotal > 0 && <BreakdownRow label="Разработка макета" hint={`${folds} сгиб(а), 2 доработки`} value={`${fmt(calc.designTotal)} ₽`} />}
                 <BreakdownRow label="Доставка" hint={delivery === "СДЭК (наложенный платёж)" ? "оплачивает получатель" : undefined} value={calc.deliveryTotal ? `${fmt(calc.deliveryTotal)} ₽` : "—"} />
 
