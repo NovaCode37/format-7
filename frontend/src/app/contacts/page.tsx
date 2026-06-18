@@ -19,8 +19,8 @@ export default async function ContactsPage() {
   const nav = await api.getNav();
 
   const channels = [
-    { Icon: Phone,         img: null,            title: "Телефон", value: "+7 932 475-95-11",      sub: "Пн–Пт 9:00–19:00, Сб 10:00–16:00", href: "tel:+79324759511" },
-    { Icon: Mail,          img: null,            title: "Email",   value: "Format7-tmn@yandex.ru", sub: "Ответим в течение часа",           href: "mailto:Format7-tmn@yandex.ru" },
+    { Icon: Phone,         img: null,            title: "Телефон", value: "+7 932 475-95-11",      sub: "Пн–Пт 9:00–13:00, 14:00–17:00, Сб 10:00–16:00", href: "tel:+79324759511" },
+    { Icon: Mail,          img: null,            title: "Email",   value: "Format7-tmn@yandex.ru", sub: "Ответим оперативно",               href: "mailto:Format7-tmn@yandex.ru" },
     { Icon: MessageCircle, img: "/max-icon.png", title: "MAX",     value: "Написать в MAX",        sub: "Быстрые заказы",                   href: "https://max.ru/u/f9LHodD0cOL5K_y_ohndrIuQqxgsgd1UTeFnK4VSa5Swa303MHSbSyCAxRE" },
   ];
 
@@ -105,7 +105,7 @@ export default async function ContactsPage() {
                   <Clock size={18} strokeWidth={2} className="text-ink-400 mt-0.5 shrink-0" />
                   <div>
                     <p className="text-[12px] uppercase tracking-[0.14em] text-ink-400 mb-1">Время работы</p>
-                    <p className="text-ink-900 font-medium">Пн–Пт&nbsp;9:00–19:00</p>
+                    <p className="text-ink-900 font-medium">Пн–Пт&nbsp;9:00–13:00, 14:00–17:00</p>
                     <p className="text-ink-900 font-medium">Сб&nbsp;10:00–16:00, Вс&nbsp;— выходной</p>
                   </div>
                 </li>

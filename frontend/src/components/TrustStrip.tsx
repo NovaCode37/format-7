@@ -10,12 +10,12 @@ import {
 } from "@/lib/icons";
 
 const ITEMS = [
-  { icon: Clock,        text: "Срочная печать за 1 час" },
+  { icon: Clock,        text: "Онлайн-расчёт цены" },
   { icon: Truck,        text: "Доставка по Тюмени" },
   { icon: ShieldCheck,  text: "Гарантия качества" },
   { icon: Award,        text: "15+ лет на рынке" },
   { icon: CheckCircle2, text: "Бесплатная правка макета" },
-  { icon: Layers,       text: "Тиражи от 1 штуки" },
+  { icon: Layers,       text: "Любые тиражи" },
 ];
 
 export default function TrustStrip() {

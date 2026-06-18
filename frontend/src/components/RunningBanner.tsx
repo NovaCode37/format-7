@@ -14,7 +14,7 @@ export default function RunningBanner() {
           <div className="pt-16 sm:pt-20 lg:pt-0 lg:pr-16 max-w-xl">
             <Reveal>
               <p className="text-[13px] font-medium text-accent tracking-wide uppercase">
-                Тюмень · Срочная печать за 1 час
+                Тюмень · Онлайн-типография
               </p>
             </Reveal>
 
@@ -69,8 +69,8 @@ export default function RunningBanner() {
                 </div>
                 <div className="col-span-1 row-span-1 rounded-2xl overflow-hidden bg-accent flex items-center justify-center p-6">
                   <div className="text-center text-white">
-                    <span className="block font-heading text-3xl font-bold">от 1 шт</span>
-                    <span className="text-white/70 text-sm mt-1 block">любой тираж</span>
+                    <span className="block font-heading text-3xl font-bold">Любой</span>
+                    <span className="text-white/70 text-sm mt-1 block">тираж</span>
                   </div>
                 </div>
                 <div className="col-span-2 row-span-1 rounded-2xl overflow-hidden">

@@ -132,7 +132,7 @@ function OfficeModal({
         <F label="Адрес"><input value={form.address} onChange={(e) => set("address", e.target.value)} className="input" placeholder="г. Тюмень, ул. ..." /></F>
         <div className="grid grid-cols-2 gap-3">
           <F label="Телефон"><input value={form.phone ?? ""} onChange={(e) => set("phone", e.target.value)} className="input tabular" /></F>
-          <F label="Часы работы"><input value={form.hours ?? ""} onChange={(e) => set("hours", e.target.value)} className="input" placeholder="Пн–Пт 9–19" /></F>
+          <F label="Часы работы"><input value={form.hours ?? ""} onChange={(e) => set("hours", e.target.value)} className="input" placeholder="Пн–Пт 9–13, 14–17" /></F>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <F label="Широта (lat)"><input value={form.lat ?? ""} onChange={(e) => set("lat", e.target.value)} className="input tabular" placeholder="57.13" /></F>

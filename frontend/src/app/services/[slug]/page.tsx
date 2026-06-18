@@ -175,7 +175,7 @@ export default function ServicePage() {
               {fallbackCalc?.title || (displayName.charAt(0).toUpperCase() + displayName.slice(1))}
             </h1>
             <p className="text-ink-500 max-w-2xl">
-              Рассчитайте стоимость онлайн или закажите в один клик. Сроки от 1 часа, доставка по Тюмени.
+              Рассчитайте стоимость онлайн или закажите в один клик. Доставка по Тюмени.
             </p>
           </div>
         </section>
@@ -331,7 +331,7 @@ export default function ServicePage() {
             <div className="col-span-12 md:col-span-8">
               <p className="eyebrow mb-3">Услуга</p>
               <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-ink-900 tracking-tight mb-3">{service.name}</h1>
-              <p className="text-ink-500 max-w-2xl">{service.description || "Рассчитайте стоимость онлайн или закажите в один клик. Сроки от 1 часа, доставка по Тюмени."}</p>
+              <p className="text-ink-500 max-w-2xl">{service.description || "Рассчитайте стоимость онлайн или закажите в один клик. Доставка по Тюмени."}</p>
             </div>
             <div className="col-span-12 md:col-span-4 flex flex-wrap gap-2 md:justify-end">
               <WishlistButton serviceId={service.id} className="border border-ink-200 rounded-md p-3" />

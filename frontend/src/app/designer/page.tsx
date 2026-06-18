@@ -52,7 +52,7 @@ const TEMPLATES: Template[] = [
 const FONTS = ["Inter", "Georgia", "Times New Roman", "Courier New", "Arial Black", "Impact", "Verdana", "Tahoma", "Trebuchet MS", "Palatino Linotype"];
 
 const PRODUCT_GROUPS = [
-  "Визитки", "Полиграфия", "Сувениры", "Текстиль", "Фото", "Награды",
+  "Визитки", "Полиграфия", "Фото", "Награды",
 ];
 
 const PRODUCTS: ProductType[] = [
@@ -69,23 +69,9 @@ const PRODUCTS: ProductType[] = [
   { id: "nakleika", name: "Наклейка круглая", icon: "🏷️", group: "Полиграфия", w: 50, h: 50, basePrice: 3, unit: "шт.", fields: ["headline","subline"] },
   { id: "konvert", name: "Конверт C4", icon: "✉️", group: "Полиграфия", w: 229, h: 162, basePrice: 12, unit: "шт.", fields: ["company","address","phone","website"] },
 
-  { id: "kruzhka", name: "Кружка", icon: "☕", group: "Сувениры", w: 240, h: 100, basePrice: 450, unit: "шт.", fields: ["headline","subline","body"] },
-  { id: "magnet", name: "Фотомагнит", icon: "🧲", group: "Сувениры", w: 70, h: 70, basePrice: 120, unit: "шт.", fields: ["headline","subline"] },
-  { id: "brelok", name: "Брелок", icon: "🔑", group: "Сувениры", w: 40, h: 40, basePrice: 200, unit: "шт.", fields: ["headline"] },
-  { id: "znachok", name: "Значок", icon: "📌", group: "Сувениры", w: 56, h: 56, basePrice: 80, unit: "шт.", fields: ["headline","subline"] },
-  { id: "kovrik", name: "Коврик для мыши", icon: "🖱️", group: "Сувениры", w: 240, h: 200, basePrice: 350, unit: "шт.", fields: ["headline","subline","body"] },
+  { id: "foto-10x15", name: "Фото 10×15", icon: "📸", group: "Фото", w: 150, h: 100, basePrice: 22, unit: "шт.", fields: ["headline"] },
 
-  { id: "futbolka", name: "Футболка", icon: "👕", group: "Текстиль", w: 300, h: 400, basePrice: 800, unit: "шт.", fields: ["headline","subline"] },
-  { id: "tolstovka", name: "Толстовка", icon: "🧥", group: "Текстиль", w: 300, h: 400, basePrice: 1500, unit: "шт.", fields: ["headline","subline"] },
-  { id: "beysbolka", name: "Бейсболка", icon: "🧢", group: "Текстиль", w: 120, h: 60, basePrice: 600, unit: "шт.", fields: ["headline"] },
-  { id: "shopper", name: "Сумка-шоппер", icon: "👜", group: "Текстиль", w: 350, h: 400, basePrice: 500, unit: "шт.", fields: ["headline","subline","body"] },
-
-  { id: "foto-10x15", name: "Фото 10×15", icon: "📸", group: "Фото", w: 150, h: 100, basePrice: 15, unit: "шт.", fields: ["headline"] },
-  { id: "holst", name: "Фото на холсте", icon: "🎨", group: "Фото", w: 400, h: 300, basePrice: 900, unit: "шт.", fields: ["headline","subline"] },
-  { id: "fotocub", name: "Фотокубик", icon: "🧊", group: "Фото", w: 70, h: 70, basePrice: 350, unit: "шт.", fields: ["headline"] },
-
-  { id: "gramota", name: "Грамота", icon: "📜", group: "Награды", w: 210, h: 297, basePrice: 30, unit: "шт.", fields: ["headline","subline","body","person"] },
-  { id: "plaketa", name: "Плакетка", icon: "🥇", group: "Награды", w: 200, h: 150, basePrice: 800, unit: "шт.", fields: ["headline","subline","person"] },
+  { id: "gramota", name: "Грамота", icon: "📜", group: "Награды", w: 210, h: 297, basePrice: 55, unit: "шт.", fields: ["headline","subline","body","person"] },
 ];
 
 const FIELD_LABELS: Record<string, string> = {

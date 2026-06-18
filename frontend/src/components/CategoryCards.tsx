@@ -28,7 +28,7 @@ const CATS: Category[] = [
   {
     key: "poly",
     title: "Полиграфия",
-    sub: "Визитки, флаеры, буклеты · от 1 шт",
+    sub: "Визитки, флаеры, буклеты",
     image: IMG.prodPolygraphy,
     href: "/services/оперативная-полиграфия",
     span: "md:col-span-1 md:row-span-2",

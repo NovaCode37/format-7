@@ -26,11 +26,11 @@ export const metadata: Metadata = {
     template: "%s — Формат7",
   },
   description:
-    "Формат7 — онлайн-типография в Тюмени: визитки, листовки, флаеры, буклеты, наклейки, календари, печать документов и фотографий. Срочная печать за 1 час, доставка по городу.",
+    "Формат7 — онлайн-типография в Тюмени: визитки, листовки, флаеры, буклеты, наклейки, календари, печать документов и фотографий. Доставка по городу.",
   keywords: [
     "типография Тюмень", "печать Тюмень", "визитки Тюмень", "листовки", "флаеры", "буклеты",
     "наклейки", "печать документов", "печать фото", "копицентр", "полиграфия Тюмень",
-    "Формат7", "формат7.рф", "срочная печать",
+    "Формат7", "формат7.рф",
   ],
   openGraph: {
     type: "website",
@@ -38,13 +38,13 @@ export const metadata: Metadata = {
     url: SITE_URL,
     siteName: "Формат7",
     title: "Формат7 — типография и копицентр в Тюмени",
-    description: "Срочная печать за 1 час, визитки, полиграфия, фотопечать. Доставка по Тюмени.",
+    description: "Визитки, полиграфия, фотопечать. Доставка по Тюмени.",
     images: [{ url: "/logo.png", width: 512, height: 512, alt: "Формат7 — типография в Тюмени" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Формат7 — типография в Тюмени",
-    description: "Срочная печать, визитки, полиграфия, фотопечать.",
+    description: "Визитки, полиграфия, фотопечать. Доставка по Тюмени.",
     images: ["/logo.png"],
   },
   robots: {
@@ -94,7 +94,13 @@ const jsonLd = {
       "@type": "OpeningHoursSpecification",
       dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
       opens: "09:00",
-      closes: "19:00",
+      closes: "13:00",
+    },
+    {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      opens: "14:00",
+      closes: "17:00",
     },
     {
       "@type": "OpeningHoursSpecification",

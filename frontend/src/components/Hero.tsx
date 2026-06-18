@@ -8,7 +8,7 @@ import Reveal, { Stagger, StaggerItem, CountUp, DrawLine } from "./Reveal";
 const FACTS: { value: string; numeric: number; suffix: string; label: string }[] = [
   { value: "15+", numeric: 15, suffix: "+", label: "лет на рынке Тюмени" },
   { value: "1820", numeric: 1820, suffix: "", label: "отзывов · 4.9 из 5" },
-  { value: "1 час", numeric: 1, suffix: " час", label: "срочная печать" },
+  { value: "20+", numeric: 20, suffix: "+", label: "калькуляторов услуг" },
   { value: "22", numeric: 22, suffix: "", label: "категории продукции" },
 ];
 
@@ -38,9 +38,8 @@ export default function Hero() {
 
             <Reveal delay={0.18} y={16}>
               <p className="lead mt-6 text-ink-600">
-                Визитки, флаеры, сувенирная продукция, текстиль и&nbsp;фотопечать.
-                Рассчитайте стоимость за&nbsp;минуту или соберите макет
-                в&nbsp;онлайн-конструкторе&nbsp;— без&nbsp;регистрации.
+                Визитки, флаеры, буклеты, календари, наклейки, печать документов
+                и&nbsp;фотопечать. Рассчитайте стоимость за&nbsp;минуту в&nbsp;онлайн-калькуляторе&nbsp;— без&nbsp;регистрации.
               </p>
             </Reveal>
 

@@ -71,8 +71,8 @@ export default function Footer() {
               <img src="/logo.png" alt="Формат7" className="h-10 w-auto" />
             </Link>
             <p className="text-ink-600 leading-relaxed max-w-sm">
-              Типография полного цикла в&nbsp;Тюмени. Печать, копицентр, сувенирная
-              продукция, текстиль. Работаем с&nbsp;2010&nbsp;года.
+              Онлайн-типография и&nbsp;копицентр в&nbsp;Тюмени. Полиграфия, печать
+              документов, фотопечать. Работаем с&nbsp;2010&nbsp;года.
             </p>
             <p className="mt-3 text-ink-500">
               <a
@@ -175,7 +175,7 @@ export default function Footer() {
               </li>
               <li className="text-ink-600">г.&nbsp;Тюмень, ул.&nbsp;Широтная, д.&nbsp;113, к1 стр1, офис&nbsp;7</li>
               <li className="text-ink-500 text-[13px]">
-                Пн–Пт 9:00–19:00
+                Пн–Пт 9:00–13:00, 14:00–17:00
                 <br />
                 Сб 10:00–16:00
               </li>

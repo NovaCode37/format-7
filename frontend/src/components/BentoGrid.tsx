@@ -123,7 +123,7 @@ export default function BentoGrid() {
 
         <Stagger as="dl" className="mt-4 sm:mt-5 grid grid-cols-2 lg:grid-cols-4 gap-px bg-ink-200 border border-ink-200 rounded-md overflow-hidden" stagger={0.08}>
           {[
-            { icon: Zap,        numeric: 1, suffix: " час", label: "Срочная печать" },
+            { icon: Zap,        numeric: 20, suffix: "+", label: "Калькуляторов услуг" },
             { icon: TrendingUp, numeric: 15000, suffix: "+", label: "Клиентов" },
             { icon: Package2,   numeric: 22, suffix: "", label: "Категории продукции" },
             { icon: Clock,      numeric: 24, suffix: " / 7", label: "Приём онлайн-заказов" },

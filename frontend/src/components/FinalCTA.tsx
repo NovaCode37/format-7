@@ -17,8 +17,7 @@ export default function FinalCTA() {
               <span className="text-ink-300">начать печать?</span>
             </h2>
             <p className="mt-4 text-ink-500 max-w-md leading-relaxed">
-              Рассчитайте стоимость онлайн или&nbsp;позвоните нам. Срочные заказы
-              принимаем круглосуточно.
+              Рассчитайте стоимость онлайн или&nbsp;позвоните нам — поможем с&nbsp;макетом и&nbsp;тиражом.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
@@ -57,8 +56,8 @@ export default function FinalCTA() {
               <div className="bg-ink-50 rounded-2xl p-6">
                 <Clock size={20} strokeWidth={2} className="text-ink-400 mb-3" />
                 <p className="text-[13px] text-ink-400 mb-1">Время работы</p>
-                <p className="font-heading text-lg font-bold text-ink-900 tabular">
-                  Пн–Пт · 9–13, 14–17
+                <p className="font-heading text-base font-bold text-ink-900 tabular">
+                  Пн–Пт 9–13, 14–17 · Сб 10–16
                 </p>
               </div>
               <div className="bg-accent rounded-2xl p-6 flex flex-col justify-between">
