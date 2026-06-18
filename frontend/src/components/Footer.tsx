@@ -72,7 +72,7 @@ export default function Footer() {
             </Link>
             <p className="text-ink-600 leading-relaxed max-w-sm">
               Онлайн-типография и&nbsp;копицентр в&nbsp;Тюмени. Полиграфия, печать
-              документов, фотопечать. Работаем с&nbsp;2010&nbsp;года.
+              документов, фотопечать.
             </p>
             <p className="mt-3 text-ink-500">
               <a

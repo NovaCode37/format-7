@@ -6,7 +6,7 @@ import { IMG } from "@/lib/images";
 import Reveal, { Stagger, StaggerItem, CountUp, DrawLine } from "./Reveal";
 
 const FACTS: { value: string; numeric: number; suffix: string; label: string }[] = [
-  { value: "15+", numeric: 15, suffix: "+", label: "лет на рынке Тюмени" },
+  { value: "24/7", numeric: 24, suffix: "/7", label: "приём заказов онлайн" },
   { value: "1820", numeric: 1820, suffix: "", label: "отзывов · 4.9 из 5" },
   { value: "20+", numeric: 20, suffix: "+", label: "калькуляторов услуг" },
   { value: "22", numeric: 22, suffix: "", label: "категории продукции" },

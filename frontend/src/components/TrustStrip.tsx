@@ -13,7 +13,7 @@ const ITEMS = [
   { icon: Clock,        text: "Онлайн-расчёт цены" },
   { icon: Truck,        text: "Доставка по Тюмени" },
   { icon: ShieldCheck,  text: "Гарантия качества" },
-  { icon: Award,        text: "15+ лет на рынке" },
+  { icon: Award,        text: "Своя типография" },
   { icon: CheckCircle2, text: "Бесплатная правка макета" },
   { icon: Layers,       text: "Любые тиражи" },
 ];
