@@ -20,9 +20,14 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    const nameParts = name.trim().split(/\s+/).filter((w) => w.length >= 2);
+    if (nameParts.length < 2) {
+      setError("Укажите имя и фамилию (например: Иван Петров)");
+      return;
+    }
     setLoading(true);
     try {
-      await register(email, name, password, phone, captcha);
+      await register(email, name.trim().replace(/\s+/g, " "), password, phone, captcha);
       router.push("/");
     } catch (err: any) {
       setError(err.message || "Ошибка регистрации");
@@ -69,13 +74,14 @@ export default function RegisterPage() {
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
                   <label htmlFor="reg-name" className="block text-[12px] font-medium text-ink-700 mb-1.5">
-                    Имя
+                    Имя и фамилия
                   </label>
                   <input
                     id="reg-name"
                     type="text"
                     required
                     autoComplete="name"
+                    placeholder="Например: Иван Петров"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="input"

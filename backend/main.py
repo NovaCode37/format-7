@@ -435,6 +435,9 @@ def register(
     if not verify_turnstile(data.turnstile_token or "", remote_ip=request.client.host if request.client else None):
         raise HTTPException(status_code=400, detail="Не пройдена проверка CAPTCHA")
 
+    if len([w for w in (data.name or "").split() if len(w) >= 2]) < 2:
+        raise HTTPException(status_code=400, detail="Укажите имя и фамилию")
+
     if is_password_compromised(data.password):
         raise HTTPException(
             status_code=400,
@@ -447,7 +450,7 @@ def register(
 
     user = User(
         email=data.email,
-        name=data.name,
+        name=" ".join(data.name.split()),
         phone=data.phone,
         hashed_password=hash_password(data.password),
     )

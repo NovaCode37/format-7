@@ -78,7 +78,11 @@ export default function DesignBriefForm({ onUseConstructor }: { onUseConstructor
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !phone.trim()) {
-      toast.error("Укажите ФИО и номер телефона для связи");
+      toast.error("Укажите имя, фамилию и номер телефона для связи");
+      return;
+    }
+    if (name.trim().split(/\s+/).filter((w) => w.length >= 2).length < 2) {
+      toast.error("Укажите имя и фамилию (например: Иван Петров)");
       return;
     }
     setSending(true);
@@ -242,7 +246,7 @@ export default function DesignBriefForm({ onUseConstructor }: { onUseConstructor
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6">
               <label className="flex items-center gap-1.5 text-[12px] font-semibold text-ink-700 mb-3"><Phone size={13} /> Контакты для связи</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <input value={name} onChange={(e) => setName(e.target.value)} placeholder="ФИО *" className="input h-11" required />
+                <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Имя и фамилия *" className="input h-11" required />
                 <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Номер телефона *" className="input h-11 tabular" required />
               </div>
             </div>
