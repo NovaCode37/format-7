@@ -219,30 +219,28 @@ export default function ProfilePage() {
                     <div className="border-t border-ink-100 px-5 py-4 bg-ink-50 space-y-4">
 
                       <ul className="divide-y divide-ink-200 border border-ink-200 rounded-md overflow-hidden">
-                        {o.items.map((it) => (
+                        {o.items.map((it) => {
+                          let opts: Record<string, any> = {};
+                          try { opts = it.options ? (typeof it.options === "string" ? JSON.parse(it.options) : it.options) : {}; } catch {}
+                          if (!opts || typeof opts !== "object") opts = {};
+                          const title = opts["Товар"] || it.service?.name || "Позиция";
+                          const specs = Object.entries(opts)
+                            .filter(([k]) => k !== "Товар" && !k.startsWith("_"))
+                            .map(([k, v]) => `${k}: ${v}`)
+                            .join(" · ");
+                          return (
                           <li key={it.id} className="flex items-center justify-between text-[13px] bg-white px-4 py-3">
                             <div className="min-w-0">
-                              <p className="font-medium text-ink-900">{it.service.name}</p>
-                              {it.options && (() => {
-                                try {
-                                  const opts = typeof it.options === "string" ? JSON.parse(it.options) : it.options;
-                                  if (opts && typeof opts === "object" && Object.keys(opts).length > 0) {
-                                    return (
-                                      <p className="text-[11px] text-ink-500 mt-0.5">
-                                        {Object.entries(opts).map(([k, v]) => `${k}: ${v}`).join(" · ")}
-                                      </p>
-                                    );
-                                  }
-                                } catch {}
-                                return null;
-                              })()}
+                              <p className="font-medium text-ink-900">{title}</p>
+                              {specs && <p className="text-[11px] text-ink-500 mt-0.5">{specs}</p>}
                             </div>
                             <div className="text-right shrink-0 tabular">
                               <p className="font-medium text-ink-900">×{it.quantity}</p>
                               {it.price > 0 && <p className="text-[11px] text-ink-500">{it.price}&nbsp;₽/шт</p>}
                             </div>
                           </li>
-                        ))}
+                          );
+                        })}
                       </ul>
 
                       {(o.delivery_type || o.delivery_address) && (
