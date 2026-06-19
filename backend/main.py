@@ -277,7 +277,14 @@ EXT_RE = re.compile(r"^[a-z0-9]{1,8}$")
 MAX_FILES_PER_USER = 200
 MAX_FILES_PER_ANONYMOUS = 5
 
-app = FastAPI(title="Format7 API", version="1.1.0")
+_is_prod = os.environ.get("APP_ENV", "").lower() == "production"
+app = FastAPI(
+    title="Format7 API",
+    version="1.1.0",
+    docs_url=None if _is_prod else "/docs",
+    redoc_url=None if _is_prod else "/redoc",
+    openapi_url=None if _is_prod else "/openapi.json",
+)
 
 class SecurityHeadersMiddleware:
 
@@ -1946,6 +1953,10 @@ def download_file(file_id: int, user: User | None = Depends(get_current_user), d
             owner_id = ord_row.user_id if ord_row else None
             if not (user and owner_id and user.id == owner_id):
                 raise HTTPException(status_code=403, detail="Нет доступа к файлу")
+        else:
+            # Анонимная загрузка, ещё не привязанная к заказу: ID последовательны,
+            # поэтому закрываем перебор — доступ только администратору.
+            raise HTTPException(status_code=403, detail="Нет доступа к файлу")
 
     from fastapi.responses import StreamingResponse
 
