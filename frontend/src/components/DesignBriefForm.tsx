@@ -40,6 +40,8 @@ const PRODUCT_SLUG: Record<string, string> = {
   "Печать фотографий": "печать-фотографий",
 };
 
+const DESIGN_PRICE = 1000;
+
 type FileEntry = { file: File; id: number | null };
 
 export default function DesignBriefForm({ onUseConstructor }: { onUseConstructor?: () => void }) {
@@ -93,7 +95,6 @@ export default function DesignBriefForm({ onUseConstructor }: { onUseConstructor
       }
 
       const options: Record<string, any> = {
-        product,
         orientation,
         sides,
         size: size || "—",
@@ -121,10 +122,14 @@ export default function DesignBriefForm({ onUseConstructor }: { onUseConstructor
         customer_email: user?.email || "Format7-tmn@yandex.ru",
         customer_phone: phone,
         comment,
-        items: [{ service_id: 0, quantity: 1, price: 0, options: { product: `Бриф на дизайн: ${product}`, ...options } }],
+        items: [{ service_id: 0, quantity: 1, price: DESIGN_PRICE, options: { "Товар": `Дизайн — ${product}`, ...options } }],
         file_ids: fileIds,
       }, token || undefined);
 
+      if (order.payment_token) {
+        router.push(`/orders/${encodeURIComponent(order.order_number)}/pay?pt=${encodeURIComponent(order.payment_token)}`);
+        return;
+      }
       setOrderNumber(order.order_number);
     } catch (err: any) {
       toast.error(err?.message || "Не удалось отправить бриф");
@@ -278,14 +283,14 @@ export default function DesignBriefForm({ onUseConstructor }: { onUseConstructor
 
               <div className="rounded-xl border border-ink-200 bg-white p-5">
                 <button type="submit" disabled={sending} className="w-full h-12 rounded-lg flex items-center justify-center gap-2 font-semibold text-[14px] bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-60 transition-colors">
-                  {sending ? "Отправляем…" : "Отправить бриф дизайнеру"}
+                  {sending ? "Оформляем…" : `Перейти к оплате — ${DESIGN_PRICE} ₽`}
                 </button>
                 <p className="mt-3 text-[11px] text-ink-500 leading-relaxed">
-                  Разработка макета — от 1000 ₽ (зависит от продукта). В стоимость входят 2 доработки, каждая последующая — +100 ₽. Точную цену дизайнер назовёт после изучения брифа.
+                  Разработка макета — фиксированно <b>{DESIGN_PRICE} ₽</b>. В стоимость входят 2 доработки, каждая последующая — +100 ₽. После оформления откроется страница оплаты по СБП.
                 </p>
                 {!user && (
                   <p className="mt-2 text-[11px] text-ink-400">
-                    <Link href="/login" className="font-medium text-ink-700 hover:text-brand">Войдите</Link>, чтобы отслеживать статус заявки.
+                    <Link href="/login" className="font-medium text-ink-700 hover:text-brand">Войдите</Link>, чтобы отслеживать статус и оплату.
                   </p>
                 )}
               </div>

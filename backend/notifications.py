@@ -177,17 +177,19 @@ def _delivery_ru(value: str) -> str:
 def _fmt_order_lines(order) -> str:
     lines = []
     for it in order.items or []:
-        name = getattr(it.service, "name", f"#{it.service_id}") if getattr(it, "service", None) else f"#{it.service_id}"
-        lines.append(f"  • {name} × {it.quantity} — {it.price:.2f} ₽")
         try:
             opts = json.loads(it.options) if getattr(it, "options", "") else {}
         except Exception:
             opts = {}
-        if isinstance(opts, dict):
-            for k, v in opts.items():
-                if not k or k.startswith("_") or k == "Товар":
-                    continue
-                lines.append(f"      {k}: {v}")
+        if not isinstance(opts, dict):
+            opts = {}
+        svc_name = getattr(it.service, "name", f"#{it.service_id}") if getattr(it, "service", None) else f"#{it.service_id}"
+        name = opts.get("Товар") or svc_name
+        lines.append(f"  • {name} × {it.quantity} — {it.price:.2f} ₽")
+        for k, v in opts.items():
+            if not k or k.startswith("_") or k == "Товар":
+                continue
+            lines.append(f"      {k}: {v}")
     return "\n".join(lines) or "  (без позиций)"
 
 def notify_new_order(order_id) -> None:
