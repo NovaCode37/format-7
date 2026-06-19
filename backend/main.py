@@ -1943,8 +1943,8 @@ def download_file(file_id: int, user: User | None = Depends(get_current_user), d
     if not uf:
         raise HTTPException(status_code=404, detail="Файл не найден")
 
-    is_admin = bool(user and getattr(user, "is_admin", False))
-    if not is_admin:
+    admin_access = bool(user and is_admin(user))
+    if not admin_access:
         if uf.user_id:
             if not user or user.id != uf.user_id:
                 raise HTTPException(status_code=403, detail="Нет доступа к файлу")
