@@ -6,6 +6,15 @@ import { ArrowRight, Search } from "@/lib/icons";
 import { PRICE_CATEGORIES, PRICE_GROUPS, type PriceCategory, type PriceTable } from "@/lib/prices";
 import Reveal, { Stagger, StaggerItem, DrawLine } from "@/components/Reveal";
 
+// Русское склонение существительного по числу: [1, 2-4, 5+].
+function pluralRu(n: number, forms: [string, string, string]): string {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return forms[0];
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return forms[1];
+  return forms[2];
+}
+
 function PriceTableView({ table }: { table: PriceTable }) {
   return (
     <div className="overflow-x-auto">
@@ -157,7 +166,7 @@ export default function PricesPage() {
               <span className="text-ink-400">типографии Format7</span>
             </h1>
             <p className="lead text-ink-600 max-w-xl">
-              Актуальные цены на {PRICE_CATEGORIES.length}&nbsp;категорий продукции.
+              Актуальные цены по&nbsp;{PRICE_CATEGORIES.length}&nbsp;{pluralRu(PRICE_CATEGORIES.length, ["направлению", "направлениям", "направлениям"])} печати и&nbsp;услуг.
               Стоимость за&nbsp;единицу в&nbsp;рублях, зависит от&nbsp;тиража.
             </p>
           </Reveal>
@@ -216,7 +225,7 @@ export default function PricesPage() {
 
         <div className="mb-6 text-[13px] text-ink-500">
           {filtered.length === PRICE_CATEGORIES.length
-            ? `${PRICE_CATEGORIES.length} категорий`
+            ? `${PRICE_CATEGORIES.length} ${pluralRu(PRICE_CATEGORIES.length, ["категория", "категории", "категорий"])}`
             : `Найдено: ${filtered.length}`}
         </div>
 
