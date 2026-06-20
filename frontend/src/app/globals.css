@@ -100,6 +100,18 @@
   .btn svg { transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1); }
   .btn:hover svg:last-child { transform: translateX(2px); }
 
+  /* Иконки оживают при наведении на интерактивный элемент: плавный лёгкий "подскок".
+     Спиннеры (.animate-spin) и кнопочные стрелки (translateX выше) не трогаем. */
+  a svg, button svg, [role="button"] svg, label svg {
+    transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), color 0.2s ease;
+  }
+  a:hover svg:not(.animate-spin),
+  button:hover svg:not(.animate-spin),
+  [role="button"]:hover svg:not(.animate-spin),
+  label:hover svg:not(.animate-spin) {
+    transform: scale(1.12);
+  }
+
   .btn-primary {
     @apply btn bg-brand text-white border border-brand;
   }
