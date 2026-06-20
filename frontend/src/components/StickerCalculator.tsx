@@ -36,7 +36,7 @@ export default function StickerCalculator({ serviceId }: { serviceId?: number })
   const [material, setMaterial] = useState<StickerMaterial>("Бумага");
   const [finish, setFinish] = useState<StickerFinish>("Без фольги");
   const [shape, setShape] = useState<StickerShape>("Круглые");
-  const [sizeLabel, setSizeLabel] = useState<string>("d 2 см");
+  const [sizeLabel, setSizeLabel] = useState<string>("диаметр 2 см");
   const [lamination, setLamination] = useState<YesNo>("Нет");
   const [sheets, setSheets] = useState<number>(2);
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
