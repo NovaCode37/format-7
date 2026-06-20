@@ -1,4 +1,5 @@
 import { api } from "@/lib/api";
+import { SITE_DEFAULTS } from "@/lib/siteDefaults";
 import MainNav from "@/components/MainNav";
 import Link from "next/link";
 import { Phone, Mail, MessageCircle, MapPin, Clock, Truck, Package, CreditCard, FileCheck2, QrCode } from "@/lib/icons";
@@ -17,11 +18,12 @@ const YANDEX_URL =
 
 export default async function ContactsPage() {
   const nav = await api.getNav();
+  const s = { ...SITE_DEFAULTS, ...(await api.getSiteSettings().catch(() => ({}))) };
 
   const channels = [
-    { Icon: Phone,         img: null,            title: "Телефон", value: "+7 932 475-95-11",      sub: "Пн–Пт 9:00–13:00, 14:00–17:00, Сб 10:00–16:00", href: "tel:+79324759511" },
-    { Icon: Mail,          img: null,            title: "Email",   value: "Format7-tmn@yandex.ru", sub: "Ответим оперативно",               href: "mailto:Format7-tmn@yandex.ru" },
-    { Icon: MessageCircle, img: "/max-icon.png", title: "MAX",     value: "Написать в MAX",        sub: "Быстрые заказы",                   href: "https://max.ru/u/f9LHodD0cOL5K_y_ohndrIuQqxgsgd1UTeFnK4VSa5Swa303MHSbSyCAxRE" },
+    { Icon: Phone,         img: null,            title: "Телефон", value: s.phone,        sub: `${s.hoursWeekday}, ${s.hoursSaturday}`, href: `tel:${s.phoneHref}` },
+    { Icon: Mail,          img: null,            title: "Email",   value: s.email,        sub: "Ответим оперативно",                   href: `mailto:${s.email}` },
+    { Icon: MessageCircle, img: "/max-icon.png", title: "MAX",     value: "Написать в MAX", sub: "Быстрые заказы",                      href: s.maxLink },
   ];
 
   return (
@@ -105,16 +107,16 @@ export default async function ContactsPage() {
                   <Clock size={18} strokeWidth={2} className="text-ink-400 mt-0.5 shrink-0" />
                   <div>
                     <p className="text-[12px] uppercase tracking-[0.14em] text-ink-400 mb-1">Время работы</p>
-                    <p className="text-ink-900 font-medium">Пн–Пт&nbsp;9:00–13:00, 14:00–17:00</p>
-                    <p className="text-ink-900 font-medium">Сб&nbsp;10:00–16:00, Вс&nbsp;— выходной</p>
+                    <p className="text-ink-900 font-medium">{s.hoursWeekday}</p>
+                    <p className="text-ink-900 font-medium">{s.hoursSaturday}, Вс&nbsp;— выходной</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
                   <Phone size={18} strokeWidth={2} className="text-ink-400 mt-0.5 shrink-0" />
                   <div>
                     <p className="text-[12px] uppercase tracking-[0.14em] text-ink-400 mb-1">Телефон</p>
-                    <a href="tel:+79324759511" className="text-ink-900 font-medium hover:text-brand transition-colors tabular">
-                      +7 932 475-95-11
+                    <a href={`tel:${s.phoneHref}`} className="text-ink-900 font-medium hover:text-brand transition-colors tabular">
+                      {s.phone}
                     </a>
                   </div>
                 </li>
@@ -211,15 +213,15 @@ export default async function ContactsPage() {
             <dl className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-3 max-w-2xl text-sm">
               <div>
                 <dt className="text-[12px] uppercase tracking-[0.14em] text-ink-400 mb-0.5">Продавец</dt>
-                <dd className="text-ink-900 font-medium">ИП Голубев А. А.</dd>
+                <dd className="text-ink-900 font-medium">{s.legalName}</dd>
               </div>
               <div>
                 <dt className="text-[12px] uppercase tracking-[0.14em] text-ink-400 mb-0.5">ИНН</dt>
-                <dd className="text-ink-900 font-medium tabular">720319019022</dd>
+                <dd className="text-ink-900 font-medium tabular">{s.inn}</dd>
               </div>
               <div>
                 <dt className="text-[12px] uppercase tracking-[0.14em] text-ink-400 mb-0.5">ОГРНИП</dt>
-                <dd className="text-ink-900 font-medium tabular">322723200035243</dd>
+                <dd className="text-ink-900 font-medium tabular">{s.ogrnip}</dd>
               </div>
             </dl>
           </div>

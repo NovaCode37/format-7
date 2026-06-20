@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight } from "@/lib/icons";
 import { api } from "@/lib/api";
 import Reveal, { Stagger, StaggerItem, DrawLine } from "./Reveal";
+import { useSiteSettings } from "@/lib/siteSettings";
 
 const COLUMNS = [
   {
@@ -45,6 +46,7 @@ const COLUMNS = [
 ];
 
 export default function Footer() {
+  const s = useSiteSettings();
   const [subEmail, setSubEmail] = useState("");
   const [subMsg, setSubMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
 
@@ -76,10 +78,10 @@ export default function Footer() {
             </p>
             <p className="mt-3 text-ink-500">
               <a
-                href="mailto:Format7-tmn@yandex.ru"
+                href={`mailto:${s.email}`}
                 className="text-ink-700 hover:text-brand transition-colors"
               >
-                Format7-tmn@yandex.ru
+                {s.email}
               </a>
             </p>
 
@@ -157,15 +159,15 @@ export default function Footer() {
             <ul className="space-y-2.5">
               <li>
                 <a
-                  href="tel:+79324759511"
+                  href={`tel:${s.phoneHref}`}
                   className="text-ink-700 hover:text-brand transition-colors tabular"
                 >
-                  +7 932 475-95-11
+                  {s.phone}
                 </a>
               </li>
               <li>
                 <a
-                  href="https://max.ru/u/f9LHodD0cOL5K_y_ohndrIuQqxgsgd1UTeFnK4VSa5Swa303MHSbSyCAxRE"
+                  href={s.maxLink}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 text-ink-700 hover:text-brand transition-colors"
@@ -173,11 +175,11 @@ export default function Footer() {
                   <img src="/max-icon.png" alt="" className="w-4 h-4 rounded-[4px]" /> Написать в MAX
                 </a>
               </li>
-              <li className="text-ink-600">г.&nbsp;Тюмень, ул.&nbsp;Широтная, д.&nbsp;113, к1 стр1, офис&nbsp;7</li>
+              <li className="text-ink-600">{s.address}</li>
               <li className="text-ink-500 text-[13px]">
-                Пн–Пт 9:00–13:00, 14:00–17:00
+                {s.hoursWeekday}
                 <br />
-                Сб 10:00–16:00
+                {s.hoursSaturday}
               </li>
             </ul>
           </Reveal>

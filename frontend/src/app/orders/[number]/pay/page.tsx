@@ -7,12 +7,14 @@ import { QRCodeSVG } from "qrcode.react";
 import { CheckCircle2, Loader2, ArrowRight } from "@/lib/icons";
 import { api, type PaymentInfo } from "@/lib/api";
 import Reveal, { ScaleIn } from "@/components/Reveal";
+import { useSiteSettings } from "@/lib/siteSettings";
 
 const SBP_PURPLE = "#1d1346";
 
 export default function PaymentPage() {
   const { number } = useParams<{ number: string }>();
   const searchParams = useSearchParams();
+  const site = useSiteSettings();
   const paymentToken = searchParams.get("pt") || "";
   const [info, setInfo] = useState<PaymentInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -179,9 +181,9 @@ export default function PaymentPage() {
               <div className="card p-6 space-y-4">
                 <div className="border-b border-ink-100 pb-3">
                   <span className="eyebrow">Получатель</span>
-                  <p className="mt-1.5 text-[13px] font-medium text-ink-900">ИП Голубев Александр Александрович</p>
-                  <p className="text-[12px] text-ink-500 tabular">ИНН 720319019022</p>
-                  <p className="text-[12px] text-ink-500 tabular">ОГРНИП 322723200035243</p>
+                  <p className="mt-1.5 text-[13px] font-medium text-ink-900">{site.legalName}</p>
+                  <p className="text-[12px] text-ink-500 tabular">ИНН {site.inn}</p>
+                  <p className="text-[12px] text-ink-500 tabular">ОГРНИП {site.ogrnip}</p>
                 </div>
                 <div className="flex items-baseline justify-between border-b border-ink-100 pb-3">
                   <span className="eyebrow">Заказ</span>

@@ -12,6 +12,7 @@ import AdminCategories from "@/components/admin/AdminCategories";
 import AdminOffices from "@/components/admin/AdminOffices";
 import AdminReviews from "@/components/admin/AdminReviews";
 import AdminPricing from "@/components/admin/AdminPricing";
+import AdminSettings from "@/components/admin/AdminSettings";
 
 const STATUS_LABELS: Record<string, string> = {
   new: "Новый",
@@ -50,7 +51,7 @@ export default function AdminPage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
-  const [tab, setTab] = useState<"orders" | "products" | "categories" | "offices" | "reviews" | "pricing">("orders");
+  const [tab, setTab] = useState<"orders" | "products" | "categories" | "offices" | "reviews" | "pricing" | "settings">("orders");
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
   const downloadFile = async (id: number, name: string) => {
@@ -140,7 +141,7 @@ export default function AdminPage() {
             <h1 className="h-display">Управление</h1>
           </Reveal>
           <div className="mt-6 flex gap-1">
-            {([["orders", "Заказы"], ["products", "Товары"], ["categories", "Категории"], ["pricing", "Цены"], ["offices", "Офисы"], ["reviews", "Отзывы"]] as const).map(([key, label]) => (
+            {([["orders", "Заказы"], ["products", "Товары"], ["categories", "Категории"], ["pricing", "Цены"], ["settings", "Контакты"], ["offices", "Офисы"], ["reviews", "Отзывы"]] as const).map(([key, label]) => (
               <button
                 key={key}
                 onClick={() => setTab(key)}
@@ -163,6 +164,9 @@ export default function AdminPage() {
       )}
       {tab === "pricing" && token && (
         <div className="container-page py-8"><AdminPricing token={token} /></div>
+      )}
+      {tab === "settings" && token && (
+        <div className="container-page py-8"><AdminSettings token={token} /></div>
       )}
       {tab === "offices" && token && (
         <div className="container-page py-8"><AdminOffices token={token} /></div>

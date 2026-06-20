@@ -406,6 +406,13 @@ export const api = {
       method: "POST", headers: authHeaders(token),
     }),
 
+  getSiteSettings: () =>
+    fetchApi<Record<string, any>>("/api/site-settings"),
+  adminPutSiteSettings: (token: string, data: Record<string, any>) =>
+    fetchApi<{ ok: boolean }>("/api/admin/site-settings", {
+      method: "PUT", headers: authHeaders(token), body: JSON.stringify(data),
+    }),
+
   getPricing: (slug: string) =>
     fetchApi<Record<string, any>>(`/api/pricing/${encodeURIComponent(slug)}`),
   adminGetAllPricing: (token: string) =>

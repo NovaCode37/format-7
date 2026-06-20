@@ -114,6 +114,7 @@ from models import (
     SavedAddress,
     PushSubscription,
     PricingConfig,
+    SiteSetting,
 )
 import oauth as oauth_mod
 import push as webpush
@@ -1592,6 +1593,32 @@ def admin_stats(_: User = Depends(require_admin), db: Session = Depends(get_db))
         "revenue": float(revenue),
         "by_status": {k: int(v) for k, v in by_status.items()},
     }
+
+@app.get("/api/site-settings")
+def get_site_settings(db: Session = Depends(get_db)):
+    row = db.query(SiteSetting).filter(SiteSetting.key == "main").first()
+    if not row or not row.data:
+        return {}
+    try:
+        return json.loads(row.data)
+    except Exception:
+        return {}
+
+@app.put("/api/admin/site-settings")
+def admin_put_site_settings(
+    payload: dict,
+    request: Request,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    row = db.query(SiteSetting).filter(SiteSetting.key == "main").first()
+    if row is None:
+        row = SiteSetting(key="main")
+        db.add(row)
+    row.data = json.dumps(payload, ensure_ascii=False)
+    db.commit()
+    audit.record(db, admin=admin, action="site_settings.updated", target="main", diff={}, request=request)
+    return {"ok": True}
 
 @app.get("/api/pricing/{slug}")
 def get_pricing(slug: str, db: Session = Depends(get_db)):

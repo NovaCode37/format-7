@@ -294,3 +294,10 @@ class PricingConfig(Base):
     slug = Column(String(80), primary_key=True)
     data = Column(Text, default="")
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+class SiteSetting(Base):
+    __tablename__ = "site_settings"
+
+    key = Column(String(50), primary_key=True)
+    data = Column(Text, default="")
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)

@@ -8,6 +8,7 @@ import {
 import MobileDrawer from "./MobileDrawer";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
+import { useSiteSettings } from "@/lib/siteSettings";
 import { api, type Service } from "@/lib/api";
 import { searchCatalog, type CatalogIndexItem } from "@/lib/catalogIndex";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,6 +22,7 @@ const NAV_LINKS = [
 
 export default function Header() {
   const { user, cartCount, logout } = useAuth();
+  const site = useSiteSettings();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<CatalogIndexItem[]>([]);
   const [showResults, setShowResults] = useState(false);
@@ -204,7 +206,7 @@ export default function Header() {
 
         <div className="flex items-center gap-1 text-sm ml-auto md:ml-0">
           <a
-            href="https://max.ru/u/f9LHodD0cOL5K_y_ohndrIuQqxgsgd1UTeFnK4VSa5Swa303MHSbSyCAxRE"
+            href={site.maxLink}
             target="_blank"
             rel="noopener noreferrer"
             title="Написать в MAX"
