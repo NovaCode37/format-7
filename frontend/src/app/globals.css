@@ -103,13 +103,21 @@
   /* Иконки оживают при наведении на интерактивный элемент: плавный лёгкий "подскок".
      Спиннеры (.animate-spin) и кнопочные стрелки (translateX выше) не трогаем. */
   a svg, button svg, [role="button"] svg, label svg {
-    transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), color 0.2s ease;
+    transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease;
   }
   a:hover svg:not(.animate-spin),
   button:hover svg:not(.animate-spin),
   [role="button"]:hover svg:not(.animate-spin),
   label:hover svg:not(.animate-spin) {
     transform: scale(1.12);
+  }
+  /* Отклик на нажатие: иконка коротко "вдавливается". */
+  a:active svg:not(.animate-spin),
+  button:active svg:not(.animate-spin),
+  [role="button"]:active svg:not(.animate-spin),
+  label:active svg:not(.animate-spin) {
+    transform: scale(0.92);
+    transition-duration: 0.09s;
   }
 
   .btn-primary {
