@@ -77,12 +77,12 @@ function getMiniCatalog(service: Service): MiniCatalogItem[] {
   if (s === "оперативная-полиграфия") {
     return [
       { label: "Визитки", href: "/services/визитки" },
-      { label: "Листовки", href: "/services/оперативная-полиграфия" },
-      { label: "Флаеры", href: "/services/оперативная-полиграфия" },
-      { label: "Буклеты", href: "/services/оперативная-полиграфия" },
+      { label: "Листовки", href: "/services/листовки" },
+      { label: "Флаеры", href: "/services/флаеры" },
+      { label: "Буклеты", href: "/services/буклеты" },
       { label: "Календари", href: "/services/календари" },
-      { label: "Наклейки", href: "/services/оперативная-полиграфия" },
-      { label: "Блокноты", href: "/services/оперативная-полиграфия" },
+      { label: "Наклейки", href: "/services/наклейки" },
+      { label: "Блокноты", href: "/services/блокноты" },
     ];
   }
 
@@ -155,9 +155,33 @@ export default function ServicePage() {
   }
 
   if (!service) {
+    const decodedSlug = decodeURIComponent(slug).toLowerCase();
+
+    // Slug-категория (например «оперативная-полиграфия») — это каталог товаров,
+    // а не отдельный товар. Показываем сетку продуктов категории, без калькулятора.
+    if (CATEGORY_TITLES[decodedSlug]) {
+      const categoryTitle = CATEGORY_TITLES[decodedSlug];
+      return (
+        <div className="bg-white">
+          <section className="border-b border-ink-200">
+            <div className="container-page py-10 sm:py-14">
+              <p className="eyebrow mb-3">Категория</p>
+              <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-ink-900 tracking-tight mb-3">
+                {categoryTitle}
+              </h1>
+              <p className="text-ink-500 max-w-2xl">
+                Выберите товар — рассчитайте стоимость онлайн и закажите в один клик. Доставка по Тюмени.
+              </p>
+            </div>
+          </section>
+          <CategorySubProducts activeSlug={decodedSlug} title={categoryTitle} />
+          <OtherServices excludeSlug={decodeURIComponent(slug)} />
+        </div>
+      );
+    }
+
     const displayName = decodeURIComponent(slug).replace(/-/g, " ");
     const fallbackCalc = getProductCalculator(slug);
-    const decodedSlug = decodeURIComponent(slug).toLowerCase();
     const hasDedicatedCalc = [
       COPY_PRINT_SLUG, FLYER_SLUG, CALENDAR_SLUG, CALENDAR_SLUG_ALT, BINDING_SLUG, BINDING_SLUG_ALT,
       SCAN_SLUG, SCAN_SLUG_ALT, LAMINATION_SLUG,
