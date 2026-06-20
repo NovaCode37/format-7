@@ -12,6 +12,8 @@ import {
   CheckCircle, Layers, PenTool, ClipboardList,
 } from "@/lib/icons";
 import DesignBriefForm from "@/components/DesignBriefForm";
+import { usePricing } from "@/components/calc/kit";
+import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 interface Template {
   id: number; name: string; category: string;
@@ -100,6 +102,10 @@ export default function DesignerPage() {
   const product = PRODUCTS.find((p) => p.id === productId) || PRODUCTS[0];
   const groupProducts = PRODUCTS.filter((p) => p.group === groupFilter);
 
+  const pricing = usePricing("designer", PRICING_DEFAULTS["designer"].data);
+  const baseOf = (p: ProductType) => Number((pricing.products as any)?.[p.name] ?? p.basePrice);
+  const productBase = baseOf(product);
+
   const [catFilter, setCatFilter] = useState("Все");
   const [templateId, setTemplateId] = useState(1);
   const template = TEMPLATES.find((t) => t.id === templateId) || TEMPLATES[0];
@@ -134,7 +140,7 @@ export default function DesignerPage() {
   const accent = accentOverride || template.accent;
   const txtColor = template.textColor;
   const filtered = catFilter === "Все" ? TEMPLATES : TEMPLATES.filter((t) => t.category === catFilter);
-  const totalPrice = product.basePrice * quantity;
+  const totalPrice = productBase * quantity;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -386,7 +392,7 @@ export default function DesignerPage() {
         customer_email: cEmail,
         customer_phone: f("phone"),
         comment: designInfo,
-        items: [{ service_id: 1, quantity, price: product.basePrice, options: optionsObj }],
+        items: [{ service_id: 1, quantity, price: productBase, options: optionsObj }],
         file_ids: fileIds,
       }, token || undefined);
       setOrderNumber(order.order_number);
@@ -495,7 +501,7 @@ export default function DesignerPage() {
                         <span className="grid place-items-center w-7 h-7 rounded-md bg-ink-100 text-ink-700 font-heading text-xs font-semibold shrink-0">{p.name.charAt(0)}</span>
                         <div className="flex-1 min-w-0">
                           <p className="text-[11px] font-medium text-ink-900 truncate">{p.name}</p>
-                          <p className="text-[10px] text-ink-400 tabular">{p.w}×{p.h} мм · от {p.basePrice}&nbsp;₽/{p.unit}</p>
+                          <p className="text-[10px] text-ink-400 tabular">{p.w}×{p.h} мм · от {baseOf(p)}&nbsp;₽/{p.unit}</p>
                         </div>
                       </button>
                     </li>
@@ -646,7 +652,7 @@ export default function DesignerPage() {
               <div className="flex justify-between text-ink-500"><span>Продукт</span><span className="font-medium text-ink-900 text-right truncate max-w-[120px]">{product.name}</span></div>
               <div className="flex justify-between text-ink-500"><span>Шаблон</span><span className="font-medium text-ink-900">{template.name}</span></div>
               <div className="flex justify-between text-ink-500"><span>Тираж</span><span className="font-medium text-ink-900 tabular">{quantity} {product.unit}</span></div>
-              <div className="flex justify-between text-ink-500"><span>Цена/{product.unit}</span><span className="font-medium text-ink-900 tabular">от {product.basePrice}&nbsp;₽</span></div>
+              <div className="flex justify-between text-ink-500"><span>Цена/{product.unit}</span><span className="font-medium text-ink-900 tabular">от {productBase}&nbsp;₽</span></div>
             </div>
             <div className="border-t border-ink-200 pt-3">
               <p className="eyebrow mb-1">Итого от</p>

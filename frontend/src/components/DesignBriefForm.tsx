@@ -11,7 +11,8 @@ import {
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { useToast } from "./Toast";
-import { PillsField } from "./calc/kit";
+import { PillsField, usePricing } from "./calc/kit";
+import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 const PRODUCTS = [
   "Визитки", "Листовки", "Флаеры", "Буклеты", "Открытки",
@@ -40,7 +41,6 @@ const PRODUCT_SLUG: Record<string, string> = {
   "Печать фотографий": "печать-фотографий",
 };
 
-const DESIGN_PRICE = 1000;
 
 type FileEntry = { file: File; id: number | null };
 
@@ -48,6 +48,7 @@ export default function DesignBriefForm({ onUseConstructor }: { onUseConstructor
   const { user, token } = useAuth();
   const toast = useToast();
   const router = useRouter();
+  const designPrice = Number(usePricing("designer", PRICING_DEFAULTS["designer"].data).brief) || 1000;
 
   const [product, setProduct] = useState<string>(PRODUCTS[0]);
   const [orientation, setOrientation] = useState<"Вертикальный" | "Горизонтальный">("Вертикальный");
@@ -126,7 +127,7 @@ export default function DesignBriefForm({ onUseConstructor }: { onUseConstructor
         customer_email: user?.email || "Format7-tmn@yandex.ru",
         customer_phone: phone,
         comment,
-        items: [{ service_id: 0, quantity: 1, price: DESIGN_PRICE, options: { "Товар": `Дизайн — ${product}`, ...options } }],
+        items: [{ service_id: 0, quantity: 1, price: designPrice, options: { "Товар": `Дизайн — ${product}`, ...options } }],
         file_ids: fileIds,
       }, token || undefined);
 
@@ -287,10 +288,10 @@ export default function DesignBriefForm({ onUseConstructor }: { onUseConstructor
 
               <div className="rounded-xl border border-ink-200 bg-white p-5">
                 <button type="submit" disabled={sending} className="w-full h-12 rounded-lg flex items-center justify-center gap-2 font-semibold text-[14px] bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-60 transition-colors">
-                  {sending ? "Оформляем…" : `Перейти к оплате — ${DESIGN_PRICE} ₽`}
+                  {sending ? "Оформляем…" : `Перейти к оплате — ${designPrice} ₽`}
                 </button>
                 <p className="mt-3 text-[11px] text-ink-500 leading-relaxed">
-                  Разработка макета — фиксированно <b>{DESIGN_PRICE} ₽</b>. В стоимость входят 2 доработки, каждая последующая — +100 ₽. После оформления откроется страница оплаты по СБП.
+                  Разработка макета — фиксированно <b>{designPrice} ₽</b>. В стоимость входят 2 доработки, каждая последующая — +100 ₽. После оформления откроется страница оплаты по СБП.
                 </p>
                 {!user && (
                   <p className="mt-2 text-[11px] text-ink-400">

@@ -36,6 +36,8 @@ const FIELD_LABELS: Record<string, string> = {
   lamination: "Ламинация, ₽/шт по формату",
   rounding: "Скругление углов, ₽/шт",
   design: "Разработка макета, ₽",
+  brief: "Цена брифа на дизайн, ₽ (фикс.)",
+  products: "Базовая цена шаблона в конструкторе, ₽/шт",
 };
 
 export default function AdminPricing({ token }: { token: string }) {
