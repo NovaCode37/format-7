@@ -49,7 +49,7 @@ export default function AdminReviews({ token }: { token: string }) {
                 <span className="font-heading text-[14px] font-semibold text-ink-900">{r.author_name}</span>
                 <span className="inline-flex items-center gap-0.5">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} size={13} className={i < r.rating ? "text-amber-500 fill-amber-500" : "text-ink-200"} />
+                    <Star key={i} size={13} weight={i < r.rating ? "fill" : "regular"} className={i < r.rating ? "text-amber-500" : "text-ink-200"} />
                   ))}
                 </span>
                 <span className="text-[11px] text-ink-400 tabular">{new Date(r.created_at).toLocaleDateString("ru-RU")}</span>

@@ -126,9 +126,8 @@ export default function ReviewsPage() {
                     >
                       <Star
                         size={22}
-                        strokeWidth={2}
+                        weight={v <= rating ? "fill" : "regular"}
                         className={v <= rating ? "text-ink-900" : "text-ink-300"}
-                        fill={v <= rating ? "currentColor" : "none"}
                       />
                     </button>
                   ))}
@@ -189,9 +188,8 @@ export default function ReviewsPage() {
                         <Star
                           key={v}
                           size={14}
-                          strokeWidth={2}
+                          weight={v <= r.rating ? "fill" : "regular"}
                           className={v <= r.rating ? "text-ink-900" : "text-ink-300"}
-                          fill={v <= r.rating ? "currentColor" : "none"}
                         />
                       ))}
                     </div>
