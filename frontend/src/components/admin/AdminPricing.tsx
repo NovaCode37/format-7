@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
+import { STICKER_SHEET_TIERS } from "@/lib/stickerPrices";
 import { Loader2 } from "@/lib/icons";
 
 function mergeNumbers(base: any, override: any): any {
@@ -72,6 +73,8 @@ const NESTED_LABELS: Record<string, string> = {
   two: "двусторонняя",
   maxSheets: "до листов",
   price: "цена, ₽",
+  count: "Штук на листе",
+  tiers: "Цена за лист по тиражам",
 };
 
 export default function AdminPricing({ token }: { token: string }) {
@@ -179,11 +182,15 @@ function Node({
     const entries = Object.entries(value);
     const leafGroup = entries.every(([, v]) => typeof v === "number");
     if (leafGroup) {
+      // Цены за лист по тиражам — подписываем колонки числом листов (2/4/8/12/30).
+      const isTiers = path[path.length - 1] === "tiers";
       return (
         <div className="flex flex-wrap gap-3">
           {entries.map(([k, v]) => (
             <label key={k} className="flex items-center gap-1.5 text-[12px] text-ink-600">
-              <span className="text-right tabular">{NESTED_LABELS[k] || k}</span>
+              <span className="text-right tabular">
+                {isTiers ? `${STICKER_SHEET_TIERS[Number(k)] ?? k} шт` : NESTED_LABELS[k] || k}
+              </span>
               <Node value={v} path={[...path, k]} onChange={onChange} />
             </label>
           ))}
@@ -192,14 +199,25 @@ function Node({
     }
     return (
       <div className="space-y-3">
-        {entries.map(([k, v]) => (
-          <div key={k} className="pl-3 border-l-2 border-ink-100">
-            <p className="text-[12px] font-medium text-ink-700 mb-1.5">{NESTED_LABELS[k] || k}</p>
-            <Node value={v} path={[...path, k]} onChange={onChange} />
-          </div>
-        ))}
+        {entries
+          .filter(([k]) => k !== "label") // label показываем как заголовок строки, отдельно не дублируем
+          .map(([k, v]) => (
+            <div key={k} className="pl-3 border-l-2 border-ink-100">
+              <p className="text-[12px] font-medium text-ink-700 mb-1.5">{nodeHeading(k, v)}</p>
+              <Node value={v} path={[...path, k]} onChange={onChange} />
+            </div>
+          ))}
       </div>
     );
   }
   return null;
+}
+
+// Заголовок вложенного блока: для элементов массива размеров используем их label,
+// иначе — человекочитаемую подпись из NESTED_LABELS (или сам ключ).
+function nodeHeading(key: string, value: any): string {
+  if (value && typeof value === "object" && !Array.isArray(value) && typeof value.label === "string") {
+    return value.label;
+  }
+  return NESTED_LABELS[key] || key;
 }
