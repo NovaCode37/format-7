@@ -116,7 +116,7 @@ export default function Header() {
               href={l.href}
               className="px-3 h-9 inline-flex items-center gap-1.5 rounded-lg text-ink-600 hover:text-ink-900 hover:bg-ink-50 transition-colors"
             >
-              {"icon" in l && l.icon && <l.icon size={14} strokeWidth={2} />}
+              {"icon" in l && l.icon && <l.icon size={18} strokeWidth={2} />}
               {l.label}
             </Link>
           ))}

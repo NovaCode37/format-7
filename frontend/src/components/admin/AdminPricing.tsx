@@ -32,12 +32,46 @@ function setPath(obj: any, path: (string | number)[], value: any): any {
 }
 
 const FIELD_LABELS: Record<string, string> = {
-  price: "Цена за штуку (₽) по формату → режиму → тиражу",
-  lamination: "Ламинация, ₽/шт по формату",
+  price: "Цена за штуку (₽)",
+  prices: "Цена за лист (₽)",
+  lamination: "Ламинация, ₽/шт",
   rounding: "Скругление углов, ₽/шт",
   design: "Разработка макета, ₽",
+  design1: "Разработка макета (1 сгиб), ₽",
+  design2: "Разработка макета (2+ сгиба), ₽",
   brief: "Цена брифа на дизайн, ₽ (фикс.)",
   products: "Базовая цена шаблона в конструкторе, ₽/шт",
+  carton: "Картон — цена за штуку (₽)",
+  plastic: "Пластик — цена за штуку (₽)",
+  print: "Печать — цена за штуку (₽)",
+  page: "Цена страницы (₽)",
+  sheet: "Цена листа (₽)",
+  scan: "Сканирование — ₽/страница",
+  storage: "Запись на наш носитель, ₽",
+  bigovka: "Биговка, ₽/шт",
+  foilOne: "Фольга (1 сторона), ₽/шт",
+  foilTwo: "Фольга (2 стороны), ₽/шт",
+  spring: "Пружина, ₽/экз.",
+  staple: "Скоба, ₽/экз.",
+  hand: "Ручная обработка файлов, ₽",
+  minOrder: "Минимальная сумма заказа, ₽",
+  packaging: "Упаковка, ₽",
+  binding: "Брошюровка, ₽",
+  lamPoster: "Ламинация постера, ₽/шт",
+  lamBlock: "Ламинация блоков, ₽/шт",
+  plasticA4: "Пластиковая пружина А4 (по числу листов)",
+  plasticA3: "Пластиковая пружина А3 (по числу листов)",
+  metalA4: "Металлическая пружина А4 (по числу листов)",
+  metalA3: "Металлическая пружина А3 (по числу листов)",
+};
+
+// Подписи для вложенных технических ключей.
+const NESTED_LABELS: Record<string, string> = {
+  one: "односторонняя",
+  combo: "цвет + ч/б",
+  two: "двусторонняя",
+  maxSheets: "до листов",
+  price: "цена, ₽",
 };
 
 export default function AdminPricing({ token }: { token: string }) {
@@ -149,7 +183,7 @@ function Node({
         <div className="flex flex-wrap gap-3">
           {entries.map(([k, v]) => (
             <label key={k} className="flex items-center gap-1.5 text-[12px] text-ink-600">
-              <span className="min-w-[34px] text-right tabular">{k}</span>
+              <span className="text-right tabular">{NESTED_LABELS[k] || k}</span>
               <Node value={v} path={[...path, k]} onChange={onChange} />
             </label>
           ))}
@@ -160,7 +194,7 @@ function Node({
       <div className="space-y-3">
         {entries.map(([k, v]) => (
           <div key={k} className="pl-3 border-l-2 border-ink-100">
-            <p className="text-[12px] font-medium text-ink-700 mb-1.5">{k}</p>
+            <p className="text-[12px] font-medium text-ink-700 mb-1.5">{NESTED_LABELS[k] || k}</p>
             <Node value={v} path={[...path, k]} onChange={onChange} />
           </div>
         ))}

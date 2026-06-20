@@ -1,38 +1,37 @@
-const U = (id: string, w = 800) =>
-  `https://images.unsplash.com/${id}?w=${w}&q=80&auto=format&fit=crop`;
+// Маркетинговые фото — локальные (раньше тянулись с Unsplash, что нестабильно в РФ).
 
 export const IMG = {
 
-  businessCards:      U("photo-1718670013921-2f144aba173a"),
-  businessCardsStack: U("photo-1605098293544-25f4c32344c8"),
-  businessCardMockup: U("photo-1623305465231-d884ce752d59"),
-  businessCardBrand:  U("photo-1561015314-6bd8c1e875ee"),
+  businessCards:      "/marketing/businessCards.jpg",
+  businessCardsStack: "/marketing/businessCardsStack.jpg",
+  businessCardMockup: "/marketing/businessCardMockup.jpg",
+  businessCardBrand:  "/marketing/businessCardBrand.jpg",
 
-  flyer:        U("photo-1658893441927-880b42710499"),
-  flyerMockup:  U("photo-1630734242539-98264700d612"),
-  flyerPaper:   U("photo-1713130941407-6d0ba518c5a4"),
+  flyer:        "/marketing/flyer.jpg",
+  flyerMockup:  "/marketing/flyerMockup.jpg",
+  flyerPaper:   "/marketing/flyerPaper.jpg",
 
-  mug:        U("photo-1666445844615-0a3930270f13"),
-  mugGroup:   U("photo-1616241673347-67fb5dfa3167"),
-  mugBranded: U("photo-1650959858546-d09833d5317b"),
+  mug:        "/products/polygraphy.jpg",
+  mugGroup:   "/products/polygraphy.jpg",
+  mugBranded: "/products/polygraphy.jpg",
 
-  tshirt:       U("photo-1521572163474-6864f9cf17ab"),
-  tshirtFolded: U("photo-1581655353564-df123a1eb820"),
-  tshirtMockup: U("photo-1661181475147-bbd20ef65781"),
+  tshirt:       "/products/polygraphy.jpg",
+  tshirtFolded: "/products/polygraphy.jpg",
+  tshirtMockup: "/products/polygraphy.jpg",
 
-  polaroid:     U("photo-1617643049318-7f73bd9ea818"),
-  polaroidHand: U("photo-1617643049077-7e2e755c8b8c"),
-  photoPrints:  U("photo-1612863217797-5f62b68fba65"),
+  polaroid:     "/marketing/polaroid.jpg",
+  polaroidHand: "/marketing/polaroidHand.jpg",
+  photoPrints:  "/marketing/photoPrints.jpg",
 
-  stickers:     U("photo-1625768376503-68d2495d78c5"),
-  stickerPack:  U("photo-1540651810471-5699df74834f"),
-  stickerRound: U("photo-1664289192124-f0d784151d11"),
+  stickers:     "/marketing/stickers.jpg",
+  stickerPack:  "/marketing/stickerPack.jpg",
+  stickerRound: "/marketing/stickerRound.jpg",
 
-  printPress:   U("photo-1471890701797-59336a877de4"),
-  printStudio:  U("photo-1604931668626-ab49cb27d952"),
-  printDetail:  U("photo-1693031630146-568e2f72db0e"),
+  printPress:   "/marketing/printPress.jpg",
+  printStudio:  "/marketing/printStudio.jpg",
+  printDetail:  "/marketing/printDetail.jpg",
 
-  magazines: U("photo-1519682337058-a94d519337bc"),
+  magazines: "/marketing/magazines.jpg",
 
   prodBuklety:      "/products/buklety.png",
   prodDeskCal:      "/products/calendar-desk.png",
