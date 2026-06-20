@@ -825,6 +825,18 @@ def create_order(
         if not db.query(Office).filter(Office.id == data.office_id).first():
             raise HTTPException(status_code=400, detail="Офис не найден")
 
+    # Anti-tampering: client sends the price, so reject lines that are absurdly
+    # below the product's advertised minimum (price_from). 30% tolerance keeps
+    # legitimate edge configs valid while blocking gross manipulation (e.g. 1 ₽).
+    price_floor = {
+        row[0]: float(row[1] or 0)
+        for row in db.query(Service.id, Service.price_from).filter(Service.id.in_(existing_ids)).all()
+    } if existing_ids else {}
+    for i in data.items:
+        floor = price_floor.get(resolve_sid(i.service_id), 0.0)
+        if floor > 0 and max(i.price, 0) * max(i.quantity, 1) < floor * 0.3:
+            raise HTTPException(status_code=400, detail="Некорректная стоимость позиции")
+
     order_number = "F7-" + secrets.token_hex(8).upper()
     total = sum(max(i.price, 0) * max(i.quantity, 1) for i in data.items)
     order = Order(

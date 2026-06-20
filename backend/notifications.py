@@ -2,8 +2,12 @@ from __future__ import annotations
 import os
 import ssl
 import json
+import html as _htmlmod
 import smtplib
 import logging
+
+def _e(value) -> str:
+    return _htmlmod.escape(str(value or ""))
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formataddr
@@ -247,7 +251,7 @@ def _notify_new_order_impl(order) -> None:
     )
     html = _html_wrap(
         f"Заказ №&nbsp;{order.order_number} принят",
-        f"<p>Здравствуйте, {order.customer_name}!</p>"
+        f"<p>Здравствуйте, {_e(order.customer_name)}!</p>"
         f"<p>Мы получили ваш заказ на сумму <b>{order.total:.2f} ₽</b>.</p>"
         f"<table style='width:100%;border-collapse:collapse;margin:16px 0'>"
         f"<tbody style='font-size:13px;color:#444'>{html_rows}</tbody></table>",
@@ -370,7 +374,7 @@ def notify_password_reset(user, reset_url: str) -> None:
     )
     html = _html_wrap(
         "Сброс пароля",
-        f"<p>Здравствуйте, {user.name}.</p>"
+        f"<p>Здравствуйте, {_e(user.name)}.</p>"
         "<p>Вы запросили сброс пароля. Ссылка действует <b>30 минут</b>. "
         "Если запрос был не от вас — просто проигнорируйте это письмо.</p>",
         cta={"label": "Сбросить пароль", "url": reset_url},
@@ -384,7 +388,7 @@ def notify_email_verification(user, verify_url: str) -> None:
     )
     html = _html_wrap(
         "Подтверждение email",
-        f"<p>Здравствуйте, {user.name}.</p>"
+        f"<p>Здравствуйте, {_e(user.name)}.</p>"
         "<p>Нажмите кнопку ниже, чтобы подтвердить email. Ссылка действительна 24 часа.</p>",
         cta={"label": "Подтвердить email", "url": verify_url},
     )
@@ -439,7 +443,7 @@ def notify_status_changed(order, new_status: str) -> None:
     )
     html = _html_wrap(
         f"Заказ №&nbsp;{order.order_number}: {human}",
-        f"<p>Здравствуйте, {order.customer_name}!</p>"
+        f"<p>Здравствуйте, {_e(order.customer_name)}!</p>"
         f"<p>Статус вашего заказа <b>№&nbsp;{order.order_number}</b>: <b>{human}</b>.</p>"
         f"<p>{detail}</p>",
     )
