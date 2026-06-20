@@ -152,8 +152,8 @@
     @apply card transition-all duration-200 ease-out cursor-pointer;
   }
   .card-interactive:hover {
-    @apply border-ink-300 shadow-card;
-    transform: translateY(-2px);
+    @apply border-ink-300 shadow-elev;
+    transform: translateY(-3px);
   }
 
   .input {
@@ -169,7 +169,21 @@
     -webkit-backdrop-filter: saturate(180%) blur(12px);
   }
 
-  .rule { @apply border-t border-ink-200; }
+  /* Разделитель-хайрлайн с градиентом, тающим по краям (вместо плоской линии). */
+  .rule {
+    border-top: 1px solid transparent;
+    border-image: linear-gradient(90deg, transparent, rgba(28, 25, 23, 0.14), transparent) 1;
+  }
+}
+
+/* Тонкое зерно поверх всего — убирает "цифровую плоскость". */
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 .grid-12 {

@@ -185,7 +185,7 @@ export default function Footer() {
           </Reveal>
         </div>
 
-        <div className="mt-14 pt-6 border-t border-ink-200 flex flex-wrap items-center justify-between gap-3 text-[12px] text-ink-500">
+        <div className="mt-14 pt-6 rule flex flex-wrap items-center justify-between gap-3 text-[12px] text-ink-500">
           <div className="flex flex-wrap gap-x-6 gap-y-2">
             <Link href="/legal/privacy" className="hover:text-ink-900 transition-colors">
               Политика конфиденциальности

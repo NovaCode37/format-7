@@ -11,6 +11,7 @@ import Header from "@/components/Header";
 import VerifyBanner from "@/components/VerifyBanner";
 import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
+import ScrollProgress from "@/components/ScrollProgress";
 import CookieConsent from "@/components/CookieConsent";
 import PWARegister from "@/components/PWARegister";
 import { ToastProvider } from "@/components/Toast";
@@ -132,8 +133,10 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen flex flex-col font-sans antialiased bg-white text-ink-700">
+        <div className="noise-overlay" aria-hidden />
         <ToastProvider>
           <AuthProvider>
+            <ScrollProgress />
             <ApiErrorGuard />
             <Topbar />
             <Header />
