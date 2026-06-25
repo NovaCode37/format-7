@@ -14,6 +14,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/reviews`,    lastModified: now, priority: 0.5, changeFrequency: "weekly" },
     { url: `${SITE_URL}/legal/privacy`, lastModified: now, priority: 0.3 },
     { url: `${SITE_URL}/legal/cookies`, lastModified: now, priority: 0.3 },
+    { url: `${SITE_URL}/legal/offer`, lastModified: now, priority: 0.3 },
   ];
 
   const productRoutes: MetadataRoute.Sitemap = CATALOG_INDEX.map((item) => ({
