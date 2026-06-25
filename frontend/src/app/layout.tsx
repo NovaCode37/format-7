@@ -18,7 +18,7 @@ import { ToastProvider } from "@/components/Toast";
 import ApiErrorGuard from "@/components/ApiErrorGuard";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-const METRIKA_ID = process.env.NEXT_PUBLIC_YM_ID || "";
+const METRIKA_ID = process.env.NEXT_PUBLIC_YM_ID || "110140760";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -221,7 +221,6 @@ export default function RootLayout({
             {`
               (function() {
                 if (typeof window === "undefined") return;
-                if (localStorage.getItem("f7_consent") !== "all") return;
                 (function(m,e,t,r,i,k,a){
                   m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
                   m[i].l=1*new Date();
@@ -229,11 +228,31 @@ export default function RootLayout({
                     if (document.scripts[j].src === r) { return; }
                   }
                   k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-                })(window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
-                ym(${METRIKA_ID}, "init", { clickmap:true, trackLinks:true, accurateTrackBounce:true });
+                })(window, document, "script", "https://mc.yandex.ru/metrika/tag.js?id=${METRIKA_ID}", "ym");
+                ym(${METRIKA_ID}, "init", {
+                  ssr:true,
+                  webvisor:true,
+                  clickmap:true,
+                  ecommerce:"dataLayer",
+                  accurateTrackBounce:true,
+                  trackLinks:true,
+                  referrer: document.referrer,
+                  url: location.href
+                });
               })();
             `}
           </Script>
+        )}
+        {METRIKA_ID && (
+          <noscript>
+            <div>
+              <img
+                src={`https://mc.yandex.ru/watch/${METRIKA_ID}`}
+                style={{ position: "absolute", left: "-9999px" }}
+                alt=""
+              />
+            </div>
+          </noscript>
         )}
       </body>
     </html>
