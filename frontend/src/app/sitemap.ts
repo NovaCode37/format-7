@@ -24,5 +24,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     changeFrequency: "weekly" as const,
   }));
 
-  return [...staticRoutes, ...productRoutes];
+  // Категории-лендинги каталога (не отдельные услуги, но индексируемые страницы).
+  const categorySlugs = ["оперативная-полиграфия"];
+  const categoryRoutes: MetadataRoute.Sitemap = categorySlugs.map((slug) => ({
+    url: `${SITE_URL}/services/${encodeURIComponent(slug)}`,
+    lastModified: now,
+    priority: 0.7,
+    changeFrequency: "weekly" as const,
+  }));
+
+  return [...staticRoutes, ...categoryRoutes, ...productRoutes];
 }

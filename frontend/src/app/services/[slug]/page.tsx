@@ -9,6 +9,7 @@ import { ShoppingCart, Calculator, Loader2 } from "@/lib/icons";
 import WishlistButton from "@/components/WishlistButton";
 import ProductCalculator from "@/components/ProductCalculator";
 import CategorySubProducts from "@/components/CategorySubProducts";
+import ServiceFaq from "@/components/ServiceFaq";
 import { CATALOG_INDEX } from "@/lib/catalogIndex";
 import { getProductCalculator } from "@/lib/productCalculators";
 import CopyPrintCalculator from "@/components/CopyPrintCalculator";
@@ -175,6 +176,7 @@ export default function ServicePage() {
             </div>
           </section>
           <CategorySubProducts activeSlug={decodedSlug} title={categoryTitle} />
+          <ServiceFaq />
           <OtherServices excludeSlug={decodeURIComponent(slug)} />
         </div>
       );
@@ -312,6 +314,7 @@ export default function ServicePage() {
           </section>
         )}
 
+        <ServiceFaq />
         <OtherServices excludeSlug={decodeURIComponent(slug)} />
       </div>
     );
@@ -548,6 +551,7 @@ export default function ServicePage() {
         return <CategorySubProducts activeSlug={decoded} title="Другие товары категории" variant="carousel" />;
       })()}
 
+      <ServiceFaq />
       <OtherServices excludeSlug={service.slug} />
     </div>
   );

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CATALOG_INDEX } from "@/lib/catalogIndex";
+import { SERVICE_FAQ } from "@/lib/serviceFaq";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://формат7.рф";
 
@@ -100,10 +101,21 @@ export default function ServiceLayout({
     ],
   };
 
+  const faqLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: SERVICE_FAQ.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  };
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       {children}
     </>
   );
