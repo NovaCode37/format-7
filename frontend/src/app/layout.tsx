@@ -60,6 +60,24 @@ export const metadata: Metadata = {
   },
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, statusBarStyle: "default", title: "Формат7" },
+  category: "typography",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/icon-512.png", type: "image/png", sizes: "512x512" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
+  // Геопривязка для Яндекса/региональной выдачи (регион также задаётся в Вебмастере).
+  other: {
+    "geo.region": "RU-TYU",
+    "geo.placename": "Тюмень",
+    "geo.position": "57.109684;65.590356",
+    ICBM: "57.109684, 65.590356",
+  },
 };
 
 export const viewport: Viewport = {
@@ -115,6 +133,48 @@ const jsonLd = {
   ],
 };
 
+const organizationLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": `${SITE_URL}/#organization`,
+  name: "Формат7",
+  legalName: "ИП Голубев Александр Александрович",
+  url: SITE_URL,
+  logo: `${SITE_URL}/logo.png`,
+  image: `${SITE_URL}/logo.png`,
+  email: "Format7-tmn@yandex.ru",
+  telephone: "+79324759511",
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "ул. Широтная, д. 113, к1 стр1, офис 7",
+    addressLocality: "Тюмень",
+    postalCode: "625046",
+    addressCountry: "RU",
+  },
+  areaServed: { "@type": "City", name: "Тюмень" },
+  contactPoint: {
+    "@type": "ContactPoint",
+    telephone: "+79324759511",
+    contactType: "customer service",
+    areaServed: "RU",
+    availableLanguage: "Russian",
+  },
+  sameAs: [
+    "https://max.ru/u/f9LHodD0cOL5K_y_ohndrIuQqxgsgd1UTeFnK4VSa5Swa303MHSbSyCAxRE",
+  ],
+};
+
+const websiteLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": `${SITE_URL}/#website`,
+  url: SITE_URL,
+  name: "Формат7",
+  description: "Онлайн-типография и копицентр в Тюмени",
+  inLanguage: "ru-RU",
+  publisher: { "@id": `${SITE_URL}/#organization` },
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -123,13 +183,19 @@ export default function RootLayout({
   return (
     <html lang="ru" className={inter.variable} style={{ ["--font-inter" as any]: "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif" }}>
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="48x48" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-        <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
-        <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+        {/* Явный shortcut icon — Яндекс ищет именно его. */}
+        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLd) }}
         />
       </head>
       <body className="min-h-screen flex flex-col font-sans antialiased bg-white text-ink-700">
