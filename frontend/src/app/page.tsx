@@ -4,8 +4,7 @@ import CategoryCards from "@/components/CategoryCards";
 import HowItWorks from "@/components/HowItWorks";
 import TestimonialsWall from "@/components/TestimonialsWall";
 import FinalCTA from "@/components/FinalCTA";
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://формат7.рф";
+import { SITE_URL } from "@/lib/siteUrl";
 
 export const metadata: Metadata = {
   title: "Формат7 — типография и копицентр в Тюмени",

@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { CATALOG_INDEX } from "@/lib/catalogIndex";
 import { SERVICE_FAQ } from "@/lib/serviceFaq";
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://формат7.рф";
+import { SITE_URL } from "@/lib/siteUrl";
 
 // Категории-слаги, у которых нет отдельной услуги (показывают каталог).
 const CATEGORY_TITLES: Record<string, string> = {

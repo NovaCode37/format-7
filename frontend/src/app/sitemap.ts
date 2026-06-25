@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next";
 import { CATALOG_INDEX } from "@/lib/catalogIndex";
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://формат7.рф";
+import { SITE_URL } from "@/lib/siteUrl";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();

@@ -17,7 +17,8 @@ import PWARegister from "@/components/PWARegister";
 import { ToastProvider } from "@/components/Toast";
 import ApiErrorGuard from "@/components/ApiErrorGuard";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+import { SITE_URL } from "@/lib/siteUrl";
+
 const METRIKA_ID = process.env.NEXT_PUBLIC_YM_ID || "110140760";
 
 export const metadata: Metadata = {

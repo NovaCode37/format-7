@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://формат7.рф";
+import { SITE_URL } from "@/lib/siteUrl";
 
 export const metadata: Metadata = {
   title: "Каталог услуг типографии в Тюмени",
