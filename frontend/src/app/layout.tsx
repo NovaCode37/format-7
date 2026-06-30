@@ -122,12 +122,6 @@ const jsonLd = {
       opens: "14:00",
       closes: "17:00",
     },
-    {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: ["Saturday"],
-      opens: "10:00",
-      closes: "16:00",
-    },
   ],
   sameAs: [
     "https://max.ru/u/f9LHodD0cOL5K_y_ohndrIuQqxgsgd1UTeFnK4VSa5Swa303MHSbSyCAxRE",

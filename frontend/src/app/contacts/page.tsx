@@ -108,7 +108,7 @@ export default async function ContactsPage() {
                   <div>
                     <p className="text-[12px] uppercase tracking-[0.14em] text-ink-400 mb-1">Время работы</p>
                     <p className="text-ink-900 font-medium">{s.hoursWeekday}</p>
-                    <p className="text-ink-900 font-medium">{s.hoursSaturday}, Вс&nbsp;— выходной</p>
+                    <p className="text-ink-900 font-medium">{s.hoursSaturday}</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
