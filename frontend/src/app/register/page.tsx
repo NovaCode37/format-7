@@ -48,12 +48,11 @@ export default function RegisterPage() {
               <span className="text-ink-400">в&nbsp;Format7.</span>
             </h1>
             <p className="lead mt-6 text-ink-600">
-              Создайте аккаунт, чтобы сохранять макеты, отслеживать статусы заказов
+              Создайте аккаунт, чтобы отслеживать статусы заказов
               и&nbsp;получать персональные скидки на&nbsp;повторные тиражи.
             </p>
             <ul className="mt-8 space-y-2 text-[13px] text-ink-600">
               <li>— История заказов и&nbsp;повторная печать</li>
-              <li>— Сохранение макетов в&nbsp;конструкторе</li>
               <li>— Ранний доступ к&nbsp;акциям</li>
             </ul>
           </div>
