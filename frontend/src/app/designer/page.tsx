@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
 import Link from "next/link";
 import {
-  Palette, Type, Download, ShoppingCart,
+  Palette, Type, ShoppingCart,
   RotateCcw, ZoomIn, ZoomOut, AlignLeft, AlignCenter, AlignRight,
   CheckCircle, Layers, PenTool, ClipboardList,
 } from "@/lib/icons";
@@ -403,15 +403,6 @@ export default function DesignerPage() {
     }
   };
 
-  const handleDownload = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const link = document.createElement("a");
-    link.download = `${product.id}-${template.name}.png`;
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-  };
-
   if (orderNumber) {
     return (
       <div className="bg-white min-h-[60vh] py-16 sm:py-24">
@@ -669,10 +660,6 @@ export default function DesignerPage() {
               </p>
             )}
           </div>
-          <button onClick={handleDownload}
-            className="btn w-full">
-            <Download size={14} strokeWidth={2} /> Скачать макет PNG
-          </button>
           <div className="border border-ink-200 rounded-md p-3 text-[10px] text-ink-400 space-y-1.5">
             <p>Макет проверит дизайнер.</p>
             <p>Готовность: 1–3 рабочих дня.</p>

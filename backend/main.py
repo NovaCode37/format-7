@@ -48,6 +48,7 @@ from schemas import (
     SubscribeOut,
     ReviewIn,
     ReviewOut,
+    CallbackIn,
     UploadedFileOut,
     ProfileUpdateIn,
     PasswordChangeIn,
@@ -98,6 +99,7 @@ from notifications import (
     notify_password_reset,
     notify_email_verification,
     notify_refund,
+    send_email,
 )
 import tokens as auth_tokens
 import idempotency
@@ -350,6 +352,7 @@ review_limit = make_limiter(key="review", limit=5, window=3600)
 upload_limit = make_limiter(key="upload", limit=30, window=3600)
 order_limit = make_limiter(key="order", limit=20, window=3600)
 paid_limit = make_limiter(key="mark-paid", limit=20, window=3600)
+callback_limit = make_limiter(key="callback", limit=5, window=3600)
 forgot_limit = make_limiter(key="forgot", limit=5, window=3600)
 refund_limit = make_limiter(key="refund", limit=30, window=3600)
 
@@ -1854,6 +1857,19 @@ def subscribe(data: SubscribeIn, db: Session = Depends(get_db)):
 @app.get("/api/reviews", response_model=list[ReviewOut])
 def get_reviews(db: Session = Depends(get_db)):
     return db.query(Review).order_by(Review.created_at.desc()).limit(50).all()
+
+@app.post("/api/callback", dependencies=[Depends(callback_limit)])
+def request_callback(data: CallbackIn, background: BackgroundTasks):
+    to = (os.environ.get("ORDER_NOTIFY_EMAIL") or os.environ.get("SMTP_FROM") or "").strip()
+    if to:
+        background.add_task(
+            send_email,
+            to,
+            "Заявка на обратный звонок — формат7.рф",
+            f"Имя: {data.name}\nТелефон: {data.phone}\n\nПерезвоните клиенту.",
+        )
+    return {"ok": True}
+
 
 @app.post("/api/reviews", response_model=ReviewOut, dependencies=[Depends(review_limit)])
 def create_review(data: ReviewIn, user: User | None = Depends(get_current_user), db: Session = Depends(get_db)):

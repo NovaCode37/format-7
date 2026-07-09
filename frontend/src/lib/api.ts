@@ -244,6 +244,13 @@ export const api = {
 
   search: (q: string) => fetchApi<Service[]>(`/api/search?q=${encodeURIComponent(q)}`),
 
+  requestCallback: (name: string, phone: string) =>
+    fetchApi<{ ok: boolean }>("/api/callback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, phone }),
+    }),
+
   register: (email: string, name: string, password: string, phone = "", turnstile = "") =>
     fetchApi<{ access_token: string }>("/api/auth/register", {
       method: "POST",

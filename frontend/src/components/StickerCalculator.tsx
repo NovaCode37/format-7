@@ -17,6 +17,8 @@ const STICKER_PRICING = PRICING_DEFAULTS["наклейки"].data;
 
 type YesNo = "Да" | "Нет";
 type Track = "template" | "upload" | "design";
+type FilmColor = "Белая" | "Прозрачная";
+type FoilColor = "Золото" | "Серебро";
 
 const STICKER_SLUGS = ["наклейки", "наклейки-и-стикеры", "стикеры", "оперативная-полиграфия"];
 
@@ -34,7 +36,9 @@ export default function StickerCalculator({ serviceId }: { serviceId?: number })
   const resolvedServiceId = useResolvedServiceId(STICKER_SLUGS, serviceId);
 
   const [material, setMaterial] = useState<StickerMaterial>("Бумага");
+  const [filmColor, setFilmColor] = useState<FilmColor>("Белая");
   const [finish, setFinish] = useState<StickerFinish>("Без фольги");
+  const [foilColor, setFoilColor] = useState<FoilColor>("Золото");
   const [shape, setShape] = useState<StickerShape>("Круглые");
   const [sizeLabel, setSizeLabel] = useState<string>("диаметр 2 см");
   const [lamination, setLamination] = useState<YesNo>("Нет");
@@ -73,17 +77,20 @@ export default function StickerCalculator({ serviceId }: { serviceId?: number })
 
   const sizeValues = useMemo(() => sizes.map((s: any) => s.label), [sizes]);
 
+  const materialLabel = material === "Плёнка" ? `Плёнка (${filmColor.toLowerCase()})` : material;
+  const finishLabel = finish === "С фольгой" ? `С фольгой (${foilColor.toLowerCase()})` : finish;
+
   const orderSummary = {
-    productLabel: `Наклейки ${shape.toLowerCase()} ${sizeLabel}, ${material.toLowerCase()}${finish === "С фольгой" ? ", с фольгой" : ""}`,
+    productLabel: `Наклейки ${shape.toLowerCase()} ${sizeLabel}, ${materialLabel.toLowerCase()}${finish === "С фольгой" ? `, фольга ${foilColor.toLowerCase()}` : ""}`,
     lines: [
-      `${material} · ${finish} · ${shape} · ${sizeLabel} · ${sheets} л. А3 (≈ ${calc.stickerCount} шт.)`,
+      `${materialLabel} · ${finishLabel} · ${shape} · ${sizeLabel} · ${sheets} л. А3 (≈ ${calc.stickerCount} шт.)`,
       lamination === "Да" ? "Ламинация" : null,
       track === "design" ? "Разработка макета дизайнером (1000 ₽)" : null,
       `Доставка: ${delivery}`,
     ].filter(Boolean) as string[],
     options: {
       track: track === "design" ? "Заказ дизайна" : track === "template" ? "Каталог шаблонов" : "Загрузка макета",
-      material, finish, shape, size: sizeLabel,
+      material: materialLabel, finish: finishLabel, shape, size: sizeLabel,
       sheets, sticker_count: calc.stickerCount,
       lamination, design_fee: calc.designTotal, delivery,
       file: uploadedFile?.name || "—",
@@ -175,7 +182,15 @@ export default function StickerCalculator({ serviceId }: { serviceId?: number })
 
               <PillsField label="Материал" values={["Бумага", "Плёнка"]} value={material} onChange={(v) => setMaterial(v as StickerMaterial)} hint="самоклеящаяся" />
 
+              {material === "Плёнка" && (
+                <PillsField label="Цвет плёнки" values={["Белая", "Прозрачная"]} value={filmColor} onChange={(v) => setFilmColor(v as FilmColor)} hint="цена одинаковая" />
+              )}
+
               <PillsField label="Фольгирование" values={["Без фольги", "С фольгой"]} value={finish} onChange={(v) => setFinish(v as StickerFinish)} />
+
+              {finish === "С фольгой" && (
+                <PillsField label="Цвет фольги" values={["Золото", "Серебро"]} value={foilColor} onChange={(v) => setFoilColor(v as FoilColor)} hint="цена одинаковая" />
+              )}
 
               <PillsField label="Форма наклеек" values={STICKER_SHAPES} value={shape} onChange={(v) => setShape(v as StickerShape)} />
 

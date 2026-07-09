@@ -375,6 +375,10 @@ class ReviewIn(BaseModel):
     rating: int = Field(ge=1, le=5, default=5)
     text: str = Field(min_length=1, max_length=5000)
 
+class CallbackIn(BaseModel):
+    name: str = Field(min_length=1, max_length=200)
+    phone: str = Field(min_length=6, max_length=32)
+
 class ReviewOut(BaseModel):
     id: int
     author_name: str

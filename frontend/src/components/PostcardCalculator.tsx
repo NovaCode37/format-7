@@ -46,6 +46,7 @@ export default function PostcardCalculator({ serviceId }: { serviceId?: number }
   const [lamination, setLamination] = useState<YesNo>("Нет");
   const [bigovka, setBigovka] = useState<YesNo>("Нет");
   const [foil, setFoil] = useState<YesNo>("Нет");
+  const [foilColor, setFoilColor] = useState<"Золото" | "Серебро">("Золото");
   const [quantity, setQuantity] = useState<number>(100);
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -74,13 +75,14 @@ export default function PostcardCalculator({ serviceId }: { serviceId?: number }
       `${size} · ${color} · ${sides} · ${orientation} · ${quantity} шт.`,
       lamination === "Да" ? "Ламинация" : null,
       bigovka === "Да" ? "Биговка" : null,
-      foil === "Да" ? `Фольгирование (${sides === "Двусторонняя" ? "двустороннее" : "одностороннее"})` : null,
+      foil === "Да" ? `Фольгирование ${foilColor.toLowerCase()} (${sides === "Двусторонняя" ? "двустороннее" : "одностороннее"})` : null,
       track === "design" ? "Разработка макета дизайнером (1000 ₽)" : null,
       `Доставка: ${delivery}`,
     ].filter(Boolean) as string[],
     options: {
       track: track === "design" ? "Заказ дизайна" : "Загрузка макета",
-      size, color, sides, orientation, lamination, bigovka, foil,
+      size, color, sides, orientation, lamination, bigovka,
+      foil: foil === "Да" ? `Да (${foilColor.toLowerCase()})` : foil,
       design_fee: calc.designTotal, delivery, file: uploadedFile?.name || "—",
     },
     delivery,
@@ -160,6 +162,11 @@ export default function PostcardCalculator({ serviceId }: { serviceId?: number }
               </div>
               <div className="pt-4 border-t border-ink-100">
                 <PillsField label="Фольгирование" values={["Нет", "Да"]} value={foil} onChange={(v) => setFoil(v as YesNo)} hint={foil === "Да" ? `+${calc.foilUnit} ₽/шт (${sides === "Двусторонняя" ? "двустороннее" : "одностороннее"})` : undefined} />
+                {foil === "Да" && (
+                  <div className="mt-3">
+                    <PillsField label="Цвет фольги" values={["Золото", "Серебро"]} value={foilColor} onChange={(v) => setFoilColor(v as "Золото" | "Серебро")} hint="цена одинаковая" />
+                  </div>
+                )}
               </div>
               <div className="pt-4 border-t border-ink-100">
                 <QuantityField presets={QTY_PRESETS} value={quantity} onChange={setQuantity} min={MIN_QTY} step={10} />
