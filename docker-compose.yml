@@ -58,6 +58,8 @@ services:
       - TBANK_TAXATION=${TBANK_TAXATION:-usn_income}
       - TBANK_VAT=${TBANK_VAT:-none}
       - PUBLIC_SITE_URL=${PUBLIC_SITE_URL:-http://localhost:3000}
+      - CRM_WEBHOOK_URL=${CRM_WEBHOOK_URL:-}
+      - CRM_WEBHOOK_KEY=${CRM_WEBHOOK_KEY:-}
       - SBP_MERCHANT_NAME=${SBP_MERCHANT_NAME:-}
       - SBP_PERSONAL_ACC=${SBP_PERSONAL_ACC:-}
       - SBP_BANK_NAME=${SBP_BANK_NAME:-}
@@ -119,7 +121,7 @@ services:
       - backend
 
   pgbouncer:
-    image: edoburu/pgbouncer:1.22.1
+    image: edoburu/pgbouncer:1.22.1-p0
     container_name: format7-pgbouncer
     restart: unless-stopped
     environment:
