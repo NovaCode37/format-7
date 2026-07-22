@@ -216,8 +216,9 @@ function Node({
 // Заголовок вложенного блока: для элементов массива размеров используем их label,
 // иначе — человекочитаемую подпись из NESTED_LABELS (или сам ключ).
 function nodeHeading(key: string, value: any): string {
-  if (value && typeof value === "object" && !Array.isArray(value) && typeof value.label === "string") {
-    return value.label;
+  if (value && typeof value === "object") {
+    if (typeof value.label === "string") return value.label;
+    if (typeof value.maxSheets === "number") return `до ${value.maxSheets} листов`;
   }
   return NESTED_LABELS[key] || key;
 }
