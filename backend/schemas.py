@@ -1,6 +1,7 @@
-from pydantic import BaseModel, EmailStr, Field, field_validator
-from datetime import datetime
 import re
+from datetime import datetime
+
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 _PHONE_RE = re.compile(r"^[+\d][\d\s\-()]{0,30}$")
 

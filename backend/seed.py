@@ -1,5 +1,6 @@
-from database import engine, SessionLocal, Base
-from models import NavItem, TabGroup, TabProduct, SectionBlock, SectionCard, Service, Office
+from database import Base, SessionLocal, engine
+from models import NavItem, Office, SectionBlock, SectionCard, Service, TabGroup, TabProduct
+
 
 def seed():
     Base.metadata.drop_all(bind=engine)

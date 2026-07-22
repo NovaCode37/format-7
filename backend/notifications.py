@@ -1,10 +1,12 @@
 from __future__ import annotations
-import os
-import ssl
-import json
+
 import html as _htmlmod
-import smtplib
+import json
 import logging
+import os
+import smtplib
+import ssl
+
 
 def _e(value) -> str:
     return _htmlmod.escape(str(value or ""))
@@ -14,7 +16,7 @@ from email.utils import formataddr
 from typing import Iterable
 
 import httpx
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
 log = logging.getLogger("notifications")
 
@@ -119,8 +121,8 @@ def send_email(
         return MIMEText(body, "plain", "utf-8")
 
     if attachments:
-        from email.mime.base import MIMEBase
         from email import encoders
+        from email.mime.base import MIMEBase
         msg = MIMEMultipart("mixed")
         msg.attach(_body_part())
         for fname, data, ctype in attachments:
@@ -197,9 +199,11 @@ def _fmt_order_lines(order) -> str:
     return "\n".join(lines) or "  (без позиций)"
 
 def notify_new_order(order_id) -> None:
-    from database import SessionLocal
     from sqlalchemy.orm import joinedload
-    from models import Order as _Order, OrderItem as _OrderItem
+
+    from database import SessionLocal
+    from models import Order as _Order
+    from models import OrderItem as _OrderItem
 
     if not isinstance(order_id, int):
         order_id = getattr(order_id, "id", None)
@@ -322,8 +326,8 @@ def _push_to_order_user(order, title: str, body: str) -> None:
     if not order.user_id:
         return
     try:
-        from database import SessionLocal
         import push as webpush
+        from database import SessionLocal
 
         db = SessionLocal()
         try:
@@ -333,7 +337,7 @@ def _push_to_order_user(order, title: str, body: str) -> None:
                 {
                     "title": title,
                     "body": body,
-                    "url": f"/profile",
+                    "url": "/profile",
                     "tag": f"order-{order.order_number}",
                 },
             )

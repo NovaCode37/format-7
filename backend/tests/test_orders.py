@@ -1,6 +1,5 @@
 def _seed_service(client):
 
-    import importlib
     from database import SessionLocal
     from models import Service
 
@@ -32,11 +31,16 @@ def test_create_order(client):
     assert data["payment_token"]
     assert data["total"] == 1000.0
 
-def test_create_order_rejects_unknown_service(client):
-    payload = _mk_order_payload(999999)
-    r = client.post("/api/orders", json=payload)
-    assert r.status_code == 400
-    assert r.json()["detail"] == "Услуга не найдена"
+def test_create_order_unknown_service_falls_back_to_catalog(client):
+    sid = _seed_service(client)
+    r = client.post("/api/orders", json=_mk_order_payload(999999))
+    assert r.status_code == 200, r.text
+    assert r.json()["items"][0]["service_id"] == sid
+
+def test_create_order_rejects_when_catalog_empty(client):
+    r = client.post("/api/orders", json=_mk_order_payload(999999))
+    assert r.status_code == 503
+    assert r.json()["detail"] == "Каталог услуг недоступен"
 
 def test_idempotency_key_returns_same_order(client):
     sid = _seed_service(client)
@@ -204,7 +208,7 @@ def test_admin_refund_yookassa_success(client, monkeypatch):
         "/api/auth/register",
         json={
             "email": "admin@example.com",
-            "name": "Admin",
+            "name": "Admin Adminov",
             "password": "StrongPwd123!",
             "phone": "",
             "website": "",

@@ -1,7 +1,10 @@
-from sqlalchemy import Column, Integer, String, Text, Boolean, Float, ForeignKey, DateTime
-from sqlalchemy.orm import relationship
-from database import Base
 import datetime
+
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy.orm import relationship
+
+from database import Base
+
 
 class Category(Base):
     __tablename__ = "categories"

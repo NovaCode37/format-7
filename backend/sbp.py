@@ -1,6 +1,7 @@
 from __future__ import annotations
+
 import os
-from urllib.parse import quote
+
 
 def _sanitize(value: str) -> str:
 
@@ -33,7 +34,7 @@ def build_payload(order_number: str, total_kop: int, purpose: str | None = None)
         f"PayeeINN={_sanitize(m['inn'])}",
         f"Sum={total_kop}",
         f"Purpose={_sanitize(purpose)}",
-        f"LastName=",
+        "LastName=",
     ]
     if m.get("kpp"):
         parts.append(f"KPP={_sanitize(m['kpp'])}")

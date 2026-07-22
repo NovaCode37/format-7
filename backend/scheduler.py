@@ -1,15 +1,16 @@
 from __future__ import annotations
-import os
+
 import logging
+import os
 from datetime import datetime, timedelta
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from sqlalchemy.orm import Session
 
 from database import SessionLocal
-from models import Order, AuthToken, IdempotencyRecord
-from payments import get_yookassa_client, PaymentError
+from models import AuthToken, IdempotencyRecord, Order
 from notifications import notify_order_paid
+from payments import PaymentError, get_yookassa_client
 
 log = logging.getLogger("scheduler")
 _scheduler: AsyncIOScheduler | None = None

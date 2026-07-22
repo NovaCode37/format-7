@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from alembic import op
 from sqlalchemy import inspect
 
 import models
+from alembic import op
 from database import Base
 
 revision = "0001_initial"

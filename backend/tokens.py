@@ -1,10 +1,13 @@
 from __future__ import annotations
+
 import hashlib
 import secrets
 from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
+
 from models import AuthToken, User
+
 
 def _hash(raw: str) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()

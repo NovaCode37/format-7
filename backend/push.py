@@ -1,10 +1,12 @@
 from __future__ import annotations
+
 import json
 import logging
 import os
 from typing import Any
 
 from sqlalchemy.orm import Session
+
 from models import PushSubscription
 
 log = logging.getLogger("push")
@@ -23,7 +25,7 @@ def send_to_subscription(sub: PushSubscription, payload: dict[str, Any]) -> bool
     if not vapid_configured():
         return False
     try:
-        from pywebpush import webpush, WebPushException
+        from pywebpush import WebPushException, webpush
     except ImportError:
         log.warning("pywebpush not installed — skipping push send")
         return False

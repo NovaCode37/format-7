@@ -12,6 +12,7 @@ def app_for_st():
     os.environ.setdefault("SCHEDULER_ENABLED", "0")
 
     import importlib
+
     import database
 
     importlib.reload(database)

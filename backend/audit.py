@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import json
 from typing import Any
 
@@ -6,6 +7,7 @@ from fastapi import Request
 from sqlalchemy.orm import Session
 
 from models import AdminAudit, User
+
 
 def _client_ip(request: Request | None) -> str:
     if not request:

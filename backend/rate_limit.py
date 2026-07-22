@@ -1,9 +1,11 @@
 from __future__ import annotations
+
 import os
-import time
 import threading
+import time
 from collections import deque
-from fastapi import Request, HTTPException
+
+from fastapi import HTTPException, Request
 
 _buckets: dict[str, deque] = {}
 _lock = threading.Lock()

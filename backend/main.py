@@ -1,3 +1,4 @@
+import datetime as _dt
 import hmac
 import ipaddress
 import json
@@ -7,120 +8,114 @@ import re
 import secrets
 import uuid
 from pathlib import Path
-from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Header, Request, BackgroundTasks, Cookie
+
+from fastapi import BackgroundTasks, Cookie, Depends, FastAPI, File, Header, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, Response, RedirectResponse, PlainTextResponse
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.datastructures import MutableHeaders
+from fastapi.responses import PlainTextResponse, RedirectResponse
 from sqlalchemy.orm import Session
-from database import get_db, engine, Base
+from starlette.datastructures import MutableHeaders
+
+import audit
+import idempotency
+import oauth as oauth_mod
+import push as webpush
+import scheduler as bg_scheduler
+import storage
+import tokens as auth_tokens
+from auth import (
+    create_access_token,
+    get_current_user,
+    hash_password,
+    is_admin,
+    require_admin,
+    require_user,
+    verify_password,
+)
+from database import Base, engine, get_db
 from models import (
-    NavItem,
-    TabGroup,
-    SectionBlock,
-    Service,
-    Category,
-    Office,
-    User,
+    AdminAudit,
     CartItem,
+    Category,
+    NavItem,
+    Office,
     Order,
     OrderItem,
-    Subscription,
+    PricingConfig,
+    PushSubscription,
+    Refund,
     Review,
+    SavedAddress,
+    SectionBlock,
+    Service,
+    SiteSetting,
+    Subscription,
+    TabGroup,
     UploadedFile,
+    User,
+    WishlistItem,
 )
+from notifications import (
+    notify_email_verification,
+    notify_new_order,
+    notify_order_paid,
+    notify_password_reset,
+    notify_refund,
+    notify_status_changed,
+    send_email,
+)
+from payments import (
+    PaymentError,
+    get_tbank_client,
+    get_yookassa_client,
+    is_yookassa_ip,
+    provider_enabled,
+)
+from rate_limit import make_limiter
+from sbp import build_payload, get_merchant
 from schemas import (
-    NavItemOut,
-    TabGroupOut,
-    SectionBlockOut,
-    ServiceOut,
-    OfficeOut,
-    RegisterIn,
-    LoginIn,
-    TokenOut,
-    UserOut,
+    AdminAuditOut,
+    CallbackIn,
     CartItemIn,
     CartItemOut,
+    CategoryAdminIn,
+    CategoryOut,
+    ForgotPasswordIn,
+    LoginIn,
+    NavItemOut,
+    OfficeAdminIn,
+    OfficeOut,
     OrderIn,
     OrderOut,
     OrderStatusOut,
-    SubscribeIn,
-    SubscribeOut,
-    ReviewIn,
-    ReviewOut,
-    CallbackIn,
-    UploadedFileOut,
-    ProfileUpdateIn,
     PasswordChangeIn,
+    PaymentInfoOut,
+    PaymentInitOut,
+    ProfileUpdateIn,
+    PushSubscribeIn,
     QuoteIn,
     QuoteOut,
-    PaymentInfoOut,
-)
-from auth import (
-    hash_password,
-    verify_password,
-    create_access_token,
-    get_current_user,
-    require_user,
-    require_admin,
-    is_admin,
-)
-from sbp import build_payload, get_merchant
-from rate_limit import make_limiter
-from payments import (
-    get_yookassa_client,
-    get_tbank_client,
-    provider_enabled,
-    is_yookassa_ip,
-    PaymentError,
-)
-from schemas import (
-    PaymentInitOut,
-    ForgotPasswordIn,
-    ResetPasswordIn,
-    VerifyEmailIn,
     RefundIn,
     RefundOut,
-    AdminAuditOut,
-    CategoryOut,
-    ServiceAdminIn,
-    CategoryAdminIn,
-    OfficeAdminIn,
-    WishlistItemOut,
-    WishlistAddIn,
+    RegisterIn,
+    ResetPasswordIn,
+    ReviewIn,
+    ReviewOut,
     SavedAddressIn,
     SavedAddressOut,
-    PushSubscribeIn,
+    SectionBlockOut,
+    ServiceAdminIn,
+    ServiceOut,
+    SubscribeIn,
+    SubscribeOut,
+    TabGroupOut,
+    TokenOut,
+    UploadedFileOut,
+    UserOut,
+    VerifyEmailIn,
+    WishlistAddIn,
+    WishlistItemOut,
 )
-from notifications import (
-    notify_new_order,
-    notify_order_paid,
-    notify_status_changed,
-    notify_password_reset,
-    notify_email_verification,
-    notify_refund,
-    send_email,
-)
-import tokens as auth_tokens
-import idempotency
-import audit
-import storage
-import scheduler as bg_scheduler
 from security_checks import is_password_compromised, verify_turnstile
-from models import (
-    AuthToken,
-    IdempotencyRecord,
-    AdminAudit,
-    Refund,
-    WishlistItem,
-    SavedAddress,
-    PushSubscription,
-    PricingConfig,
-    SiteSetting,
-)
-import oauth as oauth_mod
-import push as webpush
-import datetime as _dt
 
 logging.basicConfig(
     level=os.environ.get("LOG_LEVEL", "INFO"),
@@ -164,7 +159,6 @@ def _auto_migrate():
         log.info("auto-migrate skipped (unknown backend); use alembic instead")
         return
     with engine.connect() as conn:
-        from sqlalchemy import text
 
         def cols(table: str) -> set[str]:
             rows = conn.exec_driver_sql(f"PRAGMA table_info({table})").fetchall()
@@ -375,7 +369,7 @@ def healthcheck(db: Session = Depends(get_db)):
         db.execute(__import__("sqlalchemy").text("SELECT 1"))
         return {"status": "ok", "db": "up"}
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"db down: {e}")
+        raise HTTPException(status_code=503, detail=f"db down: {e}") from e
 
 @app.get("/api/nav", response_model=list[NavItemOut])
 def get_nav(db: Session = Depends(get_db)):
@@ -674,7 +668,7 @@ def addresses_list(user: User = Depends(require_user), db: Session = Depends(get
 @app.post("/api/addresses", response_model=SavedAddressOut)
 def addresses_add(data: SavedAddressIn, user: User = Depends(require_user), db: Session = Depends(get_db)):
     if data.is_default:
-        db.query(SavedAddress).filter(SavedAddress.user_id == user.id, SavedAddress.is_default == True).update(
+        db.query(SavedAddress).filter(SavedAddress.user_id == user.id, SavedAddress.is_default.is_(True)).update(
             {"is_default": False}
         )
     addr = SavedAddress(user_id=user.id, label=data.label, address=data.address, is_default=data.is_default)
@@ -697,7 +691,7 @@ def addresses_set_default(addr_id: int, user: User = Depends(require_user), db: 
     addr = db.query(SavedAddress).filter(SavedAddress.id == addr_id, SavedAddress.user_id == user.id).first()
     if not addr:
         raise HTTPException(status_code=404, detail="Не найдено")
-    db.query(SavedAddress).filter(SavedAddress.user_id == user.id, SavedAddress.is_default == True).update(
+    db.query(SavedAddress).filter(SavedAddress.user_id == user.id, SavedAddress.is_default.is_(True)).update(
         {"is_default": False}
     )
     addr.is_default = True
@@ -945,7 +939,7 @@ def cancel_order(
     try:
         refunded = _provider_full_refund(order)
     except PaymentError as e:
-        raise HTTPException(status_code=502, detail=f"Не удалось вернуть оплату: {e}")
+        raise HTTPException(status_code=502, detail=f"Не удалось вернуть оплату: {e}") from e
     if refunded or order.payment_status == "paid":
         order.payment_status = "cancelled"
     order.status = "cancelled"
@@ -1171,7 +1165,7 @@ def pay_init(
                     order.provider_payment_id = ""
                     db.commit()
             except PaymentError as e:
-                raise HTTPException(status_code=502, detail=f"Ошибка провайдера: {e}")
+                raise HTTPException(status_code=502, detail=f"Ошибка провайдера: {e}") from e
 
         public_url = os.environ.get("PUBLIC_SITE_URL", "http://localhost:3000").rstrip("/")
         return_url = f"{public_url}/orders/{order.order_number}/pay?done=1"
@@ -1199,7 +1193,7 @@ def pay_init(
                 receipt=receipt,
             )
         except PaymentError as e:
-            raise HTTPException(status_code=502, detail=f"Ошибка провайдера: {e}")
+            raise HTTPException(status_code=502, detail=f"Ошибка провайдера: {e}") from e
 
         order.payment_provider = "yookassa"
         order.provider_payment_id = str(payment.get("id", ""))
@@ -1265,7 +1259,7 @@ def pay_init(
                 receipt=_tbank_receipt(order),
             )
         except PaymentError as e:
-            raise HTTPException(status_code=502, detail=f"Ошибка провайдера: {e}")
+            raise HTTPException(status_code=502, detail=f"Ошибка провайдера: {e}") from e
 
         payment_id = str(res.get("PaymentId", ""))
         payment_url = res.get("PaymentURL", "") or ""
@@ -1304,7 +1298,7 @@ async def yookassa_webhook(
     try:
         event = await request.json()
     except Exception:
-        raise HTTPException(status_code=400, detail="Malformed JSON")
+        raise HTTPException(status_code=400, detail="Malformed JSON") from None
 
     payment_id = ((event or {}).get("object") or {}).get("id")
     if not payment_id or not isinstance(payment_id, str):
@@ -1316,7 +1310,7 @@ async def yookassa_webhook(
     try:
         payment = client.get_payment(payment_id)
     except PaymentError as e:
-        raise HTTPException(status_code=502, detail=str(e))
+        raise HTTPException(status_code=502, detail=str(e)) from e
 
     order = (
         db.query(Order)
@@ -1359,7 +1353,7 @@ async def tbank_webhook(
     try:
         data = await request.json()
     except Exception:
-        raise HTTPException(status_code=400, detail="Malformed JSON")
+        raise HTTPException(status_code=400, detail="Malformed JSON") from None
 
     client = get_tbank_client()
     if client is None:
@@ -1521,7 +1515,7 @@ def admin_refund(
         except PaymentError as e:
             refund.status = "failed"
             db.commit()
-            raise HTTPException(status_code=502, detail=f"Возврат отклонён: {e}")
+            raise HTTPException(status_code=502, detail=f"Возврат отклонён: {e}") from e
 
     elif order.payment_provider == "tbank" and order.provider_payment_id:
         client = get_tbank_client()
@@ -1542,7 +1536,7 @@ def admin_refund(
         except PaymentError as e:
             refund.status = "failed"
             db.commit()
-            raise HTTPException(status_code=502, detail=f"Возврат отклонён: {e}")
+            raise HTTPException(status_code=502, detail=f"Возврат отклонён: {e}") from e
 
     total_refunded = already + (data.amount if refund.status == "succeeded" else 0)
     if total_refunded >= order.total - 0.01:
@@ -1560,6 +1554,7 @@ def admin_refund(
         diff={"amount": data.amount, "reason": data.reason, "status": refund.status},
         request=request,
     )
+    db.refresh(order)
     background.add_task(notify_refund, order, data.amount)
     return refund
 
@@ -1739,7 +1734,9 @@ def admin_create_category(data: CategoryAdminIn, admin: User = Depends(require_a
     if db.query(Category).filter(Category.slug == data.slug).first():
         raise HTTPException(status_code=400, detail="Категория с таким slug уже существует")
     c = Category(**data.model_dump())
-    db.add(c); db.commit(); db.refresh(c)
+    db.add(c)
+    db.commit()
+    db.refresh(c)
     return c
 
 @app.patch("/api/admin/categories/{cat_id}", response_model=CategoryOut)
@@ -1752,7 +1749,8 @@ def admin_update_category(cat_id: int, data: CategoryAdminIn, admin: User = Depe
         raise HTTPException(status_code=400, detail="Категория с таким slug уже существует")
     for k, v in data.model_dump().items():
         setattr(c, k, v)
-    db.commit(); db.refresh(c)
+    db.commit()
+    db.refresh(c)
     return c
 
 @app.delete("/api/admin/categories/{cat_id}")
@@ -1761,7 +1759,8 @@ def admin_delete_category(cat_id: int, admin: User = Depends(require_admin), db:
     if not c:
         raise HTTPException(status_code=404, detail="Категория не найдена")
     db.query(Service).filter(Service.category_id == cat_id).update({Service.category_id: None})
-    db.delete(c); db.commit()
+    db.delete(c)
+    db.commit()
     return {"ok": True}
 
 @app.get("/api/admin/services", response_model=list[ServiceOut])
@@ -1773,7 +1772,9 @@ def admin_create_service(data: ServiceAdminIn, admin: User = Depends(require_adm
     if db.query(Service).filter(Service.slug == data.slug).first():
         raise HTTPException(status_code=400, detail="Товар с таким slug уже существует")
     s = Service(**data.model_dump())
-    db.add(s); db.commit(); db.refresh(s)
+    db.add(s)
+    db.commit()
+    db.refresh(s)
     return s
 
 @app.patch("/api/admin/services/{sid}", response_model=ServiceOut)
@@ -1786,7 +1787,8 @@ def admin_update_service(sid: int, data: ServiceAdminIn, admin: User = Depends(r
         raise HTTPException(status_code=400, detail="Товар с таким slug уже существует")
     for k, v in data.model_dump().items():
         setattr(s, k, v)
-    db.commit(); db.refresh(s)
+    db.commit()
+    db.refresh(s)
     return s
 
 @app.delete("/api/admin/services/{sid}")
@@ -1800,7 +1802,8 @@ def admin_delete_service(sid: int, admin: User = Depends(require_admin), db: Ses
         s.is_active = False
         db.commit()
         return {"ok": True, "soft": True}
-    db.delete(s); db.commit()
+    db.delete(s)
+    db.commit()
     return {"ok": True, "soft": False}
 
 @app.get("/api/admin/offices", response_model=list[OfficeOut])
@@ -1810,7 +1813,9 @@ def admin_list_offices(_: User = Depends(require_admin), db: Session = Depends(g
 @app.post("/api/admin/offices", response_model=OfficeOut)
 def admin_create_office(data: OfficeAdminIn, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
     o = Office(**data.model_dump())
-    db.add(o); db.commit(); db.refresh(o)
+    db.add(o)
+    db.commit()
+    db.refresh(o)
     return o
 
 @app.patch("/api/admin/offices/{oid}", response_model=OfficeOut)
@@ -1820,7 +1825,8 @@ def admin_update_office(oid: int, data: OfficeAdminIn, admin: User = Depends(req
         raise HTTPException(status_code=404, detail="Офис не найден")
     for k, v in data.model_dump().items():
         setattr(o, k, v)
-    db.commit(); db.refresh(o)
+    db.commit()
+    db.refresh(o)
     return o
 
 @app.delete("/api/admin/offices/{oid}")
@@ -1828,7 +1834,8 @@ def admin_delete_office(oid: int, admin: User = Depends(require_admin), db: Sess
     o = db.query(Office).filter(Office.id == oid).first()
     if not o:
         raise HTTPException(status_code=404, detail="Офис не найден")
-    db.delete(o); db.commit()
+    db.delete(o)
+    db.commit()
     return {"ok": True}
 
 @app.get("/api/admin/reviews", response_model=list[ReviewOut])
@@ -1840,7 +1847,8 @@ def admin_delete_review(rid: int, admin: User = Depends(require_admin), db: Sess
     r = db.query(Review).filter(Review.id == rid).first()
     if not r:
         raise HTTPException(status_code=404, detail="Отзыв не найден")
-    db.delete(r); db.commit()
+    db.delete(r)
+    db.commit()
     return {"ok": True}
 
 @app.post("/api/subscribe", response_model=SubscribeOut, dependencies=[Depends(subscribe_limit)])
@@ -1978,7 +1986,7 @@ async def upload_file(
     try:
         storage.save(stored, content, content_type=file.content_type or "application/octet-stream")
     except ValueError:
-        raise HTTPException(status_code=400, detail="Некорректное имя файла")
+        raise HTTPException(status_code=400, detail="Некорректное имя файла") from None
 
     uf = UploadedFile(
         user_id=user.id if user else None,

@@ -1,12 +1,13 @@
 import io
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import parse_qs, urlparse
+
 
 def _register(client, email="u@x.com"):
     r = client.post(
         "/api/auth/register",
         json={
             "email": email,
-            "name": "U",
+            "name": "Иван Тестов",
             "password": "StrongPwd123!",
             "phone": "",
             "website": "",
@@ -28,7 +29,7 @@ def test_hibp_does_not_block_register_when_unreachable(client, monkeypatch):
         "/api/auth/register",
         json={
             "email": "hibp@x.com",
-            "name": "U",
+            "name": "Иван Тестов",
             "password": "StrongPwd123!",
             "phone": "",
             "website": "",

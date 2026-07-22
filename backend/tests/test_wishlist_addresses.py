@@ -3,7 +3,7 @@ def _register(client, email="user@x.com"):
         "/api/auth/register",
         json={
             "email": email,
-            "name": "U",
+            "name": "Иван Тестов",
             "password": "StrongPwd123!",
             "phone": "",
             "website": "",

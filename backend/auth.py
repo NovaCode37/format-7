@@ -2,13 +2,16 @@ import os
 import secrets
 import warnings
 from datetime import datetime, timedelta
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
+
 from database import get_db
 from models import User
+
 
 def _load_secret() -> str:
 
@@ -86,7 +89,7 @@ def get_current_user(
             return None
     except JWTError:
         return None
-    user = db.query(User).filter(User.id == user_id, User.is_active == True).first()
+    user = db.query(User).filter(User.id == user_id, User.is_active.is_(True)).first()
     if not user:
         return None
 

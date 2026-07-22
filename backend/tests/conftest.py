@@ -1,6 +1,8 @@
 from __future__ import annotations
+
 import os
 import sys
+
 import pytest
 
 os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key-at-least-32-chars-long-xxxx")
@@ -17,8 +19,6 @@ def client(tmp_path, monkeypatch):
     import importlib
     for m in ("main", "auth", "models", "database"):
         sys.modules.pop(m, None)
-    import database
-    import models
     import main
     importlib.reload(main)
 
