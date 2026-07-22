@@ -35,8 +35,8 @@ function getBindingPrice(pricing: any, spring: SpringType, format: Format, sheet
   return null;
 }
 
-const SHEET_PRESETS_PLASTIC = [10, 30, 50, 70, 100, 150, 200, 300];
-const SHEET_PRESETS_METAL = [10, 30, 50, 70, 100, 120];
+const SHEET_PRESETS_PLASTIC = [30, 70, 150, 200, 300, 400, 498];
+const SHEET_PRESETS_METAL = [30, 70, 120];
 
 const DELIVERY_PRICE: Record<Delivery, number> = {
   "Самовывоз": 0,
