@@ -639,7 +639,7 @@ export const PRICE_CATEGORIES: PriceCategory[] = [
           { label: "до 200", prices: [95, 100] },
           { label: "до 300", prices: [100, 105] },
           { label: "до 400", prices: [105, 110] },
-          { label: "до 498", prices: [110, 115] },
+          { label: "до 500", prices: [110, 115] },
         ],
       },
       {

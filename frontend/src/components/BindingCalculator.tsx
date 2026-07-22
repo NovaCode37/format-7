@@ -24,7 +24,7 @@ function getPriceTable(pricing: any, spring: SpringType, format: Format): { maxS
 }
 
 function getMaxSheets(spring: SpringType): number {
-  return spring === "Пластиковая" ? 498 : 120;
+  return spring === "Пластиковая" ? 500 : 120;
 }
 
 function getBindingPrice(pricing: any, spring: SpringType, format: Format, sheets: number): number | null {
@@ -35,7 +35,7 @@ function getBindingPrice(pricing: any, spring: SpringType, format: Format, sheet
   return null;
 }
 
-const SHEET_PRESETS_PLASTIC = [30, 70, 150, 200, 300, 400, 498];
+const SHEET_PRESETS_PLASTIC = [30, 70, 150, 200, 300, 400, 500];
 const SHEET_PRESETS_METAL = [30, 70, 120];
 
 const DELIVERY_PRICE: Record<Delivery, number> = {
@@ -196,7 +196,7 @@ export default function BindingCalculator({ serviceId }: { serviceId?: number })
                 values={["Пластиковая", "Металлическая"]}
                 value={spring}
                 onChange={(v) => setSpring(v as SpringType)}
-                hint={spring === "Пластиковая" ? "до 498 листов" : "до 120 листов"}
+                hint={spring === "Пластиковая" ? "до 500 листов" : "до 120 листов"}
               />
 
               <PillsField

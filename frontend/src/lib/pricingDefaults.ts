@@ -321,12 +321,12 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
       plasticA4: [
         { maxSheets: 30, price: 80 }, { maxSheets: 70, price: 85 }, { maxSheets: 150, price: 90 },
         { maxSheets: 200, price: 95 }, { maxSheets: 300, price: 100 }, { maxSheets: 400, price: 105 },
-        { maxSheets: 498, price: 110 },
+        { maxSheets: 500, price: 110 },
       ],
       plasticA3: [
         { maxSheets: 30, price: 85 }, { maxSheets: 70, price: 90 }, { maxSheets: 150, price: 95 },
         { maxSheets: 200, price: 100 }, { maxSheets: 300, price: 105 }, { maxSheets: 400, price: 110 },
-        { maxSheets: 498, price: 115 },
+        { maxSheets: 500, price: 115 },
       ],
       metalA4: [
         { maxSheets: 30, price: 100 }, { maxSheets: 70, price: 105 }, { maxSheets: 120, price: 110 },
