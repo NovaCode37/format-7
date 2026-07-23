@@ -59,6 +59,7 @@ export default function FlyerCalculator({ serviceId }: { serviceId?: number }) {
   const [color, setColor] = useState<Color>("Цветная");
   const [sides, setSides] = useState<Sides>("Двусторонняя");
   const [orient, setOrient] = useState<Orient>("Вертикальная");
+  const [paperFinish, setPaperFinish] = useState<"Матовая" | "Глянцевая">("Глянцевая");
   const [lamination, setLamination] = useState<Lamination>("Нет");
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
   const [quantity, setQuantity] = useState<number>(100);
@@ -132,6 +133,7 @@ export default function FlyerCalculator({ serviceId }: { serviceId?: number }) {
     lines: [
       `Евро 98×210 · ${calc.mode} · ${quantity} шт.`,
       `${sides} · ${orient}`,
+      `Бумага: ${paperFinish.toLowerCase()}`,
       `Макет: ${trackLabel[track]}`,
       lamination !== "Нет" ? `Ламинация: ${lamination}` : null,
       calc.designTotal > 0 ? `Разработка макета: от ${calc.designTotal} ₽` : null,
@@ -145,7 +147,7 @@ export default function FlyerCalculator({ serviceId }: { serviceId?: number }) {
       Стороны: sides,
       Ориентация: orient,
       Ламинация: lamination,
-      Бумага: "130 г/м² мелованная",
+      Бумага: `130 г/м² мелованная, ${paperFinish.toLowerCase()}`,
       Файл: uploadedFile?.name || "—",
     },
     delivery,
@@ -164,7 +166,7 @@ export default function FlyerCalculator({ serviceId }: { serviceId?: number }) {
             Флаеры
           </h1>
           <p className="mt-2 text-ink-500 text-sm">
-            Евро 98×210 мм, мелованная глянцевая бумага 130 г/м². Цена тиража действует на 1 вид макета.
+            Евро 98×210 мм, мелованная бумага 130 г/м² (матовая или глянцевая). Цена тиража действует на 1 вид макета.
             Размер готового изделия может отличаться от стандартного на ±2 мм.
           </p>
         </div>
@@ -211,7 +213,7 @@ export default function FlyerCalculator({ serviceId }: { serviceId?: number }) {
                           {uploadedFile ? "Макет загружен" : "Загрузить ваш макет"}
                         </p>
                         <p className="text-[12px] text-ink-500">
-                          PDF, AI, CDR, PSD, TIFF, JPG (до вылетов +2 мм)
+                          PDF, CDR (до вылетов +2 мм)
                         </p>
                       </div>
                     </div>
@@ -228,7 +230,7 @@ export default function FlyerCalculator({ serviceId }: { serviceId?: number }) {
                     ref={fileInputRef}
                     type="file"
                     hidden
-                    accept=".pdf,.jpg,.jpeg,.png,.ai,.cdr,.eps,.tiff,.psd"
+                    accept=".pdf,.cdr"
                     onChange={(e) => handleUpload(e.target.files)}
                   />
                 </>
@@ -272,7 +274,7 @@ export default function FlyerCalculator({ serviceId }: { serviceId?: number }) {
 
               <div className="rounded-xl border border-ink-200 bg-ink-50 p-4 text-[12px] text-ink-600 space-y-2">
                 <p><strong className="text-ink-900">Формат:</strong> Евро 98×210 мм.</p>
-                <p>Печать на мелованной (глянцевой) бумаге плотностью 130 г/м².</p>
+                <p>Печать на мелованной бумаге плотностью 130 г/м², матовая или глянцевая на выбор.</p>
                 <p>Цена тиража действует на 1 вид макета.</p>
                 <p className="flex items-center gap-1.5">
                   <Truck size={13} /> Доставка по Тюмени — 700 ₽.
@@ -306,6 +308,14 @@ export default function FlyerCalculator({ serviceId }: { serviceId?: number }) {
                 values={["Вертикальная", "Горизонтальная"]}
                 value={orient}
                 onChange={(v) => setOrient(v as Orient)}
+                hint="на цену не влияет"
+              />
+
+              <PillsField
+                label="Бумага"
+                values={["Матовая", "Глянцевая"]}
+                value={paperFinish}
+                onChange={(v) => setPaperFinish(v as any)}
                 hint="на цену не влияет"
               />
 

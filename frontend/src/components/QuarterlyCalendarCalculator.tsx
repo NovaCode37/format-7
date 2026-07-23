@@ -29,6 +29,7 @@ export default function QuarterlyCalendarCalculator({ serviceId }: { serviceId?:
   const [track, setTrack] = useState<Track>("upload");
   const [adField, setAdField] = useState<AdField>("Без полей");
   const [cursor, setCursor] = useState<Cursor>("Пластиковый");
+  const [paperFinish, setPaperFinish] = useState<"Матовая" | "Глянцевая">("Глянцевая");
   const [piccolo, setPiccolo] = useState<PiccoloColor>("Золото");
   const [lamPoster, setLamPoster] = useState<YesNo>("Нет");
   const [lamBlock, setLamBlock] = useState<YesNo>("Нет");
@@ -55,6 +56,7 @@ export default function QuarterlyCalendarCalculator({ serviceId }: { serviceId?:
     lines: [
       `А4 · ${adField} · ${quantity} шт.`,
       `Курсор: ${cursor.toLowerCase()} · пиколло ${piccolo.toLowerCase()} · пружина ${springColor.toLowerCase()}`,
+      `Бумага: ${paperFinish.toLowerCase()}`,
       lamPoster === "Да" ? "Ламинация постера и подложек блоков" : null,
       lamBlock === "Да" ? "Ламинация листов блоков" : null,
       track === "design" ? "Разработка макета дизайнером (1000 ₽)" : null,
@@ -62,7 +64,7 @@ export default function QuarterlyCalendarCalculator({ serviceId }: { serviceId?:
     ].filter(Boolean) as string[],
     options: {
       track: track === "design" ? "Заказ дизайна" : "Загрузка макета",
-      ad_field: adField, cursor, piccolo_color: piccolo, spring_color: springColor,
+      ad_field: adField, cursor, piccolo_color: piccolo, spring_color: springColor, paper_finish: paperFinish,
       lamination_poster: lamPoster, lamination_block: lamBlock,
       design_fee: calc.designTotal, delivery, file: uploadedFile?.name || "—",
     },
@@ -102,13 +104,13 @@ export default function QuarterlyCalendarCalculator({ serviceId }: { serviceId?:
                       </span>
                       <div>
                         <p className="font-heading text-base font-bold text-ink-900">{uploadedFile ? "Макет загружен" : "Загрузить ваш макет"}</p>
-                        <p className="text-[12px] text-ink-500">PDF, AI, CDR, PSD, TIFF</p>
+                        <p className="text-[12px] text-ink-500">PDF, CDR</p>
                       </div>
                     </div>
                     {uploadedFile && <p className="mt-2 text-[12px] text-emerald-700 break-all">{uploadedFile.name}</p>}
                     <p className="mt-3 text-[11px] text-ink-500">Рекламное поле постера 290×200 мм, нижнее — 50 мм.</p>
                   </button>
-                  <input ref={fileInputRef} type="file" hidden accept=".pdf,.jpg,.jpeg,.png,.ai,.cdr,.eps,.tiff,.psd" onChange={(e) => handleUpload(e.target.files)} />
+                  <input ref={fileInputRef} type="file" hidden accept=".pdf,.cdr" onChange={(e) => handleUpload(e.target.files)} />
                 </>
               ) : (
                 <DesignBriefCard product="Квартальный календарь">
@@ -130,6 +132,8 @@ export default function QuarterlyCalendarCalculator({ serviceId }: { serviceId?:
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
               <PillsField label="Рекламное поле" values={["Без полей", "1 рекламное поле", "3 рекламных поля"]} value={adField} onChange={(v) => setAdField(v as AdField)} />
               <PillsField label="Курсор" values={["Пластиковый", "Статический", "Магнитный"]} value={cursor} onChange={(v) => setCursor(v as Cursor)} hint="входит в стоимость" />
+
+              <PillsField label="Бумага" values={["Матовая", "Глянцевая"]} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
               <PillsField label="Цвет пиколло (поверх)" values={["Золото", "Серебро", "Чёрный"]} value={piccolo} onChange={(v) => setPiccolo(v as PiccoloColor)} hint="на цену не влияет" />
 
               <div className="pt-4 border-t border-ink-100">

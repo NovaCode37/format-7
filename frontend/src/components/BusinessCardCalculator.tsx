@@ -52,6 +52,7 @@ export default function BusinessCardCalculator({ serviceId }: { serviceId?: numb
   const [material, setMaterial] = useState<Material>("Картон");
   const [color, setColor] = useState<Color>("Цветные");
   const [sides, setSides] = useState<Sides>("Двусторонние");
+  const [paperFinish, setPaperFinish] = useState<"Матовая" | "Глянцевая">("Матовая");
   const [lamination, setLamination] = useState<YesNo>("Нет");
   const [rounding, setRounding] = useState<YesNo>("Нет");
   const [quantity, setQuantity] = useState<number>(100);
@@ -81,6 +82,7 @@ export default function BusinessCardCalculator({ serviceId }: { serviceId?: numb
     productLabel: `Визитки ${material.toLowerCase()}, ${mode}`,
     lines: [
       `${material} · ${color} · ${sides} (${mode}) · ${orientation} · ${quantity} шт.`,
+      `Бумага: ${paperFinish.toLowerCase()}`,
       lamination === "Да" ? "Ламинирование" : null,
       rounding === "Да" ? "Скругление углов" : null,
       track === "design" ? "Разработка макета дизайнером" : null,
@@ -89,6 +91,7 @@ export default function BusinessCardCalculator({ serviceId }: { serviceId?: numb
     options: {
       track: track === "design" ? "Заказ дизайна" : "Загрузка макета",
       material, color, sides, mode, orientation,
+      paper_finish: paperFinish,
       lamination, rounding,
       design_fee: calc.designTotal,
       delivery,
@@ -137,13 +140,13 @@ export default function BusinessCardCalculator({ serviceId }: { serviceId?: numb
                       </span>
                       <div>
                         <p className="font-heading text-base font-bold text-ink-900">{uploadedFile ? "Макет загружен" : "Загрузить ваш макет"}</p>
-                        <p className="text-[12px] text-ink-500">PDF, AI, CDR, PSD, TIFF (вылеты +2 мм)</p>
+                        <p className="text-[12px] text-ink-500">PDF, CDR (вылеты +2 мм)</p>
                       </div>
                     </div>
                     {uploadedFile && <p className="mt-2 text-[12px] text-emerald-700 break-all">{uploadedFile.name}</p>}
                     <p className="mt-3 text-[11px] text-ink-500">Размер макета — 92×52 мм с вылетами.</p>
                   </button>
-                  <input ref={fileInputRef} type="file" hidden accept=".pdf,.jpg,.jpeg,.png,.ai,.cdr,.eps,.tiff,.psd" onChange={(e) => handleUpload(e.target.files)} />
+                  <input ref={fileInputRef} type="file" hidden accept=".pdf,.cdr" onChange={(e) => handleUpload(e.target.files)} />
                 </>
               ) : (
                 <DesignBriefCard product="Визитки">
@@ -179,6 +182,8 @@ export default function BusinessCardCalculator({ serviceId }: { serviceId?: numb
               />
 
               <PillsField label="Стороны печати" values={["Двусторонние", "Односторонние"]} value={sides} onChange={(v) => setSides(v as Sides)} hint={`режим ${mode}`} />
+
+              <PillsField label="Бумага" values={["Матовая", "Глянцевая"]} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
 
               <div className="pt-4 border-t border-ink-100">
                 <PillsField label="Ламинирование" values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${pricing.lamination} ₽/шт` : undefined} />

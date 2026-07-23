@@ -35,6 +35,7 @@ export default function NotebookCalculator({ serviceId }: { serviceId?: number }
   const [sheets, setSheets] = useState<Sheets>("50 листов");
   const [orientation, setOrientation] = useState<Orientation>("По вертикали");
   const [lamination, setLamination] = useState<YesNo>("Нет");
+  const [paperFinish, setPaperFinish] = useState<"Матовая" | "Глянцевая">("Матовая");
   const [quantity, setQuantity] = useState<number>(10);
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -57,6 +58,7 @@ export default function NotebookCalculator({ serviceId }: { serviceId?: number }
     lines: [
       `${format} · блок ${blockColor} · ${sheets} · ${quantity} шт.`,
       `Обложка: ${coverSides.toLowerCase()} · блок: ${blockSides.toLowerCase()} · скругление ${orientation.toLowerCase()}`,
+      `Бумага обложки: ${paperFinish.toLowerCase()}`,
       lamination === "Да" ? "Ламинация обложки и подложки" : null,
       track === "design" ? `Разработка макета дизайнером (${pricing.design} ₽)` : null,
       `Доставка: ${delivery}`,
@@ -64,7 +66,7 @@ export default function NotebookCalculator({ serviceId }: { serviceId?: number }
     options: {
       track: track === "design" ? "Заказ дизайна" : "Загрузка макета",
       format, cover_sides: coverSides, block_color: blockColor, block_sides: blockSides,
-      sheets, rounding_orientation: orientation, lamination,
+      sheets, rounding_orientation: orientation, paper_finish: paperFinish, lamination,
       design_fee: calc.designTotal, delivery, file: uploadedFile?.name || "—",
     },
     delivery,
@@ -103,13 +105,13 @@ export default function NotebookCalculator({ serviceId }: { serviceId?: number }
                       </span>
                       <div>
                         <p className="font-heading text-base font-bold text-ink-900">{uploadedFile ? "Макет загружен" : "Загрузить ваш макет"}</p>
-                        <p className="text-[12px] text-ink-500">PDF, AI, CDR, PSD, TIFF</p>
+                        <p className="text-[12px] text-ink-500">PDF, CDR</p>
                       </div>
                     </div>
                     {uploadedFile && <p className="mt-2 text-[12px] text-emerald-700 break-all">{uploadedFile.name}</p>}
                     <p className="mt-3 text-[11px] text-ink-500">Обложка, подложка и блок.</p>
                   </button>
-                  <input ref={fileInputRef} type="file" hidden accept=".pdf,.jpg,.jpeg,.png,.ai,.cdr,.eps,.tiff,.psd" onChange={(e) => handleUpload(e.target.files)} />
+                  <input ref={fileInputRef} type="file" hidden accept=".pdf,.cdr" onChange={(e) => handleUpload(e.target.files)} />
                 </>
               ) : (
                 <DesignBriefCard product="Блокноты">
@@ -135,6 +137,8 @@ export default function NotebookCalculator({ serviceId }: { serviceId?: number }
               <PillsField label="Стороны печати блока" values={["Двусторонняя", "Односторонняя"]} value={blockSides} onChange={(v) => setBlockSides(v as Sides)} hint="на цену не влияет" />
               <PillsField label="Количество листов" values={["30 листов", "50 листов"]} value={sheets} onChange={(v) => setSheets(v as Sheets)} />
               <PillsField label="Ориентация скругления" values={["По вертикали", "По горизонтали"]} value={orientation} onChange={(v) => setOrientation(v as Orientation)} hint="на цену не влияет" />
+
+              <PillsField label="Бумага обложки" values={["Матовая", "Глянцевая"]} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
 
               <div className="pt-4 border-t border-ink-100">
                 <PillsField label="Ламинация обложки и подложки" values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${calc.lamUnit} ₽/шт` : undefined} />

@@ -32,6 +32,7 @@ export default function BookletCalculator({ serviceId }: { serviceId?: number })
   const [track, setTrack] = useState<Track>("upload");
   const [color, setColor] = useState<Color>("Цветная");
   const [lamination, setLamination] = useState<YesNo>("Нет");
+  const [paperFinish, setPaperFinish] = useState<"Матовая" | "Глянцевая">("Матовая");
   const [folds, setFolds] = useState<number>(2);
   const [quantity, setQuantity] = useState<number>(100);
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
@@ -55,13 +56,14 @@ export default function BookletCalculator({ serviceId }: { serviceId?: number })
     productLabel: `Буклеты ${color.toLowerCase()}, ${folds} сгиб(а)`,
     lines: [
       `${color} · ${folds} сложений (бигов) · ${quantity} шт.`,
+      `Бумага: ${paperFinish.toLowerCase()}`,
       lamination === "Да" ? "Ламинация" : null,
       track === "design" ? `Разработка макета (${folds} сгиб) — ${fmt(designFee(folds))} ₽` : null,
       `Доставка: ${delivery}`,
     ].filter(Boolean) as string[],
     options: {
       track: track === "design" ? "Заказ дизайна" : "Загрузка макета",
-      color, folds, lamination,
+      color, folds, paper_finish: paperFinish, lamination,
       design_fee: calc.designTotal,
       delivery,
       file: uploadedFile?.name || "—",
@@ -80,7 +82,7 @@ export default function BookletCalculator({ serviceId }: { serviceId?: number })
           <p className="eyebrow mb-2">Калькулятор</p>
           <h1 className="font-heading text-3xl sm:text-4xl font-bold text-ink-900 tracking-tight">Буклеты</h1>
           <p className="mt-2 text-ink-500 text-sm">
-            Мелованная матовая бумага 120 г/м². Биговка включена в цену. Цена тиража действует на 1 вид макета.
+            Мелованная бумага 120 г/м² (матовая или глянцевая). Биговка включена в цену. Цена тиража действует на 1 вид макета.
             Размер готового изделия может отличаться от стандартного на ±2 мм.
           </p>
         </div>
@@ -110,13 +112,13 @@ export default function BookletCalculator({ serviceId }: { serviceId?: number })
                       </span>
                       <div>
                         <p className="font-heading text-base font-bold text-ink-900">{uploadedFile ? "Макет загружен" : "Загрузить ваш макет"}</p>
-                        <p className="text-[12px] text-ink-500">PDF, AI, CDR, PSD, TIFF (вылеты +2 мм)</p>
+                        <p className="text-[12px] text-ink-500">PDF, CDR (вылеты +2 мм)</p>
                       </div>
                     </div>
                     {uploadedFile && <p className="mt-2 text-[12px] text-emerald-700 break-all">{uploadedFile.name}</p>}
                     <p className="mt-3 text-[11px] text-ink-500">Учтите линии сгиба (биговки) в макете.</p>
                   </button>
-                  <input ref={fileInputRef} type="file" hidden accept=".pdf,.jpg,.jpeg,.png,.ai,.cdr,.eps,.tiff,.psd" onChange={(e) => handleUpload(e.target.files)} />
+                  <input ref={fileInputRef} type="file" hidden accept=".pdf,.cdr" onChange={(e) => handleUpload(e.target.files)} />
                 </>
               ) : (
                 <DesignBriefCard product="Буклеты">
@@ -140,6 +142,8 @@ export default function BookletCalculator({ serviceId }: { serviceId?: number })
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
 
               <PillsField label="Цветность" values={["Цветная", "Цветная + ч/б", "Чёрно-белая"]} value={color} onChange={(v) => setColor(v as Color)} hint="двусторонняя печать" />
+
+              <PillsField label="Бумага" values={["Матовая", "Глянцевая"]} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
 
               <div>
                 <label className="block text-[12px] font-semibold text-ink-700 mb-1.5">Количество бигов (сложений)</label>

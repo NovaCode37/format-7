@@ -1948,6 +1948,7 @@ def _sanitize_original_name(name: str | None) -> str:
 
     name = os.path.basename(name).strip()
     name = re.sub(r"[\x00-\x1f\x7f]", "", name)
+    name = name.replace("\\", "_").replace('"', "_")
     return name[:200] or "file"
 
 @app.post("/api/uploads", response_model=UploadedFileOut, dependencies=[Depends(upload_limit)])

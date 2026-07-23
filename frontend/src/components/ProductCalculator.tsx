@@ -250,7 +250,7 @@ export default function ProductCalculator({ config, serviceId }: Props) {
                   ref={fileInputRef}
                   type="file"
                   hidden
-                  accept=".pdf,.ai,.cdr,.eps,.tiff,.png,.jpg,.jpeg,.psd"
+                  accept=".pdf,.cdr"
                   onChange={(e) => handleUpload(e.target.files)}
                 />
 

@@ -48,6 +48,7 @@ export default function LeafletCalculator({ serviceId }: { serviceId?: number })
   const [sides, setSides] = useState<Sides>("Двусторонняя");
   const [rounding, setRounding] = useState<YesNo>("Нет");
   const [lamination, setLamination] = useState<YesNo>("Нет");
+  const [paperFinish, setPaperFinish] = useState<"Матовая" | "Глянцевая">("Глянцевая");
   const [quantity, setQuantity] = useState<number>(500);
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -72,7 +73,7 @@ export default function LeafletCalculator({ serviceId }: { serviceId?: number })
     productLabel: "Листовки",
     lines: [
       `${format} · ${orientation} · ${color} · ${sides} (${mode}) · ${quantity} шт.`,
-      "Бумага: глянцевая 170 г/м²",
+      `Бумага: ${paperFinish.toLowerCase()} 170 г/м²`,
       rounding === "Да" ? "Скругление углов" : null,
       lamination === "Да" ? "Ламинация" : null,
       track === "design" ? `Разработка макета дизайнером (${pricing.design} ₽)` : null,
@@ -80,7 +81,7 @@ export default function LeafletCalculator({ serviceId }: { serviceId?: number })
     ].filter(Boolean) as string[],
     options: {
       track: track === "design" ? "Заказ дизайна" : "Загрузка макета",
-      format, orientation, color, sides, mode, rounding, lamination,
+      format, orientation, color, sides, mode, paper_finish: paperFinish, rounding, lamination,
       design_fee: calc.designTotal, delivery, file: uploadedFile?.name || "—",
     },
     delivery,
@@ -121,13 +122,13 @@ export default function LeafletCalculator({ serviceId }: { serviceId?: number })
                       </span>
                       <div>
                         <p className="font-heading text-base font-bold text-ink-900">{uploadedFile ? "Макет загружен" : "Загрузить ваш макет"}</p>
-                        <p className="text-[12px] text-ink-500">PDF, AI, CDR, PSD, TIFF</p>
+                        <p className="text-[12px] text-ink-500">PDF, CDR</p>
                       </div>
                     </div>
                     {uploadedFile && <p className="mt-2 text-[12px] text-emerald-700 break-all">{uploadedFile.name}</p>}
-                    <p className="mt-3 text-[11px] text-ink-500">Печать на глянцевой бумаге плотностью 170 г/м². Размер изделия может отличаться от стандарта на ±2 мм.</p>
+                    <p className="mt-3 text-[11px] text-ink-500">Печать на бумаге плотностью 170 г/м² (матовая или глянцевая). Размер изделия может отличаться от стандарта на ±2 мм.</p>
                   </button>
-                  <input ref={fileInputRef} type="file" hidden accept=".pdf,.jpg,.jpeg,.png,.ai,.cdr,.eps,.tiff,.psd" onChange={(e) => handleUpload(e.target.files)} />
+                  <input ref={fileInputRef} type="file" hidden accept=".pdf,.cdr" onChange={(e) => handleUpload(e.target.files)} />
                 </>
               ) : (
                 <DesignBriefCard product="Листовки">
@@ -149,6 +150,8 @@ export default function LeafletCalculator({ serviceId }: { serviceId?: number })
               <PillsField label="Ориентация" values={["Горизонтальная", "Вертикальная"]} value={orientation} onChange={(v) => setOrientation(v as Orientation)} hint="на цену не влияет" />
               <PillsField label="Цветность" values={["Цветная", "Чёрно-белая"]} value={color} onChange={(v) => setColor(v as Color)} />
               <PillsField label="Стороны печати" values={["Двусторонняя", "Односторонняя"]} value={sides} onChange={(v) => setSides(v as Sides)} hint={`режим ${mode}`} />
+
+              <PillsField label="Бумага" values={["Матовая", "Глянцевая"]} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
 
               <div className="pt-4 border-t border-ink-100">
                 <PillsField label="Скругление углов" values={["Нет", "Да"]} value={rounding} onChange={(v) => setRounding(v as YesNo)} hint={rounding === "Да" ? `+${pricing.rounding} ₽/шт` : undefined} />

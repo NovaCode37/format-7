@@ -28,6 +28,7 @@ export default function CalendarCalculator({ serviceId }: { serviceId?: number }
 
   const [track, setTrack] = useState<Track>("upload");
   const [orientation, setOrientation] = useState<Orientation>("По горизонтали");
+  const [paperFinish, setPaperFinish] = useState<"Матовая" | "Глянцевая">("Глянцевая");
   const [lamination, setLamination] = useState<YesNo>("Нет");
   const [quantity, setQuantity] = useState<number>(10);
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
@@ -48,12 +49,13 @@ export default function CalendarCalculator({ serviceId }: { serviceId?: number }
     productLabel: "Плакатный календарь А3, 200 г/м², 4+0",
     lines: [
       `А3 · ${orientation} · ${lamination === "Да" ? "с ламинацией" : "без ламинации"} · ${quantity} шт.`,
+      `Бумага: ${paperFinish.toLowerCase()}`,
       track === "design" ? `Разработка макета дизайнером (${pricing.design} ₽)` : null,
       `Доставка: ${delivery}`,
     ].filter(Boolean) as string[],
     options: {
       track: track === "design" ? "Заказ дизайна" : "Загрузка макета",
-      orientation, lamination,
+      orientation, paper_finish: paperFinish, lamination,
       design_fee: calc.designTotal,
       delivery,
       file: uploadedFile?.name || "—",
@@ -99,13 +101,13 @@ export default function CalendarCalculator({ serviceId }: { serviceId?: number }
                       </span>
                       <div>
                         <p className="font-heading text-base font-bold text-ink-900">{uploadedFile ? "Макет загружен" : "Загрузить ваш макет"}</p>
-                        <p className="text-[12px] text-ink-500">PDF, AI, CDR, PSD, TIFF, JPG</p>
+                        <p className="text-[12px] text-ink-500">PDF, CDR</p>
                       </div>
                     </div>
                     {uploadedFile && <p className="mt-2 text-[12px] text-emerald-700 break-all">{uploadedFile.name}</p>}
                     <p className="mt-3 text-[11px] text-ink-500">Размер макета: 297×420 мм + 2 мм вылеты с каждой стороны.</p>
                   </button>
-                  <input ref={fileInputRef} type="file" hidden accept=".pdf,.jpg,.jpeg,.png,.ai,.cdr,.eps,.tiff,.psd" onChange={(e) => handleUpload(e.target.files)} />
+                  <input ref={fileInputRef} type="file" hidden accept=".pdf,.cdr" onChange={(e) => handleUpload(e.target.files)} />
                 </>
               ) : (
                 <DesignBriefCard product="Плакатный календарь">
@@ -128,6 +130,8 @@ export default function CalendarCalculator({ serviceId }: { serviceId?: number }
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
 
               <PillsField label="Ориентация" values={["По горизонтали", "По вертикали"]} value={orientation} onChange={(v) => setOrientation(v as Orientation)} hint="на цену не влияет" />
+
+              <PillsField label="Бумага" values={["Матовая", "Глянцевая"]} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
 
               <PillsField label="Ламинация" values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? "цена по таблице с ламинацией" : undefined} />
 

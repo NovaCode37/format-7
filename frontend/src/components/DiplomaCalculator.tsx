@@ -31,6 +31,7 @@ export default function DiplomaCalculator({ serviceId }: { serviceId?: number })
   const [density, setDensity] = useState<Density>("250 г/м²");
   const [orientation, setOrientation] = useState<Orientation>("Вертикальная");
   const [lamination, setLamination] = useState<YesNo>("Нет");
+  const [paperFinish, setPaperFinish] = useState<"Матовая" | "Глянцевая">("Матовая");
   const [quantity, setQuantity] = useState<number>(20);
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -51,13 +52,14 @@ export default function DiplomaCalculator({ serviceId }: { serviceId?: number })
     productLabel: `Грамоты и дипломы А4, ${density}, 4+0`,
     lines: [
       `А4 · ${density} · ${orientation} · ${quantity} шт.`,
+      `Бумага: ${paperFinish.toLowerCase()}`,
       lamination === "Да" ? "Ламинирование" : null,
       track === "design" ? `Разработка макета дизайнером (от ${pricing.design} ₽)` : null,
       `Доставка: ${delivery}`,
     ].filter(Boolean) as string[],
     options: {
       track: track === "design" ? "Заказ дизайна" : track === "template" ? "Каталог шаблонов" : "Загрузка макета",
-      density, orientation, lamination,
+      density, orientation, paper_finish: paperFinish, lamination,
       design_fee: calc.designTotal, delivery,
       file: uploadedFile?.name || "—",
     },
@@ -104,13 +106,13 @@ export default function DiplomaCalculator({ serviceId }: { serviceId?: number })
                       </span>
                       <div>
                         <p className="font-heading text-base font-bold text-ink-900">{uploadedFile ? "Макет загружен" : "Загрузить ваш макет"}</p>
-                        <p className="text-[12px] text-ink-500">PDF, AI, CDR, PSD, TIFF</p>
+                        <p className="text-[12px] text-ink-500">PDF, CDR</p>
                       </div>
                     </div>
                     {uploadedFile && <p className="mt-2 text-[12px] text-emerald-700 break-all">{uploadedFile.name}</p>}
                     <p className="mt-3 text-[11px] text-ink-500">Формат макета — А4 (210×297 мм) с вылетами.</p>
                   </button>
-                  <input ref={fileInputRef} type="file" hidden accept=".pdf,.jpg,.jpeg,.png,.ai,.cdr,.eps,.tiff,.psd" onChange={(e) => handleUpload(e.target.files)} />
+                  <input ref={fileInputRef} type="file" hidden accept=".pdf,.cdr" onChange={(e) => handleUpload(e.target.files)} />
                 </>
               )}
 
@@ -127,6 +129,8 @@ export default function DiplomaCalculator({ serviceId }: { serviceId?: number })
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
               <PillsField label="Материал для печати (плотность)" values={["200 г/м²", "250 г/м²", "300 г/м²"]} value={density} onChange={(v) => setDensity(v as Density)} />
               <PillsField label="Ориентация" values={["Вертикальная", "Горизонтальная"]} value={orientation} onChange={(v) => setOrientation(v as Orientation)} hint="на цену не влияет" />
+
+              <PillsField label="Бумага" values={["Матовая", "Глянцевая"]} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
 
               <div className="pt-4 border-t border-ink-100">
                 <PillsField label="Ламинирование" values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${pricing.lamination} ₽/шт` : undefined} />

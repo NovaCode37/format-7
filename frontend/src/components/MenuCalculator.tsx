@@ -41,6 +41,7 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [material, setMaterial] = useState<Material>("Бумага 300 г/м²");
+  const [paperFinish, setPaperFinish] = useState<"Матовая" | "Глянцевая">("Глянцевая");
   const [sides, setSides] = useState<Sides>("Двусторонняя");
   const [sheets, setSheets] = useState(2);
   const [sheetsInput, setSheetsInput] = useState("2");
@@ -128,6 +129,7 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
     productLabel: "Меню для кафе",
     lines: [
       `${material} · ${sides} · ${sheets} л. · ${quantity} экз.`,
+      `Бумага: ${paperFinish.toLowerCase()}`,
       lamination === "Да" ? "Ламинация" : null,
       rounding === "Да" ? "Скругление углов" : null,
       spring === "Да" ? `Пружина (${springColor})` : null,
@@ -137,6 +139,7 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
     ].filter(Boolean) as string[],
     options: {
       Материал: material,
+      Бумага: paperFinish,
       Стороны: sides,
       Листов: sheets,
       Ламинация: lamination,
@@ -257,6 +260,14 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
                 values={["Двусторонняя", "Односторонняя"]}
                 value={sides}
                 onChange={(v) => setSides(v as Sides)}
+              />
+
+              <PillsField
+                label="Бумага"
+                values={["Матовая", "Глянцевая"]}
+                value={paperFinish}
+                onChange={(v) => setPaperFinish(v as any)}
+                hint="на цену не влияет"
               />
 
               <div>

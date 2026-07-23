@@ -34,6 +34,7 @@ export default function EnvelopeCalculator({ serviceId }: { serviceId?: number }
 
   const [track, setTrack] = useState<Track>("upload");
   const [kind, setKind] = useState<Kind>("Е65 (110×220 мм)");
+  const [paperFinish, setPaperFinish] = useState<"Матовая" | "Глянцевая">("Матовая");
   const [quantity, setQuantity] = useState<number>(100);
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -53,12 +54,13 @@ export default function EnvelopeCalculator({ serviceId }: { serviceId?: number }
     productLabel: `Конверты ${kind}, 4+0`,
     lines: [
       `${kind} · область печати ${PRINT_AREA[kind]} · ${quantity} шт.`,
+      `Бумага: ${paperFinish.toLowerCase()}`,
       track === "design" ? `Разработка макета дизайнером (${pricing.design} ₽)` : null,
       `Доставка: ${delivery}`,
     ].filter(Boolean) as string[],
     options: {
       track: track === "design" ? "Заказ дизайна" : track === "template" ? "Каталог шаблонов" : "Загрузка макета",
-      kind, print_area: PRINT_AREA[kind],
+      kind, print_area: PRINT_AREA[kind], paper_finish: paperFinish,
       design_fee: calc.designTotal, delivery,
       file: uploadedFile?.name || "—",
     },
@@ -105,13 +107,13 @@ export default function EnvelopeCalculator({ serviceId }: { serviceId?: number }
                       </span>
                       <div>
                         <p className="font-heading text-base font-bold text-ink-900">{uploadedFile ? "Макет загружен" : "Загрузить ваш макет"}</p>
-                        <p className="text-[12px] text-ink-500">PDF, AI, CDR, PSD, TIFF</p>
+                        <p className="text-[12px] text-ink-500">PDF, CDR</p>
                       </div>
                     </div>
                     {uploadedFile && <p className="mt-2 text-[12px] text-emerald-700 break-all">{uploadedFile.name}</p>}
                     <p className="mt-3 text-[11px] text-ink-500">Область печати: {PRINT_AREA[kind]}.</p>
                   </button>
-                  <input ref={fileInputRef} type="file" hidden accept=".pdf,.jpg,.jpeg,.png,.ai,.cdr,.eps,.tiff,.psd" onChange={(e) => handleUpload(e.target.files)} />
+                  <input ref={fileInputRef} type="file" hidden accept=".pdf,.cdr" onChange={(e) => handleUpload(e.target.files)} />
                 </>
               )}
 
@@ -126,6 +128,8 @@ export default function EnvelopeCalculator({ serviceId }: { serviceId?: number }
           <div className="lg:col-span-5">
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
               <PillsField label="Вид конверта" values={["Е65 (110×220 мм)", "С5 (162×229 мм)", "С4 (229×324 мм)"]} value={kind} onChange={(v) => setKind(v as Kind)} hint={`печать ${PRINT_AREA[kind]}`} />
+
+              <PillsField label="Бумага" values={["Матовая", "Глянцевая"]} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
 
               <div className="pt-4 border-t border-ink-100">
                 <QuantityField presets={QTY_PRESETS} value={quantity} onChange={setQuantity} min={MIN_QTY} step={10} />

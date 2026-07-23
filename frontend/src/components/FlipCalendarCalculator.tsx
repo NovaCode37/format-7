@@ -90,13 +90,13 @@ export default function FlipCalendarCalculator({ serviceId }: { serviceId?: numb
                   </span>
                   <div>
                     <p className="font-heading text-base font-bold text-ink-900">{uploadedFile ? "Макет загружен" : "Загрузить ваш макет"}</p>
-                    <p className="text-[12px] text-ink-500">PDF, AI, CDR, PSD, TIFF</p>
+                    <p className="text-[12px] text-ink-500">PDF, CDR</p>
                   </div>
                 </div>
                 {uploadedFile && <p className="mt-2 text-[12px] text-emerald-700 break-all">{uploadedFile.name}</p>}
                 <p className="mt-3 text-[11px] text-ink-500">Обложка, подложка и 12 листов блока.</p>
               </button>
-              <input ref={fileInputRef} type="file" hidden accept=".pdf,.jpg,.jpeg,.png,.ai,.cdr,.eps,.tiff,.psd" onChange={(e) => handleUpload(e.target.files)} />
+              <input ref={fileInputRef} type="file" hidden accept=".pdf,.cdr" onChange={(e) => handleUpload(e.target.files)} />
 
               <div className="rounded-xl border border-ink-200 bg-ink-50 p-4 text-[12px] text-ink-600 space-y-2">
                 <p className="flex items-start gap-2"><Info size={13} className="mt-0.5 shrink-0" /> Скрепление на металлическую белую пружину + ригель для подвеса.</p>

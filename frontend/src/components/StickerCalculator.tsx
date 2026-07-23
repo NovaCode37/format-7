@@ -149,7 +149,7 @@ export default function StickerCalculator({ serviceId }: { serviceId?: number })
                         <p className="font-heading text-base font-bold text-ink-900">
                           {uploadedFile ? "Макет загружен" : "Загрузить ваш макет"}
                         </p>
-                        <p className="text-[12px] text-ink-500">PDF, AI, CDR, PSD, TIFF, PNG</p>
+                        <p className="text-[12px] text-ink-500">PDF, CDR</p>
                       </div>
                     </div>
                     {uploadedFile && <p className="mt-2 text-[12px] text-emerald-700 break-all">{uploadedFile.name}</p>}
@@ -159,7 +159,7 @@ export default function StickerCalculator({ serviceId }: { serviceId?: number })
                     ref={fileInputRef}
                     type="file"
                     hidden
-                    accept=".pdf,.jpg,.jpeg,.png,.ai,.cdr,.eps,.tiff,.psd"
+                    accept=".pdf,.cdr"
                     onChange={(e) => handleUpload(e.target.files)}
                   />
                 </>
