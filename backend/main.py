@@ -1679,11 +1679,11 @@ def admin_reset_revenue(
 
 _IMAGE_EXT = {
     "image/jpeg": "jpg", "image/jpg": "jpg", "image/png": "png",
-    "image/webp": "webp", "image/gif": "gif", "image/svg+xml": "svg",
+    "image/webp": "webp", "image/gif": "gif",
 }
 _IMAGE_MEDIA = {
     "jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png",
-    "webp": "image/webp", "gif": "image/gif", "svg": "image/svg+xml",
+    "webp": "image/webp", "gif": "image/gif",
 }
 
 @app.post("/api/admin/upload-image")
@@ -1691,7 +1691,7 @@ async def admin_upload_image(file: UploadFile = File(...), _: User = Depends(req
     ct = (file.content_type or "").lower()
     ext = _IMAGE_EXT.get(ct)
     if not ext:
-        raise HTTPException(status_code=400, detail="Только изображения: JPG, PNG, WEBP, GIF, SVG")
+        raise HTTPException(status_code=400, detail="Только изображения: JPG, PNG, WEBP, GIF")
     data = await file.read()
     if len(data) > 8 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Файл больше 8 МБ")
@@ -1723,7 +1723,11 @@ def serve_image(name: str):
             except Exception:
                 pass
 
-    return StreamingResponse(_iter(), media_type=media, headers={"Cache-Control": "public, max-age=86400"})
+    return StreamingResponse(
+        _iter(),
+        media_type=media,
+        headers={"Cache-Control": "public, max-age=86400", "X-Content-Type-Options": "nosniff"},
+    )
 
 @app.get("/api/admin/categories", response_model=list[CategoryOut])
 def admin_list_categories(_: User = Depends(require_admin), db: Session = Depends(get_db)):

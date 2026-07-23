@@ -228,16 +228,16 @@ def _notify_new_order_impl(order) -> None:
 
     tg = (
         f"<b>🧾 Новый заказ {order.order_number}</b>\n"
-        f"Клиент: {order.customer_name}\n"
-        f"Email: {order.customer_email}\n"
-        f"Телефон: {order.customer_phone or '—'}\n"
-        f"Доставка: {_delivery_ru(order.delivery_type)}"
-        + (f" — {order.delivery_address}" if order.delivery_address else "")
+        f"Клиент: {_e(order.customer_name)}\n"
+        f"Email: {_e(order.customer_email)}\n"
+        f"Телефон: {_e(order.customer_phone) or '—'}\n"
+        f"Доставка: {_e(_delivery_ru(order.delivery_type))}"
+        + (f" — {_e(order.delivery_address)}" if order.delivery_address else "")
         + f"\nСумма: <b>{order.total:.2f} ₽</b>\n\n"
-        f"<i>Состав:</i>\n{_fmt_order_lines(order)}"
+        f"<i>Состав:</i>\n{_e(_fmt_order_lines(order))}"
     )
     if order.comment:
-        tg += f"\n\nКомментарий: {order.comment}"
+        tg += f"\n\nКомментарий: {_e(order.comment)}"
     send_telegram(tg)
 
     site = os.environ.get("PUBLIC_SITE_URL", "").rstrip("/")
@@ -349,7 +349,7 @@ def _push_to_order_user(order, title: str, body: str) -> None:
 def notify_order_paid(order) -> None:
     send_telegram(
         f"💰 <b>Оплачен {order.order_number}</b> — {order.total:.2f} ₽\n"
-        f"Клиент: {order.customer_name} ({order.customer_email})"
+        f"Клиент: {_e(order.customer_name)} ({_e(order.customer_email)})"
     )
     _push_to_order_user(
         order,
@@ -401,7 +401,7 @@ def notify_email_verification(user, verify_url: str) -> None:
 def notify_refund(order, amount: float) -> None:
     send_telegram(
         f"↩️ <b>Возврат {amount:.2f} ₽</b> по заказу {order.order_number}\n"
-        f"Клиент: {order.customer_name} ({order.customer_email})"
+        f"Клиент: {_e(order.customer_name)} ({_e(order.customer_email)})"
     )
     plain = (
         f"Здравствуйте, {order.customer_name}!\n\n"
