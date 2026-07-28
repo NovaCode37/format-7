@@ -274,7 +274,11 @@ function NumberInput({
       type="number"
       value={value}
       onChange={(e) => onChange(Number(e.target.value))}
-      className={`input h-9 tabular text-right ${className}`}
+      className={`h-9 px-1.5 bg-white border border-ink-200 rounded-lg text-sm text-ink-900
+        outline-none transition-colors duration-150 focus:border-brand
+        tabular text-right [appearance:textfield]
+        [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
+        ${className}`}
     />
   );
 }
@@ -295,7 +299,7 @@ function LeafGroupGrid({
           <span className="tabular whitespace-nowrap">
             {isTiers ? `${STICKER_SHEET_TIERS[Number(k)] ?? k} шт` : keyLabel(k)}
           </span>
-          <NumberInput value={v} onChange={(n) => onChange([...path, k], n)} className="w-20" />
+          <NumberInput value={v} onChange={(n) => onChange([...path, k], n)} className="w-24" />
         </label>
       ))}
     </div>
@@ -315,7 +319,7 @@ function NumberArrayGrid({
       {value.map((v, i) => (
         <label key={i} className="flex flex-col gap-1 text-[11px] text-ink-500 bg-ink-50/60 rounded-md px-2 py-1.5">
           <span className="tabular whitespace-nowrap">{labels[i]}</span>
-          <NumberInput value={v} onChange={(n) => onChange([...path, i], n)} className="w-16" />
+          <NumberInput value={v} onChange={(n) => onChange([...path, i], n)} className="w-20" />
         </label>
       ))}
     </div>
@@ -359,7 +363,7 @@ function TableGroup({
                     <NumberInput
                       value={value[rk][ck]}
                       onChange={(n) => onChange([...path, rk, ck], n)}
-                      className="w-16"
+                      className="w-20"
                     />
                   ) : (
                     <span className="block text-center text-ink-300">—</span>
@@ -423,7 +427,7 @@ function ObjectArrayTable({
                 const v = c.sub !== undefined ? item[c.key][c.sub] : item[c.key];
                 return (
                   <td key={i} className="py-1.5 px-1">
-                    <NumberInput value={v} onChange={(n) => onChange(itemPath, n)} className="w-16" />
+                    <NumberInput value={v} onChange={(n) => onChange(itemPath, n)} className="w-20" />
                   </td>
                 );
               })}
