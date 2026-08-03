@@ -126,7 +126,7 @@ export default function LeafletCalculator({ serviceId }: { serviceId?: number })
                       </div>
                     </div>
                     {uploadedFile && <p className="mt-2 text-[12px] text-emerald-700 break-all">{uploadedFile.name}</p>}
-                    <p className="mt-3 text-[11px] text-ink-500">Печать на бумаге плотностью 170 г/м² (матовая или глянцевая). Размер изделия может отличаться от стандарта на ±2 мм.</p>
+                    <p className="mt-3 text-[11px] text-ink-500">Печать на бумаге плотностью 120 г/м² (матовая или глянцевая). Размер изделия может отличаться от стандарта на ±2 мм.</p>
                   </button>
                   <input ref={fileInputRef} type="file" hidden accept=".pdf,.cdr" onChange={(e) => handleUpload(e.target.files)} />
                 </>
