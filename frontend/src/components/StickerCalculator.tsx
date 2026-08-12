@@ -211,7 +211,7 @@ export default function StickerCalculator({ serviceId }: { serviceId?: number })
                   presets={SHEET_PRESETS}
                   value={sheets}
                   onChange={setSheets}
-                  min={2}
+                  min={1}
                 />
                 <p className="mt-1.5 text-[12px] text-ink-700">
                   Итого: <strong className="text-ink-900">≈ {calc.stickerCount} наклеек</strong>.
