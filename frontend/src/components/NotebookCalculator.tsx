@@ -5,7 +5,7 @@ import { Upload, FileCheck2, Truck, Package, Palette, Info } from "@/lib/icons";
 import {
   PillsField, QuantityField, TrackCard, BreakdownRow, CheckoutModal, DesignBriefCard,
   DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
-  fmt, useResolvedServiceId, useUpload, usePricing,
+  fmt, tierValue, useResolvedServiceId, useUpload, usePricing,
 } from "./calc/kit";
 import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
@@ -20,7 +20,23 @@ type Track = "upload" | "design";
 const NOTEBOOK_SLUGS = ["блокноты", "блокнот"];
 
 const NOTEBOOK_PRICING = PRICING_DEFAULTS["блокноты"].data;
-const QTY_PRESETS = [1, 10, 25, 50, 100];
+const QTY_PRESETS = [10, 20, 30, 50, 100];
+
+const QTY_TIERS_BY_FORMAT: Record<Format, readonly number[]> = {
+  "А6 (105×148 мм)": [4, 10, 20, 30, 50, 100],
+  "А5 (148×210 мм)": [2, 10, 20, 30, 50, 100],
+  "А4 (210×297 мм)": [1, 10, 20, 30, 50, 100],
+};
+
+function blockModeKey(color: BlockColor, sides: Sides): string {
+  if (color === "Без печати") return "Без печати";
+  const isColor = color === "Цветная";
+  const isDouble = sides === "Двусторонняя";
+  if (isColor && isDouble) return "4:4";
+  if (isColor && !isDouble) return "4:0";
+  if (!isColor && isDouble) return "1:1";
+  return "1:0";
+}
 
 export default function NotebookCalculator({ serviceId }: { serviceId?: number }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -43,7 +59,11 @@ export default function NotebookCalculator({ serviceId }: { serviceId?: number }
   const pricing = usePricing("блокноты", NOTEBOOK_PRICING);
 
   const calc = useMemo(() => {
-    const printUnit = (pricing.price as any)[format][blockColor];
+    const coverKey = coverSides === "Двусторонняя" ? "4:4" : "4:0";
+    const sheetsKey = sheets === "50 листов" ? "50" : "30";
+    const blockKey = blockModeKey(blockColor, blockSides);
+    const table = (pricing.price as any)[format][coverKey][sheetsKey][blockKey];
+    const printUnit = tierValue(QTY_TIERS_BY_FORMAT[format], table, quantity);
     const printTotal = printUnit * quantity;
     const lamUnit = (pricing.lamination as any)[format];
     const lamTotal = lamination === "Да" ? lamUnit * quantity : 0;
@@ -51,7 +71,7 @@ export default function NotebookCalculator({ serviceId }: { serviceId?: number }
     const deliveryTotal = DELIVERY_PRICE[delivery];
     const grandTotal = printTotal + lamTotal + designTotal + deliveryTotal;
     return { printUnit, printTotal, lamUnit, lamTotal, designTotal, deliveryTotal, grandTotal };
-  }, [format, blockColor, quantity, lamination, track, delivery, pricing]);
+  }, [format, coverSides, sheets, blockColor, blockSides, quantity, lamination, track, delivery, pricing]);
 
   const orderSummary = {
     productLabel: `Блокнот ${format}, блок ${blockColor.toLowerCase()}`,
@@ -133,8 +153,8 @@ export default function NotebookCalculator({ serviceId }: { serviceId?: number }
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
               <PillsField label="Формат блокнота" values={["А6 (105×148 мм)", "А5 (148×210 мм)", "А4 (210×297 мм)"]} value={format} onChange={(v) => setFormat(v as Format)} />
               <PillsField label="Цветность блока" values={["Без печати", "Чёрно-белая", "Цветная"]} value={blockColor} onChange={(v) => setBlockColor(v as BlockColor)} />
-              <PillsField label="Стороны печати обложки и подложки" values={["Двусторонняя", "Односторонняя"]} value={coverSides} onChange={(v) => setCoverSides(v as Sides)} hint="на цену не влияет" />
-              <PillsField label="Стороны печати блока" values={["Двусторонняя", "Односторонняя"]} value={blockSides} onChange={(v) => setBlockSides(v as Sides)} hint="на цену не влияет" />
+              <PillsField label="Стороны печати обложки и подложки" values={["Двусторонняя", "Односторонняя"]} value={coverSides} onChange={(v) => setCoverSides(v as Sides)} />
+              <PillsField label="Стороны печати блока" values={["Двусторонняя", "Односторонняя"]} value={blockSides} onChange={(v) => setBlockSides(v as Sides)} hint={blockColor === "Без печати" ? "на цену не влияет" : undefined} />
               <PillsField label="Количество листов" values={["30 листов", "50 листов"]} value={sheets} onChange={(v) => setSheets(v as Sheets)} />
               <PillsField label="Ориентация скругления" values={["По вертикали", "По горизонтали"]} value={orientation} onChange={(v) => setOrientation(v as Orientation)} hint="на цену не влияет" />
 

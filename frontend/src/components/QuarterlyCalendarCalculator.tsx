@@ -5,7 +5,7 @@ import { Upload, FileCheck2, Truck, Package, Palette, Info } from "@/lib/icons";
 import {
   PillsField, QuantityField, TrackCard, BreakdownRow, CheckoutModal, DesignBriefCard,
   DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
-  fmt, useResolvedServiceId, useUpload, usePricing,
+  fmt, tierValue, useResolvedServiceId, useUpload, usePricing,
 } from "./calc/kit";
 import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
@@ -19,7 +19,8 @@ type Track = "upload" | "design";
 const QUARTERLY_SLUGS = ["квартальный-календарь", "квартальные-календари", "календари"];
 
 const QUARTERLY_PRICING = PRICING_DEFAULTS["квартальный-календарь"].data;
-const QTY_PRESETS = [1, 5, 10, 25, 50];
+const QTY_TIERS = [10, 20, 50, 100] as const;
+const QTY_PRESETS = [10, 20, 50, 100];
 
 export default function QuarterlyCalendarCalculator({ serviceId }: { serviceId?: number }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -41,7 +42,7 @@ export default function QuarterlyCalendarCalculator({ serviceId }: { serviceId?:
   const pricing = usePricing("квартальный-календарь", QUARTERLY_PRICING);
 
   const calc = useMemo(() => {
-    const printUnit = (pricing.price as any)[adField];
+    const printUnit = tierValue(QTY_TIERS, (pricing.price as any)[adField], quantity);
     const printTotal = printUnit * quantity;
     const lamPosterTotal = lamPoster === "Да" ? pricing.lamPoster * quantity : 0;
     const lamBlockTotal = lamBlock === "Да" ? pricing.lamBlock * quantity : 0;
