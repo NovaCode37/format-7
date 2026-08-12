@@ -17,7 +17,9 @@ type Sides = "Односторонняя" | "Двусторонняя";
 type Density = "80" | "120" | "160" | "200" | "250" | "300";
 type Binding = "Без брошюровки" | "Пластиковая пружина" | "Металлическая пружина";
 type Lamination = "Нет" | "Да";
-type Packaging = "Без упаковки" | "Конверт E65 (110×220)" | "Конверт C5 (162×229)" | "Конверт C4 (229×324)";
+type Packaging = "Без упаковки" | "Файл А4" | "Конверт E65 (110×220)" | "Конверт C5 (162×229)" | "Конверт C4 (229×324)";
+
+const PACKAGING_PER_SHEET: Packaging[] = ["Файл А4"];
 type Orientation = "По вертикали" | "По горизонтали";
 type Delivery = "Самовывоз" | "Доставка по Тюмени" | "СДЭК (наложенный платёж)";
 
@@ -116,7 +118,8 @@ export default function CopyPrintCalculator({ serviceId }: { serviceId?: number 
     const laminationTotal =
       lamination === "Нет" ? 0 : Math.round(laminationUnit * laminationSheets);
 
-    const packagingTotal = (pricing.packaging as any)[packaging] || 0;
+    const packagingUnit = (pricing.packaging as any)[packaging] || 0;
+    const packagingTotal = PACKAGING_PER_SHEET.includes(packaging) ? packagingUnit * quantity : packagingUnit;
 
     const deliveryTotal = DELIVERY_PRICE[delivery];
 
@@ -129,6 +132,7 @@ export default function CopyPrintCalculator({ serviceId }: { serviceId?: number 
       bindingTotal,
       laminationUnit: Math.round(laminationUnit),
       laminationTotal,
+      packagingUnit,
       packagingTotal,
       deliveryTotal,
       grandTotal,
@@ -339,10 +343,16 @@ export default function CopyPrintCalculator({ serviceId }: { serviceId?: number 
               <div className="pt-4 border-t border-ink-100">
                 <PillsField
                   label="Упаковка"
-                  values={["Без упаковки", "Конверт E65 (110×220)", "Конверт C5 (162×229)", "Конверт C4 (229×324)"]}
+                  values={["Без упаковки", "Файл А4", "Конверт E65 (110×220)", "Конверт C5 (162×229)", "Конверт C4 (229×324)"]}
                   value={packaging}
                   onChange={(v) => setPackaging(v as Packaging)}
-                  hint={(pricing.packaging as any)[packaging] ? `+${(pricing.packaging as any)[packaging]} ₽` : undefined}
+                  hint={
+                    (pricing.packaging as any)[packaging]
+                      ? PACKAGING_PER_SHEET.includes(packaging)
+                        ? `+${(pricing.packaging as any)[packaging]} ₽/шт`
+                        : `+${(pricing.packaging as any)[packaging]} ₽`
+                      : undefined
+                  }
                 />
               </div>
 
@@ -415,6 +425,7 @@ export default function CopyPrintCalculator({ serviceId }: { serviceId?: number 
                 {packaging !== "Без упаковки" && (
                   <BreakdownRow
                     label="Упаковка"
+                    hint={PACKAGING_PER_SHEET.includes(packaging) ? `${quantity} × ${fmt(calc.packagingUnit)} ₽` : undefined}
                     value={`${fmt(calc.packagingTotal)} ₽`}
                   />
                 )}
