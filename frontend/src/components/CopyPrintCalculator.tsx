@@ -17,6 +17,7 @@ type Sides = "Односторонняя" | "Двусторонняя";
 type Density = "80" | "120" | "160" | "200" | "250" | "300";
 type Binding = "Без брошюровки" | "Пластиковая пружина" | "Металлическая пружина";
 type Lamination = "Нет" | "Да";
+type Packaging = "Без упаковки" | "Конверт E65 (110×220)" | "Конверт C5 (162×229)" | "Конверт C4 (229×324)";
 type Orientation = "По вертикали" | "По горизонтали";
 type Delivery = "Самовывоз" | "Доставка по Тюмени" | "СДЭК (наложенный платёж)";
 
@@ -68,6 +69,7 @@ export default function CopyPrintCalculator({ serviceId }: { serviceId?: number 
   const [bindingCopies, setBindingCopies] = useState(1);
   const [lamination, setLamination] = useState<Lamination>("Нет");
   const [laminationSheets, setLaminationSheets] = useState(0);
+  const [packaging, setPackaging] = useState<Packaging>("Без упаковки");
   const [orientation, setOrientation] = useState<Orientation>("По вертикали");
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
 
@@ -114,9 +116,11 @@ export default function CopyPrintCalculator({ serviceId }: { serviceId?: number 
     const laminationTotal =
       lamination === "Нет" ? 0 : Math.round(laminationUnit * laminationSheets);
 
+    const packagingTotal = (pricing.packaging as any)[packaging] || 0;
+
     const deliveryTotal = DELIVERY_PRICE[delivery];
 
-    const grandTotal = Math.round(printTotal + bindingTotal + laminationTotal + deliveryTotal);
+    const grandTotal = Math.round(printTotal + bindingTotal + laminationTotal + packagingTotal + deliveryTotal);
 
     return {
       pagePrice,
@@ -125,10 +129,11 @@ export default function CopyPrintCalculator({ serviceId }: { serviceId?: number 
       bindingTotal,
       laminationUnit: Math.round(laminationUnit),
       laminationTotal,
+      packagingTotal,
       deliveryTotal,
       grandTotal,
     };
-  }, [format, color, sides, density, quantity, binding, bindingCopies, lamination, laminationSheets, delivery, pricing]);
+  }, [format, color, sides, density, quantity, binding, bindingCopies, lamination, laminationSheets, packaging, delivery, pricing]);
 
   const fmt = (n: number) => n.toLocaleString("ru-RU");
 
@@ -152,6 +157,7 @@ export default function CopyPrintCalculator({ serviceId }: { serviceId?: number 
       `${format} · ${color} · ${sides} · ${density} г/м² · ${quantity} стр.`,
       binding !== "Без брошюровки" ? `Брошюровка: ${binding} ×${bindingCopies}` : null,
       lamination !== "Нет" ? `Ламинация: ${lamination} ×${laminationSheets}` : null,
+      packaging !== "Без упаковки" ? `Упаковка: ${packaging}` : null,
       `Доставка: ${delivery}`,
     ].filter(Boolean) as string[],
     options: {
@@ -162,6 +168,7 @@ export default function CopyPrintCalculator({ serviceId }: { serviceId?: number 
       Ориентация: orientation,
       Брошюровка: binding !== "Без брошюровки" ? `${binding} ×${bindingCopies}` : "Нет",
       Ламинация: lamination !== "Нет" ? `${lamination} ×${laminationSheets}` : "Нет",
+      Упаковка: packaging,
       Страниц: quantity,
       Файл: uploadedFile?.name || "—",
     },
@@ -331,6 +338,16 @@ export default function CopyPrintCalculator({ serviceId }: { serviceId?: number 
 
               <div className="pt-4 border-t border-ink-100">
                 <PillsField
+                  label="Упаковка"
+                  values={["Без упаковки", "Конверт E65 (110×220)", "Конверт C5 (162×229)", "Конверт C4 (229×324)"]}
+                  value={packaging}
+                  onChange={(v) => setPackaging(v as Packaging)}
+                  hint={(pricing.packaging as any)[packaging] ? `+${(pricing.packaging as any)[packaging]} ₽` : undefined}
+                />
+              </div>
+
+              <div className="pt-4 border-t border-ink-100">
+                <PillsField
                   label="Доставка"
                   values={["Самовывоз", "Доставка по Тюмени", "СДЭК (наложенный платёж)"]}
                   value={delivery}
@@ -393,6 +410,12 @@ export default function CopyPrintCalculator({ serviceId }: { serviceId?: number 
                     label="Ламинирование"
                     hint={`${laminationSheets} × ${fmt(calc.laminationUnit)} ₽`}
                     value={`${fmt(calc.laminationTotal)} ₽`}
+                  />
+                )}
+                {packaging !== "Без упаковки" && (
+                  <BreakdownRow
+                    label="Упаковка"
+                    value={`${fmt(calc.packagingTotal)} ₽`}
                   />
                 )}
                 <BreakdownRow
