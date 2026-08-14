@@ -15,8 +15,6 @@ type Paper = "Глянцевая" | "Матовая";
 type Packaging = "Без упаковки" | "Файл А4" | "Конверт E65 (110×220)" | "Конверт C5 (162×229)" | "Конверт C4 (229×324)";
 type YesNo = "Да" | "Нет";
 
-const PACKAGING_PER_SHEET: Packaging[] = ["Файл А4"];
-
 const PHOTO_SLUGS = ["печать-фотографий", "печать-фото", "фотопечать"];
 
 const PHOTO_PRICING = PRICING_DEFAULTS["печать-фотографий"].data;
@@ -44,14 +42,13 @@ export default function PhotoCalculator({ serviceId }: { serviceId?: number }) {
     const printTotal = printUnit * quantity;
     const lamUnit = (pricing.lamination as any)[size];
     const lamTotal = lamination === "Да" ? lamUnit * quantity : 0;
-    const packUnit = (pricing.packaging as any)[packaging] || 0;
-    const packTotal = PACKAGING_PER_SHEET.includes(packaging) ? packUnit * quantity : packUnit;
+    const packTotal = (pricing.packaging as any)[packaging] || 0;
     const handTotal = handWork === "Да" ? pricing.hand : 0;
     const subtotal = printTotal + lamTotal + packTotal + handTotal;
     const minSurcharge = subtotal < pricing.minOrder ? pricing.minOrder - subtotal : 0;
     const deliveryTotal = DELIVERY_PRICE[delivery];
     const grandTotal = subtotal + minSurcharge + deliveryTotal;
-    return { printUnit, printTotal, lamUnit, lamTotal, packUnit, packTotal, handTotal, subtotal, minSurcharge, deliveryTotal, grandTotal };
+    return { printUnit, printTotal, lamUnit, lamTotal, packTotal, handTotal, subtotal, minSurcharge, deliveryTotal, grandTotal };
   }, [size, quantity, lamination, packaging, handWork, delivery, pricing]);
 
   const orderSummary = {
@@ -135,13 +132,7 @@ export default function PhotoCalculator({ serviceId }: { serviceId?: number }) {
                   values={["Без упаковки", "Файл А4", "Конверт E65 (110×220)", "Конверт C5 (162×229)", "Конверт C4 (229×324)"]}
                   value={packaging}
                   onChange={(v) => setPackaging(v as Packaging)}
-                  hint={
-                    (pricing.packaging as any)[packaging]
-                      ? PACKAGING_PER_SHEET.includes(packaging)
-                        ? `+${(pricing.packaging as any)[packaging]} ₽/фото`
-                        : `+${(pricing.packaging as any)[packaging]} ₽`
-                      : undefined
-                  }
+                  hint={(pricing.packaging as any)[packaging] ? `+${(pricing.packaging as any)[packaging]} ₽` : undefined}
                 />
               </div>
               <div className="pt-4 border-t border-ink-100">
@@ -165,13 +156,7 @@ export default function PhotoCalculator({ serviceId }: { serviceId?: number }) {
                 <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500 mb-3">Расчёт стоимости</p>
                 <BreakdownRow label="Печать" hint={`${quantity} × ${fmt(calc.printUnit)} ₽`} value={`${fmt(calc.printTotal)} ₽`} />
                 {calc.lamTotal > 0 && <BreakdownRow label="Ламинирование" hint={`${quantity} × ${calc.lamUnit} ₽`} value={`${fmt(calc.lamTotal)} ₽`} />}
-                {calc.packTotal > 0 && (
-                  <BreakdownRow
-                    label="Упаковка"
-                    hint={PACKAGING_PER_SHEET.includes(packaging) ? `${quantity} × ${fmt(calc.packUnit)} ₽` : undefined}
-                    value={`${fmt(calc.packTotal)} ₽`}
-                  />
-                )}
+                {calc.packTotal > 0 && <BreakdownRow label="Упаковка" value={`${fmt(calc.packTotal)} ₽`} />}
                 {calc.handTotal > 0 && <BreakdownRow label="Ручная обработка" value={`${fmt(calc.handTotal)} ₽`} />}
                 {calc.minSurcharge > 0 && <BreakdownRow label="До минимального заказа" hint={`мин. ${pricing.minOrder} ₽`} value={`${fmt(calc.minSurcharge)} ₽`} />}
                 <BreakdownRow label="Доставка" hint={delivery === "СДЭК (наложенный платёж)" ? "оплачивает получатель" : undefined} value={calc.deliveryTotal ? `${fmt(calc.deliveryTotal)} ₽` : "—"} />

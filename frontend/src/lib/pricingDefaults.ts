@@ -418,10 +418,8 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
       lamination: 50,
       packaging: {
         "Без упаковки": 0,
-        "Файл А4": 10,
-        "Конверт E65 (110×220)": 30,
-        "Конверт C5 (162×229)": 40,
-        "Конверт C4 (229×324)": 45,
+        "Файл": 10,
+        "Конверт": 45,
       },
     },
   },
