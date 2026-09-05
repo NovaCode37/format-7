@@ -287,6 +287,41 @@ def _notify_new_order_impl(order) -> None:
             attachments=attachments or None,
         )
 
+    send_crm_order(order)
+
+@retry(**_RETRY)
+def _crm_post(url: str, key: str, payload: dict) -> None:
+    with httpx.Client(timeout=5.0) as client:
+        resp = client.post(url, json=payload, headers={"X-Api-Key": key})
+        if resp.status_code >= 500:
+            raise httpx.HTTPError(f"crm 5xx: {resp.status_code}")
+        if resp.status_code >= 400:
+            log.warning("crm webhook %s: %s", resp.status_code, resp.text[:200])
+
+def send_crm_order(order) -> None:
+
+    url = (os.environ.get("CRM_WEBHOOK_URL") or "").strip()
+    key = (os.environ.get("CRM_WEBHOOK_KEY") or "").strip()
+    if not url or not key:
+        return
+    description = f"Заказ с сайта {order.order_number}\n{_fmt_order_lines(order)}"
+    if order.delivery_type == "delivery" and order.delivery_address:
+        description += f"\nДоставка: {order.delivery_address}"
+    if order.comment:
+        description += f"\nКомментарий клиента: {order.comment}"
+    payload = {
+        "external_id": order.order_number,
+        "customer_name": order.customer_name or "Клиент с сайта",
+        "customer_phone": order.customer_phone or "",
+        "customer_email": order.customer_email or None,
+        "description": description[:2000],
+        "amount": float(order.total or 0),
+    }
+    try:
+        _crm_post(url, key, payload)
+    except Exception as e:
+        log.warning("crm permanent failure for %s: %s", order.order_number, e)
+
 def _order_attachments(order) -> tuple[list[tuple[str, bytes, str]], str]:
 
     files = list(getattr(order, "files", None) or [])

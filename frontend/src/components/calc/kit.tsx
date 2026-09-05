@@ -314,12 +314,13 @@ export type UploadedFile = { name: string; id: number | null } | null;
 
 export function useUpload() {
   const toast = useToast();
+  const { token } = useAuth();
   const [uploadedFile, setUploadedFile] = useState<UploadedFile>(null);
   const handleUpload = async (files: FileList | null) => {
     if (!files || !files.length) return;
     const f = files[0];
     try {
-      const up = await api.uploadFile(f);
+      const up = await api.uploadFile(f, token || undefined);
       setUploadedFile({ name: up.original_name, id: up.id });
       toast.success(`Макет «${up.original_name}» загружен`);
     } catch {

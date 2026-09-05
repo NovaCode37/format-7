@@ -10,14 +10,14 @@ from sqlalchemy.orm import Session
 from database import SessionLocal
 from models import AuthToken, IdempotencyRecord, Order
 from notifications import notify_order_paid
-from payments import PaymentError, get_yookassa_client
+from payments import PaymentError, get_tbank_client
 
 log = logging.getLogger("scheduler")
 _scheduler: AsyncIOScheduler | None = None
 
 def _reconcile_payments() -> None:
 
-    client = get_yookassa_client()
+    client = get_tbank_client()
     if client is None:
         return
     db: Session = SessionLocal()
@@ -27,7 +27,7 @@ def _reconcile_payments() -> None:
         stale = (
             db.query(Order)
             .filter(
-                Order.payment_provider == "yookassa",
+                Order.payment_provider == "tbank",
                 Order.payment_status == "pending",
                 Order.provider_payment_id != "",
                 Order.created_at < cutoff_old,
@@ -38,14 +38,14 @@ def _reconcile_payments() -> None:
         )
         for order in stale:
             try:
-                payment = client.get_payment(order.provider_payment_id)
+                state = client.get_state(order.provider_payment_id)
             except PaymentError as e:
                 log.warning("reconcile: %s %s", order.order_number, e)
                 continue
-            status = payment.get("status")
-            if status == "succeeded":
-                paid = float((payment.get("amount") or {}).get("value", "0") or 0)
-                if abs(paid - float(order.total or 0)) > 0.01:
+            status = state.get("Status")
+            if status == client.PAID_STATUS:
+                amount = state.get("Amount")
+                if amount is not None and abs(int(amount) - int(round(float(order.total or 0) * 100))) > 1:
                     log.warning("reconcile: amount mismatch on %s", order.order_number)
                     continue
                 order.payment_status = "paid"
@@ -56,7 +56,7 @@ def _reconcile_payments() -> None:
                 db.refresh(order)
                 notify_order_paid(order)
                 log.info("reconcile: recovered payment for %s", order.order_number)
-            elif status in ("canceled", "failed"):
+            elif status in client.FAILED_STATUSES:
                 order.payment_status = "failed"
                 db.commit()
     except Exception as e:

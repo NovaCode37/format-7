@@ -7,14 +7,10 @@ from collections import deque
 
 from fastapi import HTTPException, Request
 
+from client_ip import get_client_ip
+
 _buckets: dict[str, deque] = {}
 _lock = threading.Lock()
-
-def _get_client_ip(request: Request) -> str:
-    fwd = request.headers.get("x-forwarded-for")
-    if fwd:
-        return fwd.split(",")[0].strip()
-    return request.client.host if request.client else "unknown"
 
 def _memory_check(bucket_key: str, limit: int, window: int) -> tuple[bool, int]:
 
@@ -72,7 +68,7 @@ def rate_limit(request: Request, *, key: str, limit: int, window: int) -> None:
         return
 
     _init_redis()
-    ip = _get_client_ip(request)
+    ip = get_client_ip(request) or "unknown"
     bucket_key = f"rl:{key}:{ip}:{window}"
 
     if _redis is not None:

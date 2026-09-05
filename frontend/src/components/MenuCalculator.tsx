@@ -7,8 +7,7 @@ import {
   CheckCircle2, Phone, Info, Palette,
 } from "@/lib/icons";
 import { api } from "@/lib/api";
-import { useToast } from "./Toast";
-import { CheckoutModal, usePricing } from "./calc/kit";
+import { CheckoutModal, usePricing, useUpload } from "./calc/kit";
 import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type Material = "Бумага 300 г/м²" | "Бумага 250 г/м²" | "Пластик";
@@ -37,7 +36,6 @@ const QTY_PRESETS = [10, 50, 100];
 const SHEET_PRESETS = [1, 2, 3, 4, 5, 6, 8, 10, 12];
 
 export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
-  const toast = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [material, setMaterial] = useState<Material>("Бумага 300 г/м²");
@@ -55,7 +53,7 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
   const [needDesign, setNeedDesign] = useState<YesNo>("Нет");
 
-  const [uploadedFile, setUploadedFile] = useState<{ name: string; id: number | null } | null>(null);
+  const { uploadedFile, handleUpload } = useUpload();
   const [resolvedServiceId, setResolvedServiceId] = useState<number | null>(serviceId ?? null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
@@ -112,18 +110,6 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
 
   const fmt = (n: number) => n.toLocaleString("ru-RU");
 
-  const handleUpload = async (files: FileList | null) => {
-    if (!files || !files.length) return;
-    const f = files[0];
-    try {
-      const up = await api.uploadFile(f);
-      setUploadedFile({ name: up.original_name, id: up.id });
-      toast.success(`Макет «${up.original_name}» загружен`);
-    } catch {
-      setUploadedFile({ name: f.name, id: null });
-      toast.success(`Макет «${f.name}» принят (будет передан менеджеру)`);
-    }
-  };
 
   const orderSummary = {
     productLabel: "Меню для кафе",

@@ -21,12 +21,17 @@ def _extract_key(request: Request) -> str | None:
         raise HTTPException(status_code=400, detail="Invalid Idempotency-Key")
     return key
 
-def check(db: Session, request: Request, *, scope: str) -> dict | None:
+def check(db: Session, request: Request, *, scope: str, user_id: int | None = None) -> dict | None:
 
     key = _extract_key(request)
     if not key:
         return None
-    rec = db.query(IdempotencyRecord).filter(IdempotencyRecord.key == key, IdempotencyRecord.scope == scope).first()
+    q = db.query(IdempotencyRecord).filter(IdempotencyRecord.key == key, IdempotencyRecord.scope == scope)
+    if user_id is None:
+        q = q.filter(IdempotencyRecord.user_id.is_(None))
+    else:
+        q = q.filter(IdempotencyRecord.user_id == user_id)
+    rec = q.first()
     if rec is None:
         return None
     try:

@@ -94,37 +94,37 @@ def test_health_endpoint(client):
     assert r.status_code == 200
     assert r.json()["status"] == "ok"
 
-def test_pay_init_yookassa_is_idempotent(client, monkeypatch):
+def test_pay_init_tbank_reuses_pending_payment(client, monkeypatch):
     sid = _seed_service(client)
     created = client.post("/api/orders", json=_mk_order_payload(sid)).json()
     num = created["order_number"]
     pt = created["payment_token"]
 
-    class FakeYK:
+    class FakeTB:
+        PAID_STATUS = "CONFIRMED"
+        PENDING_STATUSES = {"NEW"}
+        FAILED_STATUSES = {"REJECTED"}
+
         def __init__(self):
-            self.created = 0
+            self.inited = 0
 
-        def create_payment(self, **kwargs):
-            self.created += 1
-            return {
-                "id": "pay_1",
-                "confirmation": {"confirmation_url": "https://pay.test/confirm"},
-            }
+        def init(self, **kwargs):
+            self.inited += 1
+            return {"Success": True, "PaymentId": "pay_1", "PaymentURL": "https://pay.test/form"}
 
-        def get_payment(self, payment_id):
+        def get_state(self, payment_id):
             assert payment_id == "pay_1"
-            return {
-                "id": payment_id,
-                "status": "pending",
-                "confirmation": {"confirmation_url": "https://pay.test/confirm"},
-            }
+            return {"Success": True, "Status": "NEW"}
 
-    yk = FakeYK()
+        def get_qr(self, payment_id, data_type="PAYLOAD"):
+            return "qr-payload"
+
+    tb = FakeTB()
 
     import main
 
-    monkeypatch.setenv("PAYMENT_PROVIDER", "yookassa")
-    monkeypatch.setattr(main, "get_yookassa_client", lambda: yk)
+    monkeypatch.setenv("PAYMENT_PROVIDER", "tbank")
+    monkeypatch.setattr(main, "get_tbank_client", lambda: tb)
 
     r1 = client.post(f"/api/orders/{num}/pay/init", headers={"X-Payment-Token": pt})
     r2 = client.post(f"/api/orders/{num}/pay/init", headers={"X-Payment-Token": pt})
@@ -132,23 +132,26 @@ def test_pay_init_yookassa_is_idempotent(client, monkeypatch):
     assert r2.status_code == 200, r2.text
     assert r1.json()["provider_payment_id"] == "pay_1"
     assert r2.json()["provider_payment_id"] == "pay_1"
-    assert yk.created == 1
+    assert tb.inited == 1
 
-def test_yookassa_webhook_ignores_spoofed_forwarded_for(client, monkeypatch):
-    monkeypatch.setenv("APP_ENV", "production")
-    monkeypatch.setenv("TRUSTED_PROXY_CIDRS", "10.0.0.0/8")
+def test_tbank_webhook_rejects_bad_token(client, monkeypatch):
+    class FakeTB:
+        PAID_STATUS = "CONFIRMED"
+        FAILED_STATUSES = {"REJECTED"}
+
+        def verify_token(self, data):
+            return False
 
     import main
 
-    monkeypatch.setattr(main, "get_yookassa_client", lambda: object())
+    monkeypatch.setattr(main, "get_tbank_client", lambda: FakeTB())
     r = client.post(
-        "/api/payments/webhook/yookassa",
-        json={"object": {"id": "pay_spoofed"}},
-        headers={"X-Forwarded-For": "185.71.76.1"},
+        "/api/payments/webhook/tbank",
+        json={"OrderId": "F7-DEADBEEF", "Status": "CONFIRMED", "Token": "bad"},
     )
     assert r.status_code == 403
 
-def test_yookassa_webhook_marks_order_paid_when_amount_matches(client, monkeypatch):
+def test_tbank_webhook_marks_order_paid_when_amount_matches(client, monkeypatch):
     sid = _seed_service(client)
     created = client.post("/api/orders", json=_mk_order_payload(sid)).json()
     num = created["order_number"]
@@ -158,26 +161,25 @@ def test_yookassa_webhook_marks_order_paid_when_amount_matches(client, monkeypat
 
     db = SessionLocal()
     order = db.query(Order).filter(Order.order_number == num).first()
-    order.payment_provider = "yookassa"
+    order.payment_provider = "tbank"
     order.provider_payment_id = "pay_ok_1"
     db.commit()
     db.close()
 
-    class FakeYK:
-        def get_payment(self, payment_id):
-            return {"id": payment_id, "status": "succeeded", "amount": {"value": "1000.00"}}
+    class FakeTB:
+        PAID_STATUS = "CONFIRMED"
+        FAILED_STATUSES = {"REJECTED"}
+
+        def verify_token(self, data):
+            return True
 
     import main
 
-    monkeypatch.setenv("APP_ENV", "production")
-    monkeypatch.setenv("TRUSTED_PROXY_CIDRS", "127.0.0.1/32")
-    monkeypatch.setattr(main, "get_yookassa_client", lambda: FakeYK())
-    monkeypatch.setattr(main, "_get_forwarded_ip", lambda request: "185.71.76.1")
+    monkeypatch.setattr(main, "get_tbank_client", lambda: FakeTB())
 
     r = client.post(
-        "/api/payments/webhook/yookassa",
-        json={"object": {"id": "pay_ok_1"}},
-        headers={"X-Forwarded-For": "185.71.76.1"},
+        "/api/payments/webhook/tbank",
+        json={"OrderId": num, "Status": "CONFIRMED", "Amount": 100000, "Token": "ok"},
     )
     assert r.status_code == 200, r.text
 
@@ -187,7 +189,44 @@ def test_yookassa_webhook_marks_order_paid_when_amount_matches(client, monkeypat
     assert order.status == "paid"
     db.close()
 
-def test_admin_refund_yookassa_success(client, monkeypatch):
+def test_tbank_webhook_ignores_amount_mismatch(client, monkeypatch):
+    sid = _seed_service(client)
+    created = client.post("/api/orders", json=_mk_order_payload(sid)).json()
+    num = created["order_number"]
+
+    from database import SessionLocal
+    from models import Order
+
+    db = SessionLocal()
+    order = db.query(Order).filter(Order.order_number == num).first()
+    order.payment_provider = "tbank"
+    order.provider_payment_id = "pay_bad_1"
+    db.commit()
+    db.close()
+
+    class FakeTB:
+        PAID_STATUS = "CONFIRMED"
+        FAILED_STATUSES = {"REJECTED"}
+
+        def verify_token(self, data):
+            return True
+
+    import main
+
+    monkeypatch.setattr(main, "get_tbank_client", lambda: FakeTB())
+
+    r = client.post(
+        "/api/payments/webhook/tbank",
+        json={"OrderId": num, "Status": "CONFIRMED", "Amount": 1, "Token": "ok"},
+    )
+    assert r.status_code == 200
+
+    db = SessionLocal()
+    order = db.query(Order).filter(Order.order_number == num).first()
+    assert order.payment_status == "pending"
+    db.close()
+
+def test_admin_refund_tbank_success(client, monkeypatch):
     sid = _seed_service(client)
     created = client.post("/api/orders", json=_mk_order_payload(sid)).json()
     num = created["order_number"]
@@ -198,7 +237,7 @@ def test_admin_refund_yookassa_success(client, monkeypatch):
     db = SessionLocal()
     order = db.query(Order).filter(Order.order_number == num).first()
     order.payment_status = "paid"
-    order.payment_provider = "yookassa"
+    order.payment_provider = "tbank"
     order.provider_payment_id = "pay_ref_1"
     db.commit()
     db.close()
@@ -217,13 +256,16 @@ def test_admin_refund_yookassa_success(client, monkeypatch):
     )
     token = reg.json()["access_token"]
 
-    class FakeYK:
-        def create_refund(self, **kwargs):
-            return {"id": "rf_1", "status": "succeeded"}
+    class FakeTB:
+        PAID_STATUS = "CONFIRMED"
+        FAILED_STATUSES = {"REJECTED"}
+
+        def cancel(self, payment_id, *, amount_rub=None, receipt=None):
+            return {"Success": True, "Status": "PARTIAL_REFUNDED", "PaymentId": payment_id}
 
     import main
 
-    monkeypatch.setattr(main, "get_yookassa_client", lambda: FakeYK())
+    monkeypatch.setattr(main, "get_tbank_client", lambda: FakeTB())
 
     r = client.post(
         f"/api/admin/orders/{num}/refund",
@@ -232,3 +274,52 @@ def test_admin_refund_yookassa_success(client, monkeypatch):
     )
     assert r.status_code == 200, r.text
     assert r.json()["status"] == "succeeded"
+
+def test_refund_cap_counts_pending_refunds(client, monkeypatch):
+    sid = _seed_service(client)
+    created = client.post("/api/orders", json=_mk_order_payload(sid)).json()
+    num = created["order_number"]
+
+    from database import SessionLocal
+    from models import Order
+
+    db = SessionLocal()
+    order = db.query(Order).filter(Order.order_number == num).first()
+    order.payment_status = "paid"
+    order.payment_provider = "tbank"
+    order.provider_payment_id = "pay_ref_2"
+    db.commit()
+    db.close()
+
+    monkeypatch.setenv("ADMIN_EMAILS", "admin@example.com")
+    reg = client.post(
+        "/api/auth/register",
+        json={
+            "email": "admin@example.com",
+            "name": "Admin Adminov",
+            "password": "StrongPwd123!",
+            "phone": "",
+            "website": "",
+            "turnstile_token": "",
+        },
+    )
+    token = reg.json()["access_token"]
+
+    class FakeTB:
+        PAID_STATUS = "CONFIRMED"
+        FAILED_STATUSES = {"REJECTED"}
+
+        def cancel(self, payment_id, *, amount_rub=None, receipt=None):
+            return {"Success": True, "Status": "PROCESSING", "PaymentId": payment_id}
+
+    import main
+
+    monkeypatch.setattr(main, "get_tbank_client", lambda: FakeTB())
+    h = {"Authorization": f"Bearer {token}"}
+
+    first = client.post(f"/api/admin/orders/{num}/refund", headers=h, json={"amount": 700.0, "reason": ""})
+    assert first.status_code == 200, first.text
+    assert first.json()["status"] == "pending"
+
+    second = client.post(f"/api/admin/orders/{num}/refund", headers=h, json={"amount": 700.0, "reason": ""})
+    assert second.status_code == 400

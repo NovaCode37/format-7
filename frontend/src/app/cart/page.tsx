@@ -86,12 +86,18 @@ export default function CartPage() {
         }
         return { service_id: c.service_id, quantity: c.quantity, price: c.price || 0, options: opts };
       });
+      const delivered = items.find(
+        (i) => i.options["Доставка"] && i.options["Доставка"] !== "Самовывоз",
+      );
+      const deliveryAddress = String(delivered?.options["Адрес доставки"] || "").trim();
       const order = await api.createOrder({
         customer_name: user.name,
         customer_email: user.email,
         customer_phone: user.phone || "",
         comment: comment.trim(),
         items,
+        delivery_type: delivered && deliveryAddress ? "delivery" : "pickup",
+        delivery_address: delivered && deliveryAddress ? deliveryAddress : "",
         file_ids: fileIds,
       }, token);
       await refreshCart();

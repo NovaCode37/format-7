@@ -20,15 +20,15 @@ def vapid_configured() -> bool:
 def _claims() -> dict:
     return {"sub": f"mailto:{os.environ.get('VAPID_SUBJECT', 'admin@example.com')}"}
 
-def send_to_subscription(sub: PushSubscription, payload: dict[str, Any]) -> bool:
+def send_to_subscription(sub: PushSubscription, payload: dict[str, Any]) -> tuple[bool, bool]:
 
     if not vapid_configured():
-        return False
+        return False, False
     try:
         from pywebpush import WebPushException, webpush
     except ImportError:
         log.warning("pywebpush not installed — skipping push send")
-        return False
+        return False, False
 
     subscription_info = {
         "endpoint": sub.endpoint,
@@ -42,16 +42,16 @@ def send_to_subscription(sub: PushSubscription, payload: dict[str, Any]) -> bool
             vapid_claims=_claims(),
             ttl=86400,
         )
-        return True
+        return True, False
     except WebPushException as e:
         status = getattr(e.response, "status_code", None) if e.response is not None else None
         if status in (404, 410):
-            return False
+            return False, True
         log.warning("webpush failed (%s): %s", status, e)
-        return False
+        return False, False
     except Exception as e:
         log.warning("webpush error: %s", e)
-        return False
+        return False, False
 
 def broadcast_to_user(db: Session, user_id: int, payload: dict[str, Any]) -> int:
 
@@ -61,11 +61,11 @@ def broadcast_to_user(db: Session, user_id: int, payload: dict[str, Any]) -> int
     delivered = 0
     to_delete = []
     for sub in subs:
-        ok = send_to_subscription(sub, payload)
+        ok, gone = send_to_subscription(sub, payload)
         if ok:
             delivered += 1
-        else:
-            pass
+        elif gone:
+            to_delete.append(sub)
     for sub in to_delete:
         db.delete(sub)
     if to_delete:

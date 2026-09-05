@@ -7,8 +7,7 @@ import {
   CheckCircle2, Phone, LayoutTemplate, Palette,
 } from "@/lib/icons";
 import { api } from "@/lib/api";
-import { useToast } from "./Toast";
-import { DesignBriefCard, CheckoutModal, usePricing } from "./calc/kit";
+import { DesignBriefCard, CheckoutModal, usePricing, useUpload } from "./calc/kit";
 import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type Track = "template" | "upload" | "design";
@@ -52,7 +51,6 @@ function modeKey(color: Color, sides: Sides): "4+4" | "4+0" | "1+1" | "1+0" {
 }
 
 export default function FlyerCalculator({ serviceId }: { serviceId?: number }) {
-  const toast = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [track, setTrack] = useState<Track>("upload");
@@ -65,7 +63,7 @@ export default function FlyerCalculator({ serviceId }: { serviceId?: number }) {
   const [quantity, setQuantity] = useState<number>(100);
   const [qtyInput, setQtyInput] = useState<string>("100");
 
-  const [uploadedFile, setUploadedFile] = useState<{ name: string; id: number | null } | null>(null);
+  const { uploadedFile, handleUpload } = useUpload();
   const [resolvedServiceId, setResolvedServiceId] = useState<number | null>(serviceId ?? null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
@@ -109,18 +107,6 @@ export default function FlyerCalculator({ serviceId }: { serviceId?: number }) {
 
   const fmt = (n: number) => n.toLocaleString("ru-RU");
 
-  const handleUpload = async (files: FileList | null) => {
-    if (!files || !files.length) return;
-    const f = files[0];
-    try {
-      const up = await api.uploadFile(f);
-      setUploadedFile({ name: up.original_name, id: up.id });
-      toast.success(`Макет «${up.original_name}» загружен`);
-    } catch {
-      setUploadedFile({ name: f.name, id: null });
-      toast.success(`Макет «${f.name}» принят (будет передан менеджеру)`);
-    }
-  };
 
   const trackLabel: Record<Track, string> = {
     template: "Шаблон из каталога",

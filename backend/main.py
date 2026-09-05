@@ -1,6 +1,5 @@
 import datetime as _dt
 import hmac
-import ipaddress
 import json
 import logging
 import os
@@ -63,13 +62,7 @@ from notifications import (
     notify_status_changed,
     send_email,
 )
-from payments import (
-    PaymentError,
-    get_tbank_client,
-    get_yookassa_client,
-    is_yookassa_ip,
-    provider_enabled,
-)
+from payments import PaymentError, get_tbank_client, provider_enabled
 from rate_limit import make_limiter
 from sbp import build_payload, get_merchant
 from schemas import (
@@ -272,7 +265,6 @@ ALLOWED_EXTENSIONS = {
 EXT_RE = re.compile(r"^[a-z0-9]{1,8}$")
 
 MAX_FILES_PER_USER = 200
-MAX_FILES_PER_ANONYMOUS = 5
 
 _is_prod = os.environ.get("APP_ENV", "").lower() == "production"
 app = FastAPI(
@@ -410,10 +402,11 @@ def search_services(q: str = "", db: Session = Depends(get_db)):
         from sqlalchemy import text
 
         sql = text("""
-            SELECT s.* FROM services s
-            WHERE to_tsvector('russian', coalesce(s.name,'') || ' ' || coalesce(s.description,''))
-                  @@ plainto_tsquery('russian', :q)
-               OR s.name ILIKE :like
+            SELECT s.id FROM services s
+            WHERE s.is_active
+              AND (to_tsvector('russian', coalesce(s.name,'') || ' ' || coalesce(s.description,''))
+                     @@ plainto_tsquery('russian', :q)
+                   OR s.name ILIKE :like)
             ORDER BY s."order"
             LIMIT 20
         """)
@@ -421,9 +414,15 @@ def search_services(q: str = "", db: Session = Depends(get_db)):
         ids = [r[0] for r in rows]
         if not ids:
             return []
-        return db.query(Service).filter(Service.id.in_(ids)).all()
+        return db.query(Service).filter(Service.id.in_(ids)).order_by(Service.order).all()
 
-    return db.query(Service).filter(Service.name.ilike(f"%{q}%")).order_by(Service.order).limit(20).all()
+    return (
+        db.query(Service)
+        .filter(Service.is_active.is_(True), Service.name.ilike(f"%{q}%"))
+        .order_by(Service.order)
+        .limit(20)
+        .all()
+    )
 
 @app.post("/api/auth/register", response_model=TokenOut, dependencies=[Depends(register_limit)])
 def register(
@@ -475,7 +474,7 @@ def register(
 def login(data: LoginIn, request: Request, db: Session = Depends(get_db)):
     if not verify_turnstile(data.turnstile_token or "", remote_ip=request.client.host if request.client else None):
         raise HTTPException(status_code=400, detail="Не пройдена проверка CAPTCHA")
-    user = db.query(User).filter(User.email == data.email).first()
+    user = db.query(User).filter(User.email == data.email, User.is_active.is_(True)).first()
     if not user or not verify_password(data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Неверный email или пароль")
     token = create_access_token(user.id, user.token_version)
@@ -799,7 +798,7 @@ def create_order(
     db: Session = Depends(get_db),
 ):
 
-    cached = idempotency.check(db, request, scope="orders.create")
+    cached = idempotency.check(db, request, scope="orders.create", user_id=user.id if user else None)
     if cached is not None:
         return cached
 
@@ -867,7 +866,7 @@ def create_order(
     if data.file_ids:
         q = db.query(UploadedFile).filter(UploadedFile.id.in_(data.file_ids), UploadedFile.order_id.is_(None))
         if user:
-            q = q.filter((UploadedFile.user_id == user.id) | (UploadedFile.user_id.is_(None)))
+            q = q.filter(UploadedFile.user_id == user.id)
         else:
             q = q.filter(UploadedFile.user_id.is_(None))
         for f in q.all():
@@ -913,11 +912,27 @@ def repeat_order(order_number: str, user: User = Depends(require_user), db: Sess
         svc = db.query(Service).filter(Service.id == item.service_id).first()
         if not svc:
             continue
-        existing = db.query(CartItem).filter(CartItem.user_id == user.id, CartItem.service_id == svc.id).first()
+        existing = (
+            db.query(CartItem)
+            .filter(
+                CartItem.user_id == user.id,
+                CartItem.service_id == svc.id,
+                CartItem.options == (item.options or ""),
+            )
+            .first()
+        )
         if existing:
             existing.quantity += item.quantity
         else:
-            db.add(CartItem(user_id=user.id, service_id=svc.id, quantity=item.quantity))
+            db.add(
+                CartItem(
+                    user_id=user.id,
+                    service_id=svc.id,
+                    quantity=item.quantity,
+                    price=item.price,
+                    options=item.options or "",
+                )
+            )
         added += 1
     db.commit()
     return {"ok": True, "added": added}
@@ -1007,19 +1022,6 @@ def mark_order_paid(
 pay_init_limit = make_limiter(key="pay-init", limit=20, window=3600)
 webhook_limit = make_limiter(key="pay-webhook", limit=200, window=60)
 
-def _trusted_proxy_networks() -> list[ipaddress.IPv4Network | ipaddress.IPv6Network]:
-    raw = os.environ.get("TRUSTED_PROXY_CIDRS", "127.0.0.1/32,::1/128")
-    networks: list[ipaddress.IPv4Network | ipaddress.IPv6Network] = []
-    for part in (raw or "").split(","):
-        cidr = part.strip()
-        if not cidr:
-            continue
-        try:
-            networks.append(ipaddress.ip_network(cidr, strict=False))
-        except ValueError:
-            log.warning("invalid TRUSTED_PROXY_CIDRS entry: %s", cidr)
-    return networks
-
 def _to_ascii_url(url: str) -> str:
     from urllib.parse import urlsplit, urlunsplit
     try:
@@ -1081,39 +1083,7 @@ def _provider_full_refund(order) -> bool:
         resp = client.cancel(order.provider_payment_id, amount_rub=None, receipt=_tbank_receipt(order))
         log.info("refund: order=%s cancel result=%s", order.order_number, resp.get("Status"))
         return True
-    if order.payment_provider == "yookassa" and order.provider_payment_id:
-        client = get_yookassa_client()
-        if client is None:
-            raise PaymentError("YooKassa не настроена")
-        client.create_refund(
-            payment_id=order.provider_payment_id,
-            amount_rub=float(order.total or 0),
-            description=f"Возврат по заказу {order.order_number}",
-        )
-        return True
     return False
-
-def _is_trusted_proxy(ip: str) -> bool:
-    try:
-        addr = ipaddress.ip_address(ip)
-    except ValueError:
-        return False
-    return any(addr in net for net in _trusted_proxy_networks())
-
-def _get_forwarded_ip(request: Request) -> str:
-    client_ip = request.client.host if request.client else ""
-    if not client_ip:
-        return ""
-
-    if not _is_trusted_proxy(client_ip):
-        return client_ip
-
-    fwd = request.headers.get("x-forwarded-for", "")
-    if not fwd:
-        return client_ip
-
-    real_ip = fwd.split(",")[0].strip()
-    return real_ip or client_ip
 
 @app.post("/api/orders/{order_number}/pay/init", response_model=PaymentInitOut, dependencies=[Depends(pay_init_limit)])
 def pay_init(
@@ -1135,77 +1105,6 @@ def pay_init(
         raise HTTPException(status_code=400, detail="Заказ уже оплачен")
 
     provider = provider_enabled()
-
-    if provider == "yookassa":
-        client = get_yookassa_client()
-        if client is None:
-            raise HTTPException(status_code=503, detail="Платёжный провайдер не настроен")
-
-        if (order.payment_provider or "") == "yookassa" and (order.provider_payment_id or ""):
-            try:
-                existing = client.get_payment(order.provider_payment_id)
-                existing_status = existing.get("status")
-                if existing_status == "succeeded" and order.payment_status != "paid":
-                    order.payment_status = "paid"
-                    order.paid_at = _dt.datetime.utcnow()
-                    if order.status == "new":
-                        order.status = "paid"
-                    db.commit()
-
-                if existing_status in ("pending", "waiting_for_capture", "succeeded"):
-                    confirmation_url = (existing.get("confirmation") or {}).get("confirmation_url")
-                    return PaymentInitOut(
-                        order_number=order.order_number,
-                        provider="yookassa",
-                        confirmation_url=confirmation_url,
-                        provider_payment_id=order.provider_payment_id,
-                    )
-
-                if existing_status in ("canceled", "failed"):
-                    order.provider_payment_id = ""
-                    db.commit()
-            except PaymentError as e:
-                raise HTTPException(status_code=502, detail=f"Ошибка провайдера: {e}") from e
-
-        public_url = os.environ.get("PUBLIC_SITE_URL", "http://localhost:3000").rstrip("/")
-        return_url = f"{public_url}/orders/{order.order_number}/pay?done=1"
-
-        receipt = None
-        if os.environ.get("YOOKASSA_SEND_RECEIPT", "0") == "1":
-            total_q = max(sum(i.quantity for i in order.items), 1)
-
-            receipt = client._build_receipt(
-                customer_email=order.customer_email,
-                items=[
-                    {
-                        "description": f"Заказ {order.order_number}",
-                        "amount_rub": round(float(order.total) / total_q, 2),
-                        "quantity": total_q,
-                    }
-                ],
-            )
-        try:
-            payment = client.create_payment(
-                amount_rub=float(order.total or 0),
-                description=f"Заказ {order.order_number}",
-                return_url=return_url,
-                metadata={"order_number": order.order_number},
-                receipt=receipt,
-            )
-        except PaymentError as e:
-            raise HTTPException(status_code=502, detail=f"Ошибка провайдера: {e}") from e
-
-        order.payment_provider = "yookassa"
-        order.provider_payment_id = str(payment.get("id", ""))
-        db.commit()
-
-        confirmation_url = (payment.get("confirmation") or {}).get("confirmation_url")
-        return PaymentInitOut(
-            order_number=order.order_number,
-            provider="yookassa",
-            confirmation_url=confirmation_url,
-            provider_payment_id=order.provider_payment_id,
-        )
 
     if provider == "tbank":
         client = get_tbank_client()
@@ -1282,66 +1181,6 @@ def pay_init(
         )
 
     return PaymentInitOut(order_number=order.order_number, provider="none")
-
-@app.post("/api/payments/webhook/yookassa", dependencies=[Depends(webhook_limit)])
-async def yookassa_webhook(
-    request: Request,
-    background: BackgroundTasks,
-    db: Session = Depends(get_db),
-):
-
-    src_ip = _get_forwarded_ip(request)
-    if os.environ.get("APP_ENV", "").lower() == "production":
-        if not is_yookassa_ip(src_ip):
-            raise HTTPException(status_code=403, detail="Forbidden")
-
-    try:
-        event = await request.json()
-    except Exception:
-        raise HTTPException(status_code=400, detail="Malformed JSON") from None
-
-    payment_id = ((event or {}).get("object") or {}).get("id")
-    if not payment_id or not isinstance(payment_id, str):
-        raise HTTPException(status_code=400, detail="Missing payment id")
-
-    client = get_yookassa_client()
-    if client is None:
-        raise HTTPException(status_code=503, detail="Provider not configured")
-    try:
-        payment = client.get_payment(payment_id)
-    except PaymentError as e:
-        raise HTTPException(status_code=502, detail=str(e)) from e
-
-    order = (
-        db.query(Order)
-        .filter(
-            Order.provider_payment_id == payment_id,
-            Order.payment_provider == "yookassa",
-        )
-        .first()
-    )
-    if not order:
-        return {"ok": True, "note": "unknown payment"}
-
-    status_ = payment.get("status")
-
-    paid_value = float((payment.get("amount") or {}).get("value", "0") or 0)
-    if abs(paid_value - float(order.total or 0)) > 0.01:
-        return {"ok": True, "note": "amount mismatch"}
-
-    if status_ == "succeeded" and order.payment_status != "paid":
-        order.payment_status = "paid"
-        order.paid_at = _dt.datetime.utcnow()
-        if order.status == "new":
-            order.status = "paid"
-        db.commit()
-        db.refresh(order)
-        background.add_task(notify_order_paid, order)
-    elif status_ in ("canceled", "failed") and order.payment_status != "paid":
-        order.payment_status = "failed"
-        db.commit()
-
-    return {"ok": True}
 
 @app.post("/api/payments/webhook/tbank", dependencies=[Depends(webhook_limit)])
 async def tbank_webhook(
@@ -1478,13 +1317,13 @@ def admin_refund(
     if order.payment_status != "paid":
         raise HTTPException(status_code=400, detail="Заказ не оплачен — нечего возвращать")
 
-    already = sum(
-        r.amount for r in db.query(Refund).filter(Refund.order_id == order.id, Refund.status == "succeeded").all()
-    )
-    if data.amount + already > order.total + 0.01:
+    prior = db.query(Refund).filter(Refund.order_id == order.id).all()
+    settled = sum(r.amount for r in prior if r.status == "succeeded")
+    reserved = sum(r.amount for r in prior if r.status in ("succeeded", "pending"))
+    if data.amount + reserved > order.total + 0.01:
         raise HTTPException(
             status_code=400,
-            detail=f"Сумма возвратов превышает сумму заказа ({already:.2f} + {data.amount:.2f} > {order.total:.2f})",
+            detail=f"Сумма возвратов превышает сумму заказа ({reserved:.2f} + {data.amount:.2f} > {order.total:.2f})",
         )
 
     refund = Refund(
@@ -1498,26 +1337,7 @@ def admin_refund(
     db.add(refund)
     db.flush()
 
-    if order.payment_provider == "yookassa" and order.provider_payment_id:
-        client = get_yookassa_client()
-        if client is None:
-            refund.status = "failed"
-            db.commit()
-            raise HTTPException(status_code=503, detail="Провайдер не настроен")
-        try:
-            resp = client.create_refund(
-                payment_id=order.provider_payment_id,
-                amount_rub=data.amount,
-                description=data.reason,
-            )
-            refund.provider_refund_id = str(resp.get("id", ""))
-            refund.status = "succeeded" if resp.get("status") == "succeeded" else "pending"
-        except PaymentError as e:
-            refund.status = "failed"
-            db.commit()
-            raise HTTPException(status_code=502, detail=f"Возврат отклонён: {e}") from e
-
-    elif order.payment_provider == "tbank" and order.provider_payment_id:
+    if order.payment_provider == "tbank" and order.provider_payment_id:
         client = get_tbank_client()
         if client is None:
             refund.status = "failed"
@@ -1538,7 +1358,7 @@ def admin_refund(
             db.commit()
             raise HTTPException(status_code=502, detail=f"Возврат отклонён: {e}") from e
 
-    total_refunded = already + (data.amount if refund.status == "succeeded" else 0)
+    total_refunded = settled + (data.amount if refund.status == "succeeded" else 0)
     if total_refunded >= order.total - 0.01:
         order.status = "cancelled"
         order.payment_status = "cancelled"

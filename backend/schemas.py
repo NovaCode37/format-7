@@ -250,7 +250,6 @@ class PaymentInfoOut(BaseModel):
 class PaymentInitOut(BaseModel):
     order_number: str
     provider: str
-    confirmation_url: str | None = None
     provider_payment_id: str | None = None
     qr_payload: str | None = None
     payment_url: str | None = None
