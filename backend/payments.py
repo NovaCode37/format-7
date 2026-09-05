@@ -12,6 +12,13 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_ex
 class PaymentError(Exception):
     pass
 
+def _tbank_verify() -> str | bool:
+
+    bundle = os.environ.get("TBANK_CA_BUNDLE", "").strip()
+    if bundle and os.path.exists(bundle):
+        return bundle
+    return True
+
 class TBankClient:
     BASE_URL = "https://securepay.tinkoff.ru/v2"
 
@@ -60,7 +67,7 @@ class TBankClient:
 
     @retry(**_API_RETRY)
     def _post(self, path: str, payload: dict[str, Any]) -> dict[str, Any]:
-        resp = httpx.post(f"{self.BASE_URL}{path}", json=payload, timeout=10.0)
+        resp = httpx.post(f"{self.BASE_URL}{path}", json=payload, timeout=10.0, verify=_tbank_verify())
         if 500 <= resp.status_code < 600:
             raise httpx.HTTPError(f"TBank {resp.status_code}")
         if resp.status_code >= 400:

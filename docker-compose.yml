@@ -55,6 +55,7 @@ services:
       - TBANK_PASSWORD=${TBANK_PASSWORD:-}
       - TBANK_TAXATION=${TBANK_TAXATION:-usn_income}
       - TBANK_VAT=${TBANK_VAT:-none}
+      - TBANK_CA_BUNDLE=${TBANK_CA_BUNDLE:-/app/certs/russian_trusted_ca.pem}
       - PUBLIC_SITE_URL=${PUBLIC_SITE_URL:-http://localhost:3000}
       - TRUSTED_PROXY_CIDRS=${TRUSTED_PROXY_CIDRS:-172.16.0.0/12,127.0.0.1/32,::1/128}
       - CRM_WEBHOOK_URL=${CRM_WEBHOOK_URL:-}
