@@ -12,6 +12,9 @@ import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 type Track = "upload" | "design";
 type Orientation = "По горизонтали" | "По вертикали";
 type YesNo = "Да" | "Нет";
+type Cursor = "Нет" | "Пластиковый" | "Статический" | "Магнитный";
+
+const CURSOR_VALUES: Cursor[] = ["Нет", "Пластиковый", "Статический", "Магнитный"];
 
 const CALENDAR_SLUGS = ["плакатный-календарь", "календари"];
 
@@ -30,6 +33,7 @@ export default function CalendarCalculator({ serviceId }: { serviceId?: number }
   const [orientation, setOrientation] = useState<Orientation>("По горизонтали");
   const [paperFinish, setPaperFinish] = useState<"Матовая" | "Глянцевая">("Глянцевая");
   const [lamination, setLamination] = useState<YesNo>("Нет");
+  const [cursor, setCursor] = useState<Cursor>("Нет");
   const [quantity, setQuantity] = useState<number>(10);
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -39,23 +43,26 @@ export default function CalendarCalculator({ serviceId }: { serviceId?: number }
   const calc = useMemo(() => {
     const printUnit = tierValue(QTY_TIERS, (pricing.price as any)[lamination], quantity);
     const printTotal = printUnit * quantity;
+    const cursorUnit = Number((pricing as any).cursor?.[cursor]) || 0;
+    const cursorTotal = cursorUnit * quantity;
     const designTotal = track === "design" ? pricing.design : 0;
     const deliveryTotal = DELIVERY_PRICE[delivery];
-    const grandTotal = printTotal + designTotal + deliveryTotal;
-    return { printUnit, printTotal, designTotal, deliveryTotal, grandTotal };
-  }, [lamination, quantity, track, delivery, pricing]);
+    const grandTotal = printTotal + cursorTotal + designTotal + deliveryTotal;
+    return { printUnit, printTotal, cursorUnit, cursorTotal, designTotal, deliveryTotal, grandTotal };
+  }, [lamination, cursor, quantity, track, delivery, pricing]);
 
   const orderSummary = {
     productLabel: "Плакатный календарь А3, 200 г/м², 4+0",
     lines: [
       `А3 · ${orientation} · ${lamination === "Да" ? "с ламинацией" : "без ламинации"} · ${quantity} шт.`,
       `Бумага: ${paperFinish.toLowerCase()}`,
+      cursor !== "Нет" ? `Курсор: ${cursor.toLowerCase()} (${calc.cursorUnit} ₽/шт)` : null,
       track === "design" ? `Разработка макета дизайнером (${pricing.design} ₽)` : null,
       `Доставка: ${delivery}`,
     ].filter(Boolean) as string[],
     options: {
       track: track === "design" ? "Заказ дизайна" : "Загрузка макета",
-      orientation, paper_finish: paperFinish, lamination,
+      orientation, paper_finish: paperFinish, lamination, cursor,
       design_fee: calc.designTotal,
       delivery,
       file: uploadedFile?.name || "—",
@@ -136,6 +143,10 @@ export default function CalendarCalculator({ serviceId }: { serviceId?: number }
               <PillsField label="Ламинация" values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? "цена по таблице с ламинацией" : undefined} />
 
               <div className="pt-4 border-t border-ink-100">
+                <PillsField label="Курсор" values={CURSOR_VALUES} value={cursor} onChange={(v) => setCursor(v as Cursor)} hint={cursor !== "Нет" ? `+${calc.cursorUnit} ₽/шт` : undefined} />
+              </div>
+
+              <div className="pt-4 border-t border-ink-100">
                 <QuantityField presets={QTY_PRESETS} value={quantity} onChange={setQuantity} min={1} />
               </div>
 
@@ -151,6 +162,7 @@ export default function CalendarCalculator({ serviceId }: { serviceId?: number }
                 <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500 mb-3">Расчёт стоимости</p>
 
                 <BreakdownRow label={`Печать${lamination === "Да" ? " (с лам.)" : ""}`} hint={`${quantity} × ${fmt(calc.printUnit)} ₽`} value={`${fmt(calc.printTotal)} ₽`} />
+                {calc.cursorTotal > 0 && <BreakdownRow label={`Курсор ${cursor.toLowerCase()}`} hint={`${quantity} × ${calc.cursorUnit} ₽`} value={`${fmt(calc.cursorTotal)} ₽`} />}
                 {calc.designTotal > 0 && <BreakdownRow label="Разработка макета" hint="2 доработки в стоимости" value={`${fmt(calc.designTotal)} ₽`} />}
                 <BreakdownRow label="Доставка" hint={delivery === "СДЭК (наложенный платёж)" ? "оплачивает получатель" : undefined} value={calc.deliveryTotal ? `${fmt(calc.deliveryTotal)} ₽` : "—"} />
 

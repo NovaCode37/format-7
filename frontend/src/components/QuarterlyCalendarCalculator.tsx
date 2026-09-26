@@ -11,8 +11,6 @@ import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type AdField = "Без полей" | "1 рекламное поле" | "3 рекламных поля";
 type Cursor = "Пластиковый" | "Статический" | "Магнитный";
-type PiccoloColor = "Золото" | "Серебро" | "Чёрный";
-type SpringColor = "Белый" | "Чёрный";
 type YesNo = "Да" | "Нет";
 type Track = "upload" | "design";
 
@@ -20,7 +18,7 @@ const QUARTERLY_SLUGS = ["квартальный-календарь", "квар�
 
 const QUARTERLY_PRICING = PRICING_DEFAULTS["квартальный-календарь"].data;
 const QTY_TIERS = [10, 20, 50, 100] as const;
-const QTY_PRESETS = [10, 20, 50, 100];
+const QTY_PRESETS = [1, 10, 20, 50, 100];
 
 export default function QuarterlyCalendarCalculator({ serviceId }: { serviceId?: number }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -31,10 +29,7 @@ export default function QuarterlyCalendarCalculator({ serviceId }: { serviceId?:
   const [adField, setAdField] = useState<AdField>("Без полей");
   const [cursor, setCursor] = useState<Cursor>("Пластиковый");
   const [paperFinish, setPaperFinish] = useState<"Матовая" | "Глянцевая">("Глянцевая");
-  const [piccolo, setPiccolo] = useState<PiccoloColor>("Золото");
   const [lamPoster, setLamPoster] = useState<YesNo>("Нет");
-  const [lamBlock, setLamBlock] = useState<YesNo>("Нет");
-  const [springColor, setSpringColor] = useState<SpringColor>("Белый");
   const [quantity, setQuantity] = useState<number>(10);
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -45,28 +40,26 @@ export default function QuarterlyCalendarCalculator({ serviceId }: { serviceId?:
     const printUnit = tierValue(QTY_TIERS, (pricing.price as any)[adField], quantity);
     const printTotal = printUnit * quantity;
     const lamPosterTotal = lamPoster === "Да" ? pricing.lamPoster * quantity : 0;
-    const lamBlockTotal = lamBlock === "Да" ? pricing.lamBlock * quantity : 0;
     const designTotal = track === "design" ? pricing.design : 0;
     const deliveryTotal = DELIVERY_PRICE[delivery];
-    const grandTotal = printTotal + lamPosterTotal + lamBlockTotal + designTotal + deliveryTotal;
-    return { printUnit, printTotal, lamPosterTotal, lamBlockTotal, designTotal, deliveryTotal, grandTotal };
-  }, [adField, quantity, lamPoster, lamBlock, track, delivery, pricing]);
+    const grandTotal = printTotal + lamPosterTotal + designTotal + deliveryTotal;
+    return { printUnit, printTotal, lamPosterTotal, designTotal, deliveryTotal, grandTotal };
+  }, [adField, quantity, lamPoster, track, delivery, pricing]);
 
   const orderSummary = {
     productLabel: `Квартальный календарь А4, ${adField.toLowerCase()}`,
     lines: [
       `А4 · ${adField} · ${quantity} шт.`,
-      `Курсор: ${cursor.toLowerCase()} · пиколло ${piccolo.toLowerCase()} · пружина ${springColor.toLowerCase()}`,
-      `Бумага: ${paperFinish.toLowerCase()}`,
+      `Курсор: ${cursor.toLowerCase()}`,
+      `Бумага постера и подложки: ${paperFinish.toLowerCase()}`,
       lamPoster === "Да" ? "Ламинация постера и подложек блоков" : null,
-      lamBlock === "Да" ? "Ламинация листов блоков" : null,
       track === "design" ? "Разработка макета дизайнером (1000 ₽)" : null,
       `Доставка: ${delivery}`,
     ].filter(Boolean) as string[],
     options: {
       track: track === "design" ? "Заказ дизайна" : "Загрузка макета",
-      ad_field: adField, cursor, piccolo_color: piccolo, spring_color: springColor, paper_finish: paperFinish,
-      lamination_poster: lamPoster, lamination_block: lamBlock,
+      ad_field: adField, cursor, paper_finish: paperFinish,
+      lamination_poster: lamPoster,
       design_fee: calc.designTotal, delivery, file: uploadedFile?.name || "—",
     },
     delivery,
@@ -134,17 +127,10 @@ export default function QuarterlyCalendarCalculator({ serviceId }: { serviceId?:
               <PillsField label="Рекламное поле" values={["Без полей", "1 рекламное поле", "3 рекламных поля"]} value={adField} onChange={(v) => setAdField(v as AdField)} />
               <PillsField label="Курсор" values={["Пластиковый", "Статический", "Магнитный"]} value={cursor} onChange={(v) => setCursor(v as Cursor)} hint="входит в стоимость" />
 
-              <PillsField label="Бумага" values={["Матовая", "Глянцевая"]} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
-              <PillsField label="Цвет пиколло (поверх)" values={["Золото", "Серебро", "Чёрный"]} value={piccolo} onChange={(v) => setPiccolo(v as PiccoloColor)} hint="на цену не влияет" />
+              <PillsField label="Бумага постера и подложки" values={["Матовая", "Глянцевая"]} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
 
               <div className="pt-4 border-t border-ink-100">
                 <PillsField label="Ламинация постера и подложек блоков" values={["Нет", "Да"]} value={lamPoster} onChange={(v) => setLamPoster(v as YesNo)} hint={lamPoster === "Да" ? `+${pricing.lamPoster} ₽/шт (А4)` : undefined} />
-              </div>
-              <div className="pt-4 border-t border-ink-100">
-                <PillsField label="Ламинация листов блоков" values={["Нет", "Да"]} value={lamBlock} onChange={(v) => setLamBlock(v as YesNo)} hint={lamBlock === "Да" ? `+${pricing.lamBlock} ₽/шт (А5)` : undefined} />
-              </div>
-              <div className="pt-4 border-t border-ink-100">
-                <PillsField label="Цвет пружины" values={["Белый", "Чёрный"]} value={springColor} onChange={(v) => setSpringColor(v as SpringColor)} hint="на цену не влияет" />
               </div>
               <div className="pt-4 border-t border-ink-100">
                 <QuantityField presets={QTY_PRESETS} value={quantity} onChange={setQuantity} min={1} />
@@ -161,7 +147,6 @@ export default function QuarterlyCalendarCalculator({ serviceId }: { serviceId?:
                 <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500 mb-3">Расчёт стоимости</p>
                 <BreakdownRow label="Печать" hint={`${quantity} × ${fmt(calc.printUnit)} ₽`} value={`${fmt(calc.printTotal)} ₽`} />
                 {calc.lamPosterTotal > 0 && <BreakdownRow label="Ламинация постера" hint={`${quantity} × ${pricing.lamPoster} ₽`} value={`${fmt(calc.lamPosterTotal)} ₽`} />}
-                {calc.lamBlockTotal > 0 && <BreakdownRow label="Ламинация блоков" hint={`${quantity} × ${pricing.lamBlock} ₽`} value={`${fmt(calc.lamBlockTotal)} ₽`} />}
                 {calc.designTotal > 0 && <BreakdownRow label="Разработка макета" hint="2 доработки в стоимости" value={`${fmt(calc.designTotal)} ₽`} />}
                 <BreakdownRow label="Доставка" hint={delivery === "СДЭК (наложенный платёж)" ? "оплачивает получатель" : undefined} value={calc.deliveryTotal ? `${fmt(calc.deliveryTotal)} ₽` : "—"} />
                 <div className="mt-3 pt-3 border-t border-ink-200">

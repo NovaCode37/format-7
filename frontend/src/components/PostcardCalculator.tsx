@@ -21,8 +21,8 @@ const POSTCARD_SLUGS = ["открытки", "открытка"];
 
 const QTY_TIERS = [50, 100, 200] as const;
 type Tier = (typeof QTY_TIERS)[number];
-const QTY_PRESETS = [50, 100, 200];
-const MIN_QTY = 50;
+const QTY_PRESETS = [1, 50, 100, 200];
+const MIN_QTY = 1;
 
 const POSTCARD_PRICING = PRICING_DEFAULTS["открытки"].data;
 
@@ -172,7 +172,7 @@ export default function PostcardCalculator({ serviceId }: { serviceId?: number }
                 )}
               </div>
               <div className="pt-4 border-t border-ink-100">
-                <QuantityField presets={QTY_PRESETS} value={quantity} onChange={setQuantity} min={MIN_QTY} step={10} />
+                <QuantityField presets={QTY_PRESETS} value={quantity} onChange={setQuantity} min={MIN_QTY} step={1} />
               </div>
               <div className="pt-4 border-t border-ink-100">
                 <PillsField label="Доставка" values={DELIVERY_VALUES} value={delivery} onChange={(v) => setDelivery(v as Delivery)} />

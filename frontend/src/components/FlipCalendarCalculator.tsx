@@ -10,9 +10,10 @@ import {
 import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type Format = "А4 (210×297 мм)" | "А3 (297×420 мм)";
-type Orientation = "Горизонтальная" | "Вертикальная";
-type SpringColor = "Белый" | "Золотистый" | "Чёрный";
+type Cursor = "Нет" | "Пластиковый" | "Статический" | "Магнитный";
 type YesNo = "Да" | "Нет";
+
+const CURSOR_VALUES: Cursor[] = ["Нет", "Пластиковый", "Статический", "Магнитный"];
 
 const FLIP_SLUGS = ["перекидной-календарь", "настенный-перекидной-календарь", "перекидные-календари", "календари"];
 
@@ -28,9 +29,8 @@ export default function FlipCalendarCalculator({ serviceId }: { serviceId?: numb
   const resolvedServiceId = useResolvedServiceId(FLIP_SLUGS, serviceId);
 
   const [format, setFormat] = useState<Format>("А3 (297×420 мм)");
-  const [orientation, setOrientation] = useState<Orientation>("Вертикальная");
   const [lamination, setLamination] = useState<YesNo>("Нет");
-  const [springColor, setSpringColor] = useState<SpringColor>("Белый");
+  const [cursor, setCursor] = useState<Cursor>("Нет");
   const [quantity, setQuantity] = useState<number>(5);
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -42,23 +42,26 @@ export default function FlipCalendarCalculator({ serviceId }: { serviceId?: numb
     const printTotal = printUnit * quantity;
     const lamUnit = (pricing.lamination as any)[format];
     const lamTotal = lamination === "Да" ? lamUnit * quantity : 0;
+    const cursorUnit = Number((pricing as any).cursor?.[cursor]) || 0;
+    const cursorTotal = cursorUnit * quantity;
     const deliveryTotal = DELIVERY_PRICE[delivery];
-    const grandTotal = printTotal + lamTotal + deliveryTotal;
-    return { printUnit, printTotal, lamUnit, lamTotal, deliveryTotal, grandTotal };
-  }, [format, quantity, lamination, delivery, pricing]);
+    const grandTotal = printTotal + lamTotal + cursorTotal + deliveryTotal;
+    return { printUnit, printTotal, lamUnit, lamTotal, cursorUnit, cursorTotal, deliveryTotal, grandTotal };
+  }, [format, quantity, lamination, cursor, delivery, pricing]);
 
   const isA3 = format.startsWith("А3");
 
   const orderSummary = {
     productLabel: `Перекидной настенный календарь ${format}, 4+0`,
     lines: [
-      `${format} · ${orientation} · пружина ${springColor.toLowerCase()} · ${quantity} шт.`,
+      `${format} · ${quantity} шт.`,
       lamination === "Да" ? "Ламинация подложки" : null,
+      cursor !== "Нет" ? `Курсор: ${cursor.toLowerCase()} (${calc.cursorUnit} ₽/шт)` : null,
       isA3 ? "А3: скрепление пружиной только по короткому краю" : null,
       `Доставка: ${delivery}`,
     ].filter(Boolean) as string[],
     options: {
-      format, orientation, spring_color: springColor, lamination,
+      format, lamination, cursor,
       delivery, file: uploadedFile?.name || "—",
     },
     delivery,
@@ -75,7 +78,7 @@ export default function FlipCalendarCalculator({ serviceId }: { serviceId?: numb
           <p className="eyebrow mb-2">Калькулятор</p>
           <h1 className="font-heading text-3xl sm:text-4xl font-bold text-ink-900 tracking-tight">Перекидной настенный календарь</h1>
           <p className="mt-2 text-ink-500 text-sm">
-            Цветная односторонняя печать. Обложка и подложка 300 г/м², блок — бумага 120–170 г/м².
+            Цветная односторонняя печать. Обложка и подложка 300 г/м², блок — бумага 128 г/м².
           </p>
         </div>
 
@@ -100,7 +103,7 @@ export default function FlipCalendarCalculator({ serviceId }: { serviceId?: numb
 
               <div className="rounded-xl border border-ink-200 bg-ink-50 p-4 text-[12px] text-ink-600 space-y-2">
                 <p className="flex items-start gap-2"><Info size={13} className="mt-0.5 shrink-0" /> Скрепление на металлическую белую пружину + ригель для подвеса.</p>
-                <p>Блок — мелованная бумага 120 г/м² матовая или 170 г/м² глянцевая.</p>
+                <p>Блок — мелованная бумага 128 г/м², матовая или глянцевая.</p>
                 <p>Размер готового изделия может отличаться от стандартного на ±2 мм.</p>
                 <p className="flex items-center gap-1.5"><Truck size={13} /> Доставка по Тюмени — 700 ₽.</p>
                 <p className="flex items-center gap-1.5"><Package size={13} /> Возможна отправка СДЭК наложенным платежом по РФ.</p>
@@ -111,13 +114,12 @@ export default function FlipCalendarCalculator({ serviceId }: { serviceId?: numb
           <div className="lg:col-span-5">
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
               <PillsField label="Формат" values={["А4 (210×297 мм)", "А3 (297×420 мм)"]} value={format} onChange={(v) => setFormat(v as Format)} />
-              <PillsField label="Ориентация" values={["Горизонтальная", "Вертикальная"]} value={orientation} onChange={(v) => setOrientation(v as Orientation)} hint={isA3 ? "А3 — пружина по короткому краю" : "на цену не влияет"} />
 
               <div className="pt-4 border-t border-ink-100">
                 <PillsField label="Ламинация подложки" values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${calc.lamUnit} ₽/шт` : undefined} />
               </div>
               <div className="pt-4 border-t border-ink-100">
-                <PillsField label="Цвет пружины" values={["Белый", "Золотистый", "Чёрный"]} value={springColor} onChange={(v) => setSpringColor(v as SpringColor)} hint="на цену не влияет" />
+                <PillsField label="Курсор" values={CURSOR_VALUES} value={cursor} onChange={(v) => setCursor(v as Cursor)} hint={cursor !== "Нет" ? `+${calc.cursorUnit} ₽/шт` : undefined} />
               </div>
               <div className="pt-4 border-t border-ink-100">
                 <QuantityField presets={QTY_PRESETS} value={quantity} onChange={setQuantity} min={1} />
@@ -134,6 +136,7 @@ export default function FlipCalendarCalculator({ serviceId }: { serviceId?: numb
                 <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500 mb-3">Расчёт стоимости</p>
                 <BreakdownRow label="Печать" hint={`${quantity} × ${fmt(calc.printUnit)} ₽`} value={`${fmt(calc.printTotal)} ₽`} />
                 {calc.lamTotal > 0 && <BreakdownRow label="Ламинация подложки" hint={`${quantity} × ${calc.lamUnit} ₽`} value={`${fmt(calc.lamTotal)} ₽`} />}
+                {calc.cursorTotal > 0 && <BreakdownRow label={`Курсор ${cursor.toLowerCase()}`} hint={`${quantity} × ${calc.cursorUnit} ₽`} value={`${fmt(calc.cursorTotal)} ₽`} />}
                 <BreakdownRow label="Доставка" hint={delivery === "СДЭК (наложенный платёж)" ? "оплачивает получатель" : undefined} value={calc.deliveryTotal ? `${fmt(calc.deliveryTotal)} ₽` : "—"} />
                 <div className="mt-3 pt-3 border-t border-ink-200">
                   <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500">Итого</p>

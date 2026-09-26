@@ -11,7 +11,10 @@ import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type Kind = "Безблочный" | "С 12 блоками";
 type YesNo = "Да" | "Нет";
+type Cursor = "Нет" | "Пластиковый" | "Статический" | "Магнитный";
 type Track = "template" | "upload" | "design";
+
+const CURSOR_VALUES: Cursor[] = ["Нет", "Пластиковый", "Статический", "Магнитный"];
 
 const DESK_SLUGS = ["настольный-календарь-домик", "настольный-календарь", "календарь-домик", "календари"];
 
@@ -30,6 +33,7 @@ export default function DeskCalendarCalculator({ serviceId }: { serviceId?: numb
   const [kind, setKind] = useState<Kind>("Безблочный");
   const [paperFinish, setPaperFinish] = useState<"Матовая" | "Глянцевая">("Глянцевая");
   const [lamination, setLamination] = useState<YesNo>("Нет");
+  const [cursor, setCursor] = useState<Cursor>("Нет");
   const [quantity, setQuantity] = useState<number>(10);
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -40,11 +44,13 @@ export default function DeskCalendarCalculator({ serviceId }: { serviceId?: numb
     const printUnit = tierValue(QTY_TIERS, (pricing.price as any)[kind], quantity);
     const printTotal = printUnit * quantity;
     const lamTotal = lamination === "Да" ? pricing.lamination * quantity : 0;
+    const cursorUnit = Number((pricing as any).cursor?.[cursor]) || 0;
+    const cursorTotal = cursorUnit * quantity;
     const designTotal = track === "design" ? pricing.design : 0;
     const deliveryTotal = DELIVERY_PRICE[delivery];
-    const grandTotal = printTotal + lamTotal + designTotal + deliveryTotal;
-    return { printUnit, printTotal, lamTotal, designTotal, deliveryTotal, grandTotal };
-  }, [kind, quantity, lamination, track, delivery, pricing]);
+    const grandTotal = printTotal + lamTotal + cursorTotal + designTotal + deliveryTotal;
+    return { printUnit, printTotal, lamTotal, cursorUnit, cursorTotal, designTotal, deliveryTotal, grandTotal };
+  }, [kind, quantity, lamination, cursor, track, delivery, pricing]);
 
   const orderSummary = {
     productLabel: `Настольный календарь-домик А5, ${kind.toLowerCase()}`,
@@ -52,12 +58,13 @@ export default function DeskCalendarCalculator({ serviceId }: { serviceId?: numb
       `А5 · ${kind} · ${quantity} шт.`,
       `Бумага: ${paperFinish.toLowerCase()}`,
       lamination === "Да" ? "Ламинация" : null,
+      cursor !== "Нет" ? `Курсор: ${cursor.toLowerCase()} (${calc.cursorUnit} ₽/шт)` : null,
       track === "design" ? `Разработка макета дизайнером (${pricing.design} ₽)` : null,
       `Доставка: ${delivery}`,
     ].filter(Boolean) as string[],
     options: {
       track: track === "design" ? "Заказ дизайна" : "Загрузка макета",
-      kind, paper_finish: paperFinish, lamination,
+      kind, paper_finish: paperFinish, lamination, cursor,
       design_fee: calc.designTotal,
       delivery,
       file: uploadedFile?.name || "—",
@@ -154,6 +161,10 @@ export default function DeskCalendarCalculator({ serviceId }: { serviceId?: numb
               </div>
 
               <div className="pt-4 border-t border-ink-100">
+                <PillsField label="Курсор" values={CURSOR_VALUES} value={cursor} onChange={(v) => setCursor(v as Cursor)} hint={cursor !== "Нет" ? `+${calc.cursorUnit} ₽/шт` : undefined} />
+              </div>
+
+              <div className="pt-4 border-t border-ink-100">
                 <QuantityField presets={QTY_PRESETS} value={quantity} onChange={setQuantity} min={1} />
               </div>
 
@@ -170,6 +181,7 @@ export default function DeskCalendarCalculator({ serviceId }: { serviceId?: numb
 
                 <BreakdownRow label="Печать" hint={`${quantity} × ${fmt(calc.printUnit)} ₽`} value={`${fmt(calc.printTotal)} ₽`} />
                 {calc.lamTotal > 0 && <BreakdownRow label="Ламинация" hint={`${quantity} × ${pricing.lamination} ₽`} value={`${fmt(calc.lamTotal)} ₽`} />}
+                {calc.cursorTotal > 0 && <BreakdownRow label={`Курсор ${cursor.toLowerCase()}`} hint={`${quantity} × ${calc.cursorUnit} ₽`} value={`${fmt(calc.cursorTotal)} ₽`} />}
                 {calc.designTotal > 0 && <BreakdownRow label="Разработка макета" hint="2 доработки в стоимости" value={`${fmt(calc.designTotal)} ₽`} />}
                 <BreakdownRow label="Доставка" hint={delivery === "СДЭК (наложенный платёж)" ? "оплачивает получатель" : undefined} value={calc.deliveryTotal ? `${fmt(calc.deliveryTotal)} ₽` : "—"} />
 
