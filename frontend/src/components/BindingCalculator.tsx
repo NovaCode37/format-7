@@ -12,7 +12,6 @@ import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type SpringType = "Пластиковая" | "Металлическая";
 type Format = "А4" | "А3";
-type Orientation = "По короткой стороне" | "По длинной стороне";
 type Delivery = "Самовывоз" | "Доставка по Тюмени" | "СДЭК (наложенный платёж)";
 
 const BINDING_PRICING = PRICING_DEFAULTS["переплёт-и-брошюровка"].data;
@@ -50,7 +49,6 @@ export default function BindingCalculator({ serviceId }: { serviceId?: number })
 
   const [spring, setSpring] = useState<SpringType>("Пластиковая");
   const [format, setFormat] = useState<Format>("А4");
-  const [orientation, setOrientation] = useState<Orientation>("По короткой стороне");
   const [sheets, setSheets] = useState(30);
   const [sheetsInput, setSheetsInput] = useState("30");
   const [copies, setCopies] = useState(1);
@@ -60,10 +58,6 @@ export default function BindingCalculator({ serviceId }: { serviceId?: number })
   const { uploadedFile, handleUpload } = useUpload();
   const [resolvedServiceId, setResolvedServiceId] = useState<number | null>(serviceId ?? null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-
-  useEffect(() => {
-    if (format === "А3") setOrientation("По короткой стороне");
-  }, [format]);
 
   useEffect(() => {
     const max = getMaxSheets(spring);
@@ -110,14 +104,13 @@ export default function BindingCalculator({ serviceId }: { serviceId?: number })
   const orderSummary = {
     productLabel: "Брошюровка и переплёт",
     lines: [
-      `${spring} пружина · ${format} · ${orientation}`,
+      `${spring} пружина · ${format}`,
       `${sheets} листов · ${copies} экз.`,
       `Доставка: ${delivery}`,
     ],
     options: {
       Пружина: spring,
       Формат: format,
-      Ориентация: orientation,
       Листов: sheets,
       Экземпляров: copies,
       Файл: uploadedFile?.name || "—",
@@ -191,19 +184,6 @@ export default function BindingCalculator({ serviceId }: { serviceId?: number })
                 value={format}
                 onChange={(v) => setFormat(v as Format)}
               />
-
-              <div>
-                <PillsField
-                  label="Ориентация переплёта"
-                  values={format === "А3"
-                    ? ["По короткой стороне"]
-                    : ["По длинной стороне", "По короткой стороне"]
-                  }
-                  value={orientation}
-                  onChange={(v) => setOrientation(v as Orientation)}
-                  hint={format === "А3" ? "А3 — только по короткой стороне" : undefined}
-                />
-              </div>
 
               <div>
                 <label className="block text-[12px] font-semibold text-ink-700 mb-1.5">
@@ -325,7 +305,7 @@ export default function BindingCalculator({ serviceId }: { serviceId?: number })
                 />
                 <BreakdownRow
                   label="Формат"
-                  hint={`${format}, ${orientation.toLowerCase()}`}
+                  hint={format}
                   value=""
                 />
                 <BreakdownRow

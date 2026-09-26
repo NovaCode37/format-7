@@ -41,7 +41,6 @@ export default function StickerCalculator({ serviceId }: { serviceId?: number })
   const [foilColor, setFoilColor] = useState<FoilColor>("Золото");
   const [shape, setShape] = useState<StickerShape>("Круглые");
   const [sizeLabel, setSizeLabel] = useState<string>("диаметр 2 см");
-  const [lamination, setLamination] = useState<YesNo>("Нет");
   const [sheets, setSheets] = useState<number>(2);
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
   const [track, setTrack] = useState<Track>("upload");
@@ -62,18 +61,17 @@ export default function StickerCalculator({ serviceId }: { serviceId?: number })
     const entry = sizes.find((s: any) => s.label === sizeLabel) ?? sizes[0];
     const perSheet = entry.tiers[tierIndex(sheets)];
     const printTotal = perSheet * sheets;
-    const lamTotal = lamination === "Да" ? pricing.lamination * sheets : 0;
     const designTotal = track === "design" ? pricing.design : 0;
     const deliveryTotal = DELIVERY_PRICE[delivery];
-    const grandTotal = printTotal + lamTotal + designTotal + deliveryTotal;
+    const grandTotal = printTotal + designTotal + deliveryTotal;
     const stickerCount = entry.count * sheets;
     return {
-      perSheet, printTotal, lamTotal, designTotal, deliveryTotal, grandTotal,
+      perSheet, printTotal, designTotal, deliveryTotal, grandTotal,
       stickerCount,
       perSticker: stickerCount ? printTotal / stickerCount : 0,
       count: entry.count,
     };
-  }, [sizes, sizeLabel, sheets, lamination, track, delivery, pricing]);
+  }, [sizes, sizeLabel, sheets, track, delivery, pricing]);
 
   const sizeValues = useMemo(() => sizes.map((s: any) => s.label), [sizes]);
 
@@ -84,7 +82,6 @@ export default function StickerCalculator({ serviceId }: { serviceId?: number })
     productLabel: `Наклейки ${shape.toLowerCase()} ${sizeLabel}, ${materialLabel.toLowerCase()}${finish === "С фольгой" ? `, фольга ${foilColor.toLowerCase()}` : ""}`,
     lines: [
       `${materialLabel} · ${finishLabel} · ${shape} · ${sizeLabel} · ${sheets} л. А3 (≈ ${calc.stickerCount} шт.)`,
-      lamination === "Да" ? "Ламинация" : null,
       track === "design" ? "Разработка макета дизайнером (1000 ₽)" : null,
       `Доставка: ${delivery}`,
     ].filter(Boolean) as string[],
@@ -92,7 +89,7 @@ export default function StickerCalculator({ serviceId }: { serviceId?: number })
       track: track === "design" ? "Заказ дизайна" : track === "template" ? "Каталог шаблонов" : "Загрузка макета",
       material: materialLabel, finish: finishLabel, shape, size: sizeLabel,
       sheets, sticker_count: calc.stickerCount,
-      lamination, design_fee: calc.designTotal, delivery,
+      design_fee: calc.designTotal, delivery,
       file: uploadedFile?.name || "—",
     },
     delivery,
@@ -202,10 +199,6 @@ export default function StickerCalculator({ serviceId }: { serviceId?: number })
               </div>
 
               <div className="pt-4 border-t border-ink-100">
-                <PillsField label="Ламинация" values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${pricing.lamination} ₽/лист А3` : undefined} />
-              </div>
-
-              <div className="pt-4 border-t border-ink-100">
                 <QuantityField
                   label="Тираж, листов А3"
                   presets={SHEET_PRESETS}
@@ -234,9 +227,6 @@ export default function StickerCalculator({ serviceId }: { serviceId?: number })
                   hint={`${sheets} л. × ${fmt(calc.perSheet)} ₽`}
                   value={`${fmt(calc.printTotal)} ₽`}
                 />
-                {calc.lamTotal > 0 && (
-                  <BreakdownRow label="Ламинация" hint={`${sheets} л. × ${pricing.lamination} ₽`} value={`${fmt(calc.lamTotal)} ₽`} />
-                )}
                 {calc.designTotal > 0 && (
                   <BreakdownRow label="Разработка макета" hint="2 доработки в стоимости" value={`${fmt(calc.designTotal)} ₽`} />
                 )}

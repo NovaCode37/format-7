@@ -13,7 +13,6 @@ import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 type Material = "Бумага 300 г/м²" | "Бумага 250 г/м²" | "Пластик";
 type Sides = "Односторонняя" | "Двусторонняя";
 type YesNo = "Да" | "Нет";
-type SpringColor = "Белый" | "Чёрный";
 type Delivery = "Самовывоз" | "Доставка по Тюмени" | "СДЭК (наложенный платёж)";
 
 type Tier = 10 | 50 | 100;
@@ -46,7 +45,6 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
   const [lamination, setLamination] = useState<YesNo>("Нет");
   const [rounding, setRounding] = useState<YesNo>("Нет");
   const [spring, setSpring] = useState<YesNo>("Нет");
-  const [springColor, setSpringColor] = useState<SpringColor>("Белый");
   const [staple, setStaple] = useState<YesNo>("Нет");
   const [quantity, setQuantity] = useState(10);
   const [qtyInput, setQtyInput] = useState("10");
@@ -58,10 +56,8 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   useEffect(() => {
-    if (material === "Пластик" && springColor === "Чёрный") {
-      setSpringColor("Белый");
-    }
-  }, [material, springColor]);
+    if (material === "Пластик" && staple === "Да") setStaple("Нет");
+  }, [material, staple]);
 
   useEffect(() => {
     if (spring === "Да" && staple === "Да") setStaple("Нет");
@@ -118,7 +114,7 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
       `Бумага: ${paperFinish.toLowerCase()}`,
       lamination === "Да" ? "Ламинация" : null,
       rounding === "Да" ? "Скругление углов" : null,
-      spring === "Да" ? `Пружина (${springColor})` : null,
+      spring === "Да" ? "Пружина" : null,
       staple === "Да" ? "Скоба" : null,
       needDesign === "Да" ? "Разработка макета дизайнером" : null,
       `Доставка: ${delivery}`,
@@ -130,7 +126,7 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
       Листов: sheets,
       Ламинация: lamination,
       Скругление: rounding,
-      Пружина: spring === "Да" ? `Да (${springColor})` : "Нет",
+      Пружина: spring,
       Скоба: staple,
       Дизайн: needDesign,
       Файл: uploadedFile?.name || "—",
@@ -192,13 +188,13 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
                       </span>
                       <div>
                         <p className="font-heading text-base font-bold text-ink-900">{uploadedFile ? "Макет загружен" : "Загрузить ваш макет"}</p>
-                        <p className="text-[12px] text-ink-500">PDF, JPG, PNG, AI, CDR, PSD</p>
+                        <p className="text-[12px] text-ink-500">PDF, CDR</p>
                       </div>
                     </div>
                     {uploadedFile && <p className="mt-2 text-[12px] text-emerald-700 break-all">{uploadedFile.name}</p>}
                     <p className="mt-3 text-[11px] text-ink-500">Файл будет передан менеджеру вместе с заказом</p>
                   </button>
-                  <input ref={fileInputRef} type="file" hidden accept=".pdf,.jpg,.jpeg,.png,.docx,.doc,.ai,.cdr,.eps,.tiff,.psd" onChange={(e) => handleUpload(e.target.files)} />
+                  <input ref={fileInputRef} type="file" hidden accept=".pdf,.cdr" onChange={(e) => handleUpload(e.target.files)} />
                 </>
               ) : (
                 <div className="rounded-xl border border-amber-300 bg-amber-50 p-5">
@@ -316,29 +312,18 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
                   }}
                   hint={spring === "Да" ? `+${pricing.spring} ₽/экз.` : undefined}
                 />
-                {spring === "Да" && (
-                  <div className="mt-3">
-                    <PillsField
-                      label="Цвет пружины"
-                      values={material === "Пластик" ? ["Белый"] : ["Белый", "Чёрный"]}
-                      value={springColor}
-                      onChange={(v) => setSpringColor(v as SpringColor)}
-                      hint={material === "Пластик" ? "для пластика только белый" : undefined}
-                    />
-                  </div>
-                )}
               </div>
 
               <div className="pt-4 border-t border-ink-100">
                 <PillsField
                   label="Скоба"
-                  values={["Нет", "Да"]}
+                  values={material === "Пластик" ? ["Нет"] : ["Нет", "Да"]}
                   value={staple}
                   onChange={(v) => {
                     setStaple(v as YesNo);
                     if (v === "Да") setSpring("Нет");
                   }}
-                  hint={staple === "Да" ? `+${pricing.staple} ₽/экз.` : undefined}
+                  hint={material === "Пластик" ? "для пластика недоступна" : staple === "Да" ? `+${pricing.staple} ₽/экз.` : undefined}
                 />
               </div>
 
@@ -410,7 +395,7 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
                 )}
                 {calc.springTotal > 0 && (
                   <BreakdownRow
-                    label={`Пружина (${springColor.toLowerCase()})`}
+                    label="Пружина"
                     hint={`${quantity} × ${pricing.spring} ₽`}
                     value={`${fmt(calc.springTotal)} ₽`}
                   />
