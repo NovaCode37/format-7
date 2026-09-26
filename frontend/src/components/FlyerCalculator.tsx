@@ -133,7 +133,7 @@ export default function FlyerCalculator({ serviceId }: { serviceId?: number }) {
       Стороны: sides,
       Ориентация: orient,
       Ламинация: lamination,
-      Бумага: `130 г/м² мелованная, ${paperFinish.toLowerCase()}`,
+      Бумага: `115 г/м² мелованная, ${paperFinish.toLowerCase()}`,
       Файл: uploadedFile?.name || "—",
     },
     delivery,
@@ -152,7 +152,7 @@ export default function FlyerCalculator({ serviceId }: { serviceId?: number }) {
             Флаеры
           </h1>
           <p className="mt-2 text-ink-500 text-sm">
-            Евро 98×210 мм, мелованная бумага 130 г/м² (матовая или глянцевая). Цена тиража действует на 1 вид макета.
+            Евро 98×210 мм, мелованная бумага 115 г/м² (матовая или глянцевая). Цена тиража действует на 1 вид макета.
             Размер готового изделия может отличаться от стандартного на ±2 мм.
           </p>
         </div>
@@ -260,7 +260,7 @@ export default function FlyerCalculator({ serviceId }: { serviceId?: number }) {
 
               <div className="rounded-xl border border-ink-200 bg-ink-50 p-4 text-[12px] text-ink-600 space-y-2">
                 <p><strong className="text-ink-900">Формат:</strong> Евро 98×210 мм.</p>
-                <p>Печать на мелованной бумаге плотностью 130 г/м², матовая или глянцевая на выбор.</p>
+                <p>Печать на мелованной бумаге плотностью 115 г/м², матовая или глянцевая на выбор.</p>
                 <p>Цена тиража действует на 1 вид макета.</p>
                 <p className="flex items-center gap-1.5">
                   <Truck size={13} /> Доставка по Тюмени — 700 ₽.

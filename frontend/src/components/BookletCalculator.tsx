@@ -82,7 +82,7 @@ export default function BookletCalculator({ serviceId }: { serviceId?: number })
           <p className="eyebrow mb-2">Калькулятор</p>
           <h1 className="font-heading text-3xl sm:text-4xl font-bold text-ink-900 tracking-tight">Буклеты</h1>
           <p className="mt-2 text-ink-500 text-sm">
-            Мелованная бумага 120 г/м² (матовая или глянцевая). Биговка включена в цену. Цена тиража действует на 1 вид макета.
+            Мелованная бумага 128 г/м² (матовая или глянцевая). Биговка включена в цену. Цена тиража действует на 1 вид макета.
             Размер готового изделия может отличаться от стандартного на ±2 мм.
           </p>
         </div>
