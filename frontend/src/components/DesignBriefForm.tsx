@@ -54,7 +54,6 @@ export default function DesignBriefForm({ onUseConstructor }: { onUseConstructor
   const [orientation, setOrientation] = useState<"Вертикальный" | "Горизонтальный">("Вертикальный");
   const [sides, setSides] = useState<"Односторонняя" | "Двусторонняя">("Односторонняя");
   const [size, setSize] = useState("");
-  const [sheets, setSheets] = useState("");
   const [content, setContent] = useState("");
   const [font, setFont] = useState("");
   const [palette, setPalette] = useState("");
@@ -103,7 +102,6 @@ export default function DesignBriefForm({ onUseConstructor }: { onUseConstructor
         orientation,
         sides,
         size: size || "—",
-        sheets: sheets || "—",
         font: font || "—",
         palette_cmyk: palette || "—",
         images: images.map((f) => f.file.name).join(", ") || "—",
@@ -115,7 +113,6 @@ export default function DesignBriefForm({ onUseConstructor }: { onUseConstructor
         `БРИФ НА ДИЗАЙН — ${product}`,
         `Ориентация: ${orientation} · Стороны: ${sides}`,
         size ? `Формат/размер: ${size}` : null,
-        sheets ? `Листов/блоков: ${sheets}` : null,
         font ? `Шрифт: ${font}` : null,
         palette ? `Палитра CMYK: ${palette}` : null,
         content ? `Текст: ${content}` : null,
@@ -221,11 +218,6 @@ export default function DesignBriefForm({ onUseConstructor }: { onUseConstructor
               <div>
                 <label className="flex items-center gap-1.5 text-[12px] font-semibold text-ink-700 mb-1.5"><AlignVerticalJustifyCenter size={13} /> Размер изображения, мм</label>
                 <input value={size} onChange={(e) => setSize(e.target.value)} placeholder="Какой формат используется: А3 / А4 / А5 / А6 или точный размер в мм" className="input h-11 w-full" />
-              </div>
-
-              <div>
-                <label className="flex items-center gap-1.5 text-[12px] font-semibold text-ink-700 mb-1.5"><Layers size={13} /> Количество листов (блоков) в продукте</label>
-                <input value={sheets} onChange={(e) => setSheets(e.target.value)} placeholder="Например: 1, 2, 12…" className="input h-11 w-full" />
               </div>
 
               <div>

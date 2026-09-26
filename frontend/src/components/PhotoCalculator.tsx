@@ -94,13 +94,13 @@ export default function PhotoCalculator({ serviceId }: { serviceId?: number }) {
                   </span>
                   <div>
                     <p className="font-heading text-base font-bold text-ink-900">{uploadedFile ? "Фото загружено" : "Загрузить ваши фото"}</p>
-                    <p className="text-[12px] text-ink-500">JPG, PNG, TIFF, HEIC</p>
+                    <p className="text-[12px] text-ink-500">JPG, PNG</p>
                   </div>
                 </div>
                 {uploadedFile && <p className="mt-2 text-[12px] text-emerald-700 break-all">{uploadedFile.name}</p>}
                 <p className="mt-3 text-[11px] text-ink-500">Чем выше разрешение файла, тем лучше результат печати.</p>
               </button>
-              <input ref={fileInputRef} type="file" hidden accept=".jpg,.jpeg,.png,.tiff,.heic,.webp" onChange={(e) => handleUpload(e.target.files)} />
+              <input ref={fileInputRef} type="file" hidden accept=".jpg,.jpeg,.png,.webp" onChange={(e) => handleUpload(e.target.files)} />
 
               <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-[12px] text-ink-700 space-y-2">
                 <p className="flex items-start gap-2">
