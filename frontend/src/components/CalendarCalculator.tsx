@@ -6,6 +6,7 @@ import {
   PillsField, QuantityField, TrackCard, BreakdownRow, CheckoutModal, DesignBriefCard,
   DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
   fmt, tierValue, useResolvedServiceId, useUpload, usePricing,
+  ConfigurableField, quantityPresets,
 } from "./calc/kit";
 import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
@@ -136,18 +137,18 @@ export default function CalendarCalculator({ serviceId }: { serviceId?: number }
           <div className="lg:col-span-5">
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
 
-              <PillsField label="Ориентация" values={["По горизонтали", "По вертикали"]} value={orientation} onChange={(v) => setOrientation(v as Orientation)} hint="на цену не влияет" />
+              <ConfigurableField id="orientation" pricing={pricing} values={["По горизонтали", "По вертикали"]} value={orientation} onChange={(v) => setOrientation(v as Orientation)} hint="на цену не влияет" />
 
-              <PillsField label="Бумага" values={["Матовая", "Глянцевая"]} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
+              <ConfigurableField id="paperFinish" pricing={pricing} values={["Матовая", "Глянцевая"]} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
 
-              <PillsField label="Ламинация" values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? "цена по таблице с ламинацией" : undefined} />
+              <ConfigurableField id="lamination" pricing={pricing} values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? "цена по таблице с ламинацией" : undefined} />
 
               <div className="pt-4 border-t border-ink-100">
-                <PillsField label="Курсор" values={CURSOR_VALUES} value={cursor} onChange={(v) => setCursor(v as Cursor)} hint={cursor !== "Нет" ? `+${calc.cursorUnit} ₽/шт` : undefined} />
+                <ConfigurableField id="cursor" pricing={pricing} values={CURSOR_VALUES} value={cursor} onChange={(v) => setCursor(v as Cursor)} hint={cursor !== "Нет" ? `+${calc.cursorUnit} ₽/шт` : undefined} />
               </div>
 
               <div className="pt-4 border-t border-ink-100">
-                <QuantityField presets={QTY_PRESETS} value={quantity} onChange={setQuantity} min={1} />
+                <QuantityField presets={quantityPresets(pricing, "quantity", QTY_PRESETS)} value={quantity} onChange={setQuantity} min={1} />
               </div>
 
               <div className="pt-4 border-t border-ink-100">

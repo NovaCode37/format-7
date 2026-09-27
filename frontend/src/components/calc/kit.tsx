@@ -111,19 +111,98 @@ function deepMergeNumbers<T>(base: T, override: any): T {
   return base;
 }
 
+// Слияние для раздела ui. В отличие от deepMergeNumbers здесь переопределение
+// может добавлять ключи, которых нет в дефолтах: иначе администратор не смог бы
+// завести новое значение опции, не дожидаясь релиза. Массивы заменяются целиком,
+// потому что список значений — это одно целое, а не набор позиций.
+function deepMergeUi(base: any, override: any): any {
+  if (override === undefined) return base;
+  if (Array.isArray(override)) return [...override];
+  if (override === null || typeof override !== "object") return override;
+  const out: any = { ...(base && typeof base === "object" ? base : {}) };
+  for (const k of Object.keys(override)) {
+    out[k] = deepMergeUi(out[k], override[k]);
+  }
+  return out;
+}
+
 export function usePricing<T>(slug: string, defaults: T): T {
   const [cfg, setCfg] = useState<T>(defaults);
   useEffect(() => {
     let alive = true;
     api.getPricing(slug)
       .then((data) => {
-        if (alive && data && Object.keys(data).length) setCfg(deepMergeNumbers(defaults, data));
+        if (!alive || !data || !Object.keys(data).length) return;
+        const { ui: uiOverride, ...numbers } = data as any;
+        const merged: any = deepMergeNumbers(defaults, numbers);
+        if (uiOverride) merged.ui = deepMergeUi((defaults as any)?.ui, uiOverride);
+        setCfg(merged);
       })
       .catch(() => {});
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
   return cfg;
+}
+
+export interface FieldConfig {
+  label?: string;
+  values?: string[];
+  hidden?: boolean;
+  hint?: string;
+}
+
+/** Достаёт настройку поля из конфигурации товара. */
+export function fieldConfig(pricing: any, id: string): FieldConfig {
+  return (pricing?.ui?.fields?.[id] as FieldConfig) || {};
+}
+
+/**
+ * Поле выбора, у которого подпись, список значений и сама видимость могут быть
+ * переопределены из админки. Если ничего не переопределено, ведёт себя как
+ * обычный PillsField с переданными значениями.
+ */
+export function ConfigurableField({
+  id, pricing, label, values, value, onChange, hint,
+}: {
+  id: string;
+  pricing: any;
+  /** Запасная подпись, если поле не описано в конфигурации товара. */
+  label?: string;
+  /** Запасной список значений, если поле не описано в конфигурации товара. */
+  values?: string[];
+  value: string;
+  onChange: (v: string) => void;
+  hint?: string;
+}) {
+  const cfg = fieldConfig(pricing, id);
+  const resolved = cfg.values?.length ? cfg.values : (values ?? []);
+
+  // Если администратор убрал текущее значение из списка, выбранным остаётся
+  // несуществующий вариант и расчёт молча уходит не туда. Переключаем на первый.
+  useEffect(() => {
+    if (!cfg.hidden && resolved.length && !resolved.includes(value)) onChange(resolved[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resolved.join("|"), value, cfg.hidden]);
+
+  if (cfg.hidden || !resolved.length) return null;
+  return (
+    <PillsField
+      label={cfg.label || label || id}
+      values={resolved}
+      value={value}
+      onChange={onChange}
+      hint={cfg.hint ?? hint}
+    />
+  );
+}
+
+/** Пресеты тиража с возможностью переопределить их из админки. */
+export function quantityPresets(pricing: any, id: string, fallback: number[]): number[] {
+  const raw = pricing?.ui?.quantities?.[id];
+  if (!Array.isArray(raw)) return fallback;
+  const nums = raw.map((n: any) => Number(n)).filter((n: number) => Number.isFinite(n) && n > 0);
+  return nums.length ? nums : fallback;
 }
 
 export type Delivery = "Самовывоз" | "Доставка по Тюмени" | "СДЭК (наложенный платёж)";

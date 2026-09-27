@@ -20,6 +20,18 @@ function mergeNumbers(base: any, override: any): any {
   return base;
 }
 
+// Раздел ui хранит подписи и списки значений, а не числа, и администратор может
+// добавлять туда ключи, которых нет в дефолтах. Поэтому здесь слияние, которое
+// не выбрасывает незнакомое, в отличие от mergeNumbers выше.
+function mergeUi(base: any, override: any): any {
+  if (override === undefined) return base;
+  if (Array.isArray(override)) return [...override];
+  if (override === null || typeof override !== "object") return override;
+  const out: any = { ...(base && typeof base === "object" ? base : {}) };
+  for (const k of Object.keys(override)) out[k] = mergeUi(out[k], override[k]);
+  return out;
+}
+
 function clone<T>(v: T): T {
   return JSON.parse(JSON.stringify(v));
 }
@@ -133,7 +145,10 @@ export default function AdminPricing({ token }: { token: string }) {
     api.adminGetAllPricing(token)
       .then((all) => {
         const def = PRICING_DEFAULTS[slug].data;
-        const merged = mergeNumbers(def, all?.[slug] || {});
+        const stored = all?.[slug] || {};
+        const { ui: uiStored, ...numbers } = stored as any;
+        const merged = mergeNumbers(def, numbers);
+        if ((def as any).ui || uiStored) merged.ui = mergeUi((def as any).ui, uiStored);
         setMatrix(merged);
         setSavedSnapshot(JSON.stringify(merged));
       })
@@ -174,7 +189,8 @@ export default function AdminPricing({ token }: { token: string }) {
     setMatrix((m: any) => setPath(m, path, value));
   };
 
-  const topEntries = matrix ? Object.entries(matrix) : [];
+  // ui редактируется отдельным блоком ниже: там подписи и списки, а не числа.
+  const topEntries = matrix ? Object.entries(matrix).filter(([k]) => k !== "ui") : [];
   const q = query.trim().toLowerCase();
   const visibleKeys = q
     ? new Set(topEntries.filter(([k]) => (FIELD_LABELS[k] || k).toLowerCase().includes(q)).map(([k]) => k))
@@ -224,6 +240,12 @@ export default function AdminPricing({ token }: { token: string }) {
         <div className="flex justify-center py-16"><Loader2 className="animate-spin text-ink-400" size={24} /></div>
       ) : (
         <div className="space-y-4">
+          {matrix.ui && (
+            <UiEditor
+              ui={matrix.ui}
+              onChange={(next) => setMatrix((m: any) => ({ ...m, ui: next }))}
+            />
+          )}
           {topEntries.map(([key, value]) => {
             if (visibleKeys && !visibleKeys.has(key)) return null;
             const isCollapsed = !!collapsed[key];
@@ -478,4 +500,135 @@ function Node({
     );
   }
   return null;
+}
+
+/**
+ * Редактор раздела ui: подписи полей, списки значений, скрытие и пресеты тиража.
+ * Всё, что раньше правилось только в коде калькулятора.
+ */
+function UiEditor({ ui, onChange }: { ui: any; onChange: (next: any) => void }) {
+  const [collapsed, setCollapsed] = useState(false);
+  const fields: Record<string, any> = ui?.fields || {};
+  const quantities: Record<string, any> = ui?.quantities || {};
+
+  const patchField = (id: string, patch: any) =>
+    onChange({ ...ui, fields: { ...fields, [id]: { ...fields[id], ...patch } } });
+
+  const patchValues = (id: string, values: string[]) => patchField(id, { values });
+
+  return (
+    <div className="border border-ink-200 rounded-lg overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setCollapsed((c) => !c)}
+        className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-amber-50/70 hover:bg-amber-50 transition-colors cursor-pointer"
+      >
+        <span className="font-heading text-[14px] font-semibold text-ink-900">
+          Поля калькулятора: подписи, варианты, видимость
+        </span>
+        <ChevronDown size={16} className={`text-ink-400 transition-transform ${collapsed ? "" : "rotate-180"}`} />
+      </button>
+
+      {!collapsed && (
+        <div className="p-4 pt-3 space-y-5">
+          <p className="text-[12px] text-ink-500">
+            Здесь меняется то, что видит клиент: как называется поле, какие у него варианты и
+            показывать ли его вообще. Цены по-прежнему ниже. Скрытое поле исчезает из калькулятора,
+            а из заказа уходит значение по умолчанию.
+          </p>
+
+          {Object.keys(fields).length === 0 && (
+            <p className="text-[12px] text-ink-500">Для этого калькулятора поля пока не описаны.</p>
+          )}
+
+          {Object.entries(fields).map(([id, cfg]: [string, any]) => (
+            <div key={id} className="rounded-lg border border-ink-200 p-3 space-y-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <code className="text-[11px] text-ink-500 bg-ink-50 rounded px-1.5 py-0.5">{id}</code>
+                <input
+                  value={cfg?.label ?? ""}
+                  onChange={(e) => patchField(id, { label: e.target.value })}
+                  placeholder="Подпись поля"
+                  className="input h-9 flex-1 min-w-[180px]"
+                />
+                <label className="inline-flex items-center gap-1.5 text-[12px] text-ink-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={!!cfg?.hidden}
+                    onChange={(e) => patchField(id, { hidden: e.target.checked })}
+                  />
+                  Скрыть поле
+                </label>
+              </div>
+
+              {!cfg?.hidden && (
+                <div className="space-y-2">
+                  <p className="text-[11px] uppercase tracking-wide text-ink-500">Варианты</p>
+                  {(cfg?.values || []).map((v: string, i: number) => (
+                    <div key={`${id}-${i}`} className="flex items-center gap-2">
+                      <input
+                        value={v}
+                        onChange={(e) => {
+                          const next = [...(cfg.values || [])];
+                          next[i] = e.target.value;
+                          patchValues(id, next);
+                        }}
+                        className="input h-9 flex-1"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => patchValues(id, (cfg.values || []).filter((_: string, j: number) => j !== i))}
+                        className="btn btn-sm cursor-pointer"
+                        title="Убрать вариант"
+                      >
+                        Убрать
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => patchValues(id, [...(cfg?.values || []), "Новый вариант"])}
+                    className="btn btn-sm cursor-pointer"
+                  >
+                    Добавить вариант
+                  </button>
+                  <p className="text-[11px] text-ink-500">
+                    Если у варианта есть своя цена, она задаётся ниже, в разделе с таким же названием.
+                    Вариант без цены считается бесплатным.
+                  </p>
+                </div>
+              )}
+            </div>
+          ))}
+
+          {Object.keys(quantities).length > 0 && (
+            <div className="rounded-lg border border-ink-200 p-3 space-y-2">
+              <p className="text-[11px] uppercase tracking-wide text-ink-500">Быстрый выбор тиража</p>
+              {Object.entries(quantities).map(([id, list]: [string, any]) => (
+                <div key={id} className="flex flex-wrap items-center gap-2">
+                  <code className="text-[11px] text-ink-500 bg-ink-50 rounded px-1.5 py-0.5">{id}</code>
+                  <input
+                    defaultValue={(Array.isArray(list) ? list : []).join(", ")}
+                    onBlur={(e) => {
+                      const nums = e.target.value
+                        .split(",")
+                        .map((s) => Number(s.trim()))
+                        .filter((n) => Number.isFinite(n) && n > 0);
+                      onChange({ ...ui, quantities: { ...quantities, [id]: nums } });
+                    }}
+                    placeholder="1, 5, 10"
+                    className="input h-9 flex-1 min-w-[200px]"
+                  />
+                </div>
+              ))}
+              <p className="text-[11px] text-ink-500">
+                Числа через запятую. Это только кнопки быстрого выбора, вручную клиент всё равно
+                может ввести любой тираж.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }

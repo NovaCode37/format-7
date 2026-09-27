@@ -306,6 +306,15 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
       },
       cursor: { "Нет": 0, "Пластиковый": 10, "Статический": 40, "Магнитный": 70 },
       design: 1000,
+      ui: {
+        fields: {
+          orientation: { label: "Ориентация", values: ["По горизонтали", "По вертикали"], hint: "на цену не влияет" },
+          paperFinish: { label: "Бумага", values: ["Матовая", "Глянцевая"], hint: "на цену не влияет" },
+          lamination: { label: "Ламинация", values: ["Нет", "Да"] },
+          cursor: { label: "Курсор", values: ["Нет", "Пластиковый", "Статический", "Магнитный"] },
+        },
+        quantities: { quantity: [1, 5, 10, 30, 50] },
+      },
     },
   },
 
@@ -318,6 +327,14 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
       },
       lamination: { "А4 (210×297 мм)": 50, "А3 (297×420 мм)": 100 },
       cursor: { "Нет": 0, "Пластиковый": 10, "Статический": 40, "Магнитный": 70 },
+      ui: {
+        fields: {
+          format: { label: "Формат", values: ["А4 (210×297 мм)", "А3 (297×420 мм)"] },
+          lamination: { label: "Ламинация подложки", values: ["Нет", "Да"] },
+          cursor: { label: "Курсор", values: ["Нет", "Пластиковый", "Статический", "Магнитный"] },
+        },
+        quantities: { quantity: [1, 5, 10] },
+      },
     },
   },
 
@@ -332,6 +349,15 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
       lamPoster: 50,
       lamBlock: 25,
       design: 1000,
+      ui: {
+        fields: {
+          adField: { label: "Рекламное поле", values: ["Без полей", "1 рекламное поле", "3 рекламных поля"] },
+          cursor: { label: "Курсор", values: ["Пластиковый", "Статический", "Магнитный"], hint: "входит в стоимость" },
+          paperFinish: { label: "Бумага постера и подложки", values: ["Матовая", "Глянцевая"], hint: "на цену не влияет" },
+          lamPoster: { label: "Ламинация постера и подложек блоков", values: ["Нет", "Да"] },
+        },
+        quantities: { quantity: [1, 10, 20, 50, 100] },
+      },
     },
   },
 
@@ -355,6 +381,15 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
       lamination: 25,
       cursor: { "Нет": 0, "Пластиковый": 10, "Статический": 40, "Магнитный": 70 },
       design: 1000,
+      ui: {
+        fields: {
+          kind: { label: "Вид календаря", values: ["Безблочный", "С 12 блоками"] },
+          paperFinish: { label: "Бумага", values: ["Матовая", "Глянцевая"], hint: "на цену не влияет" },
+          lamination: { label: "Ламинация", values: ["Нет", "Да"] },
+          cursor: { label: "Курсор", values: ["Нет", "Пластиковый", "Статический", "Магнитный"] },
+        },
+        quantities: { quantity: [1, 5, 10, 50, 100] },
+      },
     },
   },
 

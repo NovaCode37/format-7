@@ -6,6 +6,7 @@ import {
   PillsField, QuantityField, TrackCard, BreakdownRow, CheckoutModal, DesignBriefCard,
   DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
   fmt, tierValue, useResolvedServiceId, useUpload, usePricing,
+  ConfigurableField, quantityPresets,
 } from "./calc/kit";
 import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
@@ -124,16 +125,16 @@ export default function QuarterlyCalendarCalculator({ serviceId }: { serviceId?:
 
           <div className="lg:col-span-5">
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
-              <PillsField label="Рекламное поле" values={["Без полей", "1 рекламное поле", "3 рекламных поля"]} value={adField} onChange={(v) => setAdField(v as AdField)} />
-              <PillsField label="Курсор" values={["Пластиковый", "Статический", "Магнитный"]} value={cursor} onChange={(v) => setCursor(v as Cursor)} hint="входит в стоимость" />
+              <ConfigurableField id="adField" pricing={pricing} values={["Без полей", "1 рекламное поле", "3 рекламных поля"]} value={adField} onChange={(v) => setAdField(v as AdField)} />
+              <ConfigurableField id="cursor" pricing={pricing} values={["Пластиковый", "Статический", "Магнитный"]} value={cursor} onChange={(v) => setCursor(v as Cursor)} hint="входит в стоимость" />
 
-              <PillsField label="Бумага постера и подложки" values={["Матовая", "Глянцевая"]} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
+              <ConfigurableField id="paperFinish" pricing={pricing} values={["Матовая", "Глянцевая"]} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
 
               <div className="pt-4 border-t border-ink-100">
-                <PillsField label="Ламинация постера и подложек блоков" values={["Нет", "Да"]} value={lamPoster} onChange={(v) => setLamPoster(v as YesNo)} hint={lamPoster === "Да" ? `+${pricing.lamPoster} ₽/шт (А4)` : undefined} />
+                <ConfigurableField id="lamPoster" pricing={pricing} values={["Нет", "Да"]} value={lamPoster} onChange={(v) => setLamPoster(v as YesNo)} hint={lamPoster === "Да" ? `+${pricing.lamPoster} ₽/шт (А4)` : undefined} />
               </div>
               <div className="pt-4 border-t border-ink-100">
-                <QuantityField presets={QTY_PRESETS} value={quantity} onChange={setQuantity} min={1} />
+                <QuantityField presets={quantityPresets(pricing, "quantity", QTY_PRESETS)} value={quantity} onChange={setQuantity} min={1} />
               </div>
               <div className="pt-4 border-t border-ink-100">
                 <PillsField label="Доставка" values={DELIVERY_VALUES} value={delivery} onChange={(v) => setDelivery(v as Delivery)} />
