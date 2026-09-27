@@ -6,6 +6,7 @@ import {
   PillsField, QuantityField, TrackCard, BreakdownRow, CheckoutModal, DesignBriefCard,
   TemplateCatalogCard, DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
   fmt, tierValue, useResolvedServiceId, useUpload, usePricing,
+  ConfigurableField, quantityPresets,
 } from "./calc/kit";
 import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
@@ -141,9 +142,9 @@ export default function BookletCalculator({ serviceId }: { serviceId?: number })
           <div className="lg:col-span-5">
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
 
-              <PillsField label="Цветность" values={["Цветная", "Цветная + ч/б", "Чёрно-белая"]} value={color} onChange={(v) => setColor(v as Color)} hint="двусторонняя печать" />
+              <ConfigurableField id="color" pricing={pricing} value={color} onChange={(v) => setColor(v as Color)} hint="двусторонняя печать" />
 
-              <PillsField label="Бумага" values={["Матовая", "Глянцевая"]} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
+              <ConfigurableField id="paperFinish" pricing={pricing} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
 
               <div>
                 <label className="block text-[12px] font-semibold text-ink-700 mb-1.5">Количество бигов (сложений)</label>
@@ -164,11 +165,11 @@ export default function BookletCalculator({ serviceId }: { serviceId?: number })
               </div>
 
               <div className="pt-4 border-t border-ink-100">
-                <PillsField label="Ламинация" values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${pricing.lamination} ₽/шт` : undefined} />
+                <ConfigurableField id="lamination" pricing={pricing} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${pricing.lamination} ₽/шт` : undefined} />
               </div>
 
               <div className="pt-4 border-t border-ink-100">
-                <QuantityField presets={QTY_PRESETS} value={quantity} onChange={setQuantity} min={MIN_QTY} max={MAX_QTY} step={10} />
+                <QuantityField presets={quantityPresets(pricing, "quantity", QTY_PRESETS)} value={quantity} onChange={setQuantity} min={MIN_QTY} max={MAX_QTY} step={10} />
               </div>
 
               <div className="pt-4 border-t border-ink-100">

@@ -7,7 +7,9 @@ import {
   CheckCircle2, Phone,
 } from "@/lib/icons";
 import { api } from "@/lib/api";
-import { CheckoutModal, usePricing, useUpload } from "./calc/kit";
+import { CheckoutModal, usePricing, useUpload,
+  ConfigurableField,
+} from "./calc/kit";
 import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type Format = "А4" | "А3";
@@ -237,38 +239,28 @@ export default function CopyPrintCalculator({ serviceId }: { serviceId?: number 
           <div className="lg:col-span-5">
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
 
-              <PillsField
-                label="Формат"
-                values={["А4", "А3"]}
+              <ConfigurableField id="format" pricing={pricing}
                 value={format}
                 onChange={(v) => setFormat(v as Format)}
               />
 
-              <PillsField
-                label="Цветность печати"
-                values={["Цветная", "Ч/Б"]}
+              <ConfigurableField id="color" pricing={pricing}
                 value={color}
                 onChange={(v) => setColor(v as Color)}
               />
 
-              <PillsField
-                label="Стороны печати"
-                values={["Двусторонняя", "Односторонняя"]}
+              <ConfigurableField id="sides" pricing={pricing}
                 value={sides}
                 onChange={(v) => setSides(v as Sides)}
               />
 
-              <PillsField
-                label="Ориентация печати"
-                values={["По вертикали", "По горизонтали"]}
+              <ConfigurableField id="orientation" pricing={pricing}
                 value={orientation}
                 onChange={(v) => setOrientation(v as Orientation)}
                 hint="на цену не влияет"
               />
 
-              <PillsField
-                label="Плотность бумаги, г/м²"
-                values={["80", "120", "160", "200", "250", "300"]}
+              <ConfigurableField id="density" pricing={pricing}
                 value={density}
                 onChange={(v) => setDensity(v as Density)}
               />
@@ -286,9 +278,7 @@ export default function CopyPrintCalculator({ serviceId }: { serviceId?: number 
                 {binding !== "Без брошюровки" && (
                   <>
                     <div className="mt-3">
-                      <PillsField
-                        label="Тип пружины"
-                        values={["Пластиковая пружина", "Металлическая пружина"]}
+                      <ConfigurableField id="binding" pricing={pricing}
                         value={binding}
                         onChange={(v) => setBinding(v as Binding)}
                         hint={BINDING_LIMIT[binding] ? `до ${BINDING_LIMIT[binding]} листов` : undefined}
@@ -305,9 +295,7 @@ export default function CopyPrintCalculator({ serviceId }: { serviceId?: number 
               </div>
 
               <div className="pt-4 border-t border-ink-100">
-                <PillsField
-                  label="Ламинирование"
-                  values={["Нет", "Да"]}
+                <ConfigurableField id="lamination" pricing={pricing}
                   value={lamination}
                   onChange={(v) => setLamination(v as Lamination)}
                 />
@@ -322,9 +310,7 @@ export default function CopyPrintCalculator({ serviceId }: { serviceId?: number 
               </div>
 
               <div className="pt-4 border-t border-ink-100">
-                <PillsField
-                  label="Упаковка"
-                  values={["Без упаковки", "Файл", "Конверт"]}
+                <ConfigurableField id="packaging" pricing={pricing}
                   value={packaging}
                   onChange={(v) => setPackaging(v as Packaging)}
                   hint={(pricing.packaging as any)[packaging] ? `+${(pricing.packaging as any)[packaging]} ₽` : undefined}

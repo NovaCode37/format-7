@@ -7,7 +7,9 @@ import {
   CheckCircle2, Phone, Info,
 } from "@/lib/icons";
 import { api } from "@/lib/api";
-import { CheckoutModal, usePricing, useUpload } from "./calc/kit";
+import { CheckoutModal, usePricing, useUpload,
+  ConfigurableField,
+} from "./calc/kit";
 import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type SpringType = "Пластиковая" | "Металлическая";
@@ -170,17 +172,13 @@ export default function BindingCalculator({ serviceId }: { serviceId?: number })
           <div className="lg:col-span-5">
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
 
-              <PillsField
-                label="Пружина"
-                values={["Пластиковая", "Металлическая"]}
+              <ConfigurableField id="spring" pricing={pricing}
                 value={spring}
                 onChange={(v) => setSpring(v as SpringType)}
                 hint={spring === "Пластиковая" ? "до 500 листов" : "до 120 листов"}
               />
 
-              <PillsField
-                label="Формат"
-                values={["А4", "А3"]}
+              <ConfigurableField id="format" pricing={pricing}
                 value={format}
                 onChange={(v) => setFormat(v as Format)}
               />

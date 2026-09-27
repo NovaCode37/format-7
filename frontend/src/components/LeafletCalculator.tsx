@@ -6,6 +6,7 @@ import {
   PillsField, QuantityField, TrackCard, BreakdownRow, CheckoutModal, DesignBriefCard,
   TemplateCatalogCard, DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
   fmt, tierValue, useResolvedServiceId, useUpload, usePricing,
+  ConfigurableField, quantityPresets,
 } from "./calc/kit";
 import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
@@ -145,21 +146,21 @@ export default function LeafletCalculator({ serviceId }: { serviceId?: number })
 
           <div className="lg:col-span-5">
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
-              <PillsField label="Формат" values={["А7 (74×105 мм)", "А6 (105×148 мм)", "А5 (148×210 мм)", "А4 (210×297 мм)", "А3 (297×420 мм)"]} value={format} onChange={(v) => setFormat(v as Format)} />
-              <PillsField label="Ориентация" values={["Горизонтальная", "Вертикальная"]} value={orientation} onChange={(v) => setOrientation(v as Orientation)} hint="на цену не влияет" />
-              <PillsField label="Цветность" values={["Цветная", "Чёрно-белая"]} value={color} onChange={(v) => setColor(v as Color)} />
-              <PillsField label="Стороны печати" values={["Двусторонняя", "Односторонняя"]} value={sides} onChange={(v) => setSides(v as Sides)} hint={`режим ${mode}`} />
+              <ConfigurableField id="format" pricing={pricing} value={format} onChange={(v) => setFormat(v as Format)} />
+              <ConfigurableField id="orientation" pricing={pricing} value={orientation} onChange={(v) => setOrientation(v as Orientation)} hint="на цену не влияет" />
+              <ConfigurableField id="color" pricing={pricing} value={color} onChange={(v) => setColor(v as Color)} />
+              <ConfigurableField id="sides" pricing={pricing} value={sides} onChange={(v) => setSides(v as Sides)} hint={`режим ${mode}`} />
 
-              <PillsField label="Бумага" values={["Матовая", "Глянцевая"]} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
+              <ConfigurableField id="paperFinish" pricing={pricing} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
 
               <div className="pt-4 border-t border-ink-100">
-                <PillsField label="Скругление углов" values={["Нет", "Да"]} value={rounding} onChange={(v) => setRounding(v as YesNo)} hint={rounding === "Да" ? `+${pricing.rounding} ₽/шт` : undefined} />
+                <ConfigurableField id="rounding" pricing={pricing} value={rounding} onChange={(v) => setRounding(v as YesNo)} hint={rounding === "Да" ? `+${pricing.rounding} ₽/шт` : undefined} />
               </div>
               <div className="pt-4 border-t border-ink-100">
-                <PillsField label="Ламинация" values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${calc.lamUnit} ₽/шт` : undefined} />
+                <ConfigurableField id="lamination" pricing={pricing} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${calc.lamUnit} ₽/шт` : undefined} />
               </div>
               <div className="pt-4 border-t border-ink-100">
-                <QuantityField presets={QTY_PRESETS} value={quantity} onChange={setQuantity} min={MIN_QTY} step={50} />
+                <QuantityField presets={quantityPresets(pricing, "quantity", QTY_PRESETS)} value={quantity} onChange={setQuantity} min={MIN_QTY} step={50} />
               </div>
               <div className="pt-4 border-t border-ink-100">
                 <PillsField label="Доставка" values={DELIVERY_VALUES} value={delivery} onChange={(v) => setDelivery(v as Delivery)} />

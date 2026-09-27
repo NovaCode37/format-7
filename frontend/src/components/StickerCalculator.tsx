@@ -6,6 +6,7 @@ import {
   PillsField, QuantityField, TrackCard, BreakdownRow, CheckoutModal, DesignBriefCard,
   TemplateCatalogCard, DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
   fmt, useResolvedServiceId, useUpload, usePricing,
+  ConfigurableField,
 } from "./calc/kit";
 import {
   STICKER_SHAPES, STICKER_SHEET_TIERS,
@@ -177,22 +178,22 @@ export default function StickerCalculator({ serviceId }: { serviceId?: number })
           <div className="lg:col-span-5">
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
 
-              <PillsField label="Материал" values={["Бумага", "Плёнка"]} value={material} onChange={(v) => setMaterial(v as StickerMaterial)} hint="самоклеящаяся" />
+              <ConfigurableField id="material" pricing={pricing} value={material} onChange={(v) => setMaterial(v as StickerMaterial)} hint="самоклеящаяся" />
 
               {material === "Плёнка" && (
-                <PillsField label="Цвет плёнки" values={["Белая", "Прозрачная"]} value={filmColor} onChange={(v) => setFilmColor(v as FilmColor)} hint="цена одинаковая" />
+                <ConfigurableField id="filmColor" pricing={pricing} value={filmColor} onChange={(v) => setFilmColor(v as FilmColor)} hint="цена одинаковая" />
               )}
 
-              <PillsField label="Фольгирование" values={["Без фольги", "С фольгой"]} value={finish} onChange={(v) => setFinish(v as StickerFinish)} />
+              <ConfigurableField id="finish" pricing={pricing} value={finish} onChange={(v) => setFinish(v as StickerFinish)} />
 
               {finish === "С фольгой" && (
-                <PillsField label="Цвет фольги" values={["Золото", "Серебро"]} value={foilColor} onChange={(v) => setFoilColor(v as FoilColor)} hint="цена одинаковая" />
+                <ConfigurableField id="foilColor" pricing={pricing} value={foilColor} onChange={(v) => setFoilColor(v as FoilColor)} hint="цена одинаковая" />
               )}
 
-              <PillsField label="Форма наклеек" values={STICKER_SHAPES} value={shape} onChange={(v) => setShape(v as StickerShape)} />
+              <ConfigurableField id="shape" pricing={pricing} values={STICKER_SHAPES} value={shape} onChange={(v) => setShape(v as StickerShape)} />
 
               <div>
-                <PillsField label="Размер" values={sizeValues} value={sizeLabel} onChange={setSizeLabel} />
+                <ConfigurableField id="sizeLabel" pricing={pricing} values={sizeValues} value={sizeLabel} onChange={setSizeLabel} />
                 <p className="mt-1.5 text-[12px] text-ink-700">
                   На листе А3: <strong className="text-ink-900">{calc.count} наклеек</strong>.
                 </p>

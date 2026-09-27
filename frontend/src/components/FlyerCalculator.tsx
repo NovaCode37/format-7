@@ -7,7 +7,9 @@ import {
   CheckCircle2, Phone, LayoutTemplate, Palette,
 } from "@/lib/icons";
 import { api } from "@/lib/api";
-import { DesignBriefCard, CheckoutModal, usePricing, useUpload } from "./calc/kit";
+import { DesignBriefCard, CheckoutModal, usePricing, useUpload,
+  ConfigurableField,
+} from "./calc/kit";
 import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type Track = "template" | "upload" | "design";
@@ -275,40 +277,30 @@ export default function FlyerCalculator({ serviceId }: { serviceId?: number }) {
           <div className="lg:col-span-5">
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
 
-              <PillsField
-                label="Цветность"
-                values={["Цветная", "Чёрно-белая"]}
+              <ConfigurableField id="color" pricing={pricing}
                 value={color}
                 onChange={(v) => setColor(v as Color)}
               />
 
-              <PillsField
-                label="Стороны печати"
-                values={["Двусторонняя", "Односторонняя"]}
+              <ConfigurableField id="sides" pricing={pricing}
                 value={sides}
                 onChange={(v) => setSides(v as Sides)}
               />
 
-              <PillsField
-                label="Ориентация"
-                values={["Вертикальная", "Горизонтальная"]}
+              <ConfigurableField id="orient" pricing={pricing}
                 value={orient}
                 onChange={(v) => setOrient(v as Orient)}
                 hint="на цену не влияет"
               />
 
-              <PillsField
-                label="Бумага"
-                values={["Матовая", "Глянцевая"]}
+              <ConfigurableField id="paperFinish" pricing={pricing}
                 value={paperFinish}
                 onChange={(v) => setPaperFinish(v as any)}
                 hint="на цену не влияет"
               />
 
               <div className="pt-4 border-t border-ink-100">
-                <PillsField
-                  label="Ламинация"
-                  values={["Нет", "Да"]}
+                <ConfigurableField id="lamination" pricing={pricing}
                   value={lamination}
                   onChange={(v) => setLamination(v as Lamination)}
                   hint={lamination === "Да" ? "+15 ₽/шт" : undefined}

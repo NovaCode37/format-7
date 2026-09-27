@@ -6,6 +6,7 @@ import {
   PillsField, QuantityField, TrackCard, BreakdownRow, CheckoutModal,
   TemplateCatalogCard, DesignBriefCard, DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
   fmt, tierValue, useResolvedServiceId, useUpload, usePricing,
+  ConfigurableField, quantityPresets,
 } from "./calc/kit";
 import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
@@ -127,12 +128,12 @@ export default function EnvelopeCalculator({ serviceId }: { serviceId?: number }
 
           <div className="lg:col-span-5">
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
-              <PillsField label="Вид конверта" values={["Е65 (110×220 мм)", "С5 (162×229 мм)", "С4 (229×324 мм)"]} value={kind} onChange={(v) => setKind(v as Kind)} hint={`печать ${PRINT_AREA[kind]}`} />
+              <ConfigurableField id="kind" pricing={pricing} value={kind} onChange={(v) => setKind(v as Kind)} hint={`печать ${PRINT_AREA[kind]}`} />
 
-              <PillsField label="Бумага" values={["Матовая", "Глянцевая"]} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
+              <ConfigurableField id="paperFinish" pricing={pricing} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
 
               <div className="pt-4 border-t border-ink-100">
-                <QuantityField presets={QTY_PRESETS} value={quantity} onChange={setQuantity} min={MIN_QTY} step={10} />
+                <QuantityField presets={quantityPresets(pricing, "quantity", QTY_PRESETS)} value={quantity} onChange={setQuantity} min={MIN_QTY} step={10} />
               </div>
               <div className="pt-4 border-t border-ink-100">
                 <PillsField label="Доставка" values={DELIVERY_VALUES} value={delivery} onChange={(v) => setDelivery(v as Delivery)} />

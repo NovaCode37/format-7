@@ -14,6 +14,18 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
   "листовки": {
     label: "Листовки",
     data: {
+      ui: {
+        fields: {
+          format: { label: "Формат", values: ["А7 (74×105 мм)", "А6 (105×148 мм)", "А5 (148×210 мм)", "А4 (210×297 мм)", "А3 (297×420 мм)"] },
+          orientation: { label: "Ориентация", values: ["Горизонтальная", "Вертикальная"], hint: "на цену не влияет" },
+          color: { label: "Цветность", values: ["Цветная", "Чёрно-белая"] },
+          sides: { label: "Стороны печати", values: ["Двусторонняя", "Односторонняя"] },
+          paperFinish: { label: "Бумага", values: ["Матовая", "Глянцевая"], hint: "на цену не влияет" },
+          rounding: { label: "Скругление углов", values: ["Нет", "Да"] },
+          lamination: { label: "Ламинация", values: ["Нет", "Да"] },
+        },
+        quantities: { quantity: [100, 200, 500, 1000] },
+      },
       price: {
         "А7 (74×105 мм)": {
           "4+0": { "100": 10, "200": 8, "500": 7, "1000": 5 },
@@ -61,6 +73,18 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
   "визитки": {
     label: "Визитки",
     data: {
+      ui: {
+        fields: {
+          orientation: { label: "Ориентация", values: ["По вертикали", "По горизонтали"], hint: "на цену не влияет" },
+          material: { label: "Материал печати", values: ["Картон", "Пластик"] },
+          color: { label: "Цветность" },
+          sides: { label: "Стороны печати", values: ["Двусторонние", "Односторонние"] },
+          paperFinish: { label: "Бумага", values: ["Матовая", "Глянцевая"], hint: "на цену не влияет" },
+          lamination: { label: "Ламинирование", values: ["Нет", "Да"] },
+          rounding: { label: "Скругление углов", values: ["Нет", "Да"] },
+        },
+        quantities: { quantity: [50, 100, 200, 300, 500, 1000] },
+      },
       carton: {
         "1+0": { "50": 7, "100": 6, "200": 5, "300": 4, "500": 3, "1000": 2 },
         "1+1": { "50": 8, "100": 7, "200": 6, "300": 5, "500": 4, "1000": 3 },
@@ -80,6 +104,15 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
   "флаеры": {
     label: "Флаеры",
     data: {
+      ui: {
+        fields: {
+          color: { label: "Цветность", values: ["Цветная", "Чёрно-белая"] },
+          sides: { label: "Стороны печати", values: ["Двусторонняя", "Односторонняя"] },
+          orient: { label: "Ориентация", values: ["Вертикальная", "Горизонтальная"], hint: "на цену не влияет" },
+          paperFinish: { label: "Бумага", values: ["Матовая", "Глянцевая"], hint: "на цену не влияет" },
+          lamination: { label: "Ламинация", values: ["Нет", "Да"] },
+        },
+      },
       print: {
         "4+4": { "100": 21, "200": 17, "500": 12, "1000": 9 },
         "4+0": { "100": 14, "200": 12, "500": 9, "1000": 7 },
@@ -94,6 +127,20 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
   "открытки": {
     label: "Открытки",
     data: {
+      ui: {
+        fields: {
+          size: { label: "Размер", values: ["Евро (98×210 мм)", "А6 (105×148 мм)", "А5 (148×210 мм)"] },
+          color: { label: "Цветность", values: ["Цветная", "Цветная + ч/б", "Чёрно-белая"] },
+          sides: { label: "Стороны печати", values: ["Двусторонняя", "Односторонняя"] },
+          orientation: { label: "Ориентация", values: ["По вертикали", "По горизонтали"], hint: "на цену не влияет" },
+          paperFinish: { label: "Бумага", values: ["Матовая", "Глянцевая"], hint: "на цену не влияет" },
+          lamination: { label: "Ламинация", values: ["Нет", "Да"] },
+          bigovka: { label: "Биговка", values: ["Нет", "Да"] },
+          foil: { label: "Фольгирование", values: ["Нет", "Да"] },
+          foilColor: { label: "Цвет фольги", values: ["Золото", "Серебро"], hint: "цена одинаковая" },
+        },
+        quantities: { quantity: [1, 50, 100, 200] },
+      },
       price: {
         "Евро (98×210 мм)": {
           one: { "50": 35, "100": 30, "200": 24 },
@@ -122,6 +169,14 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
   "буклеты": {
     label: "Буклеты",
     data: {
+      ui: {
+        fields: {
+          color: { label: "Цветность", values: ["Цветная", "Цветная + ч/б", "Чёрно-белая"], hint: "двусторонняя печать" },
+          paperFinish: { label: "Бумага", values: ["Матовая", "Глянцевая"], hint: "на цену не влияет" },
+          lamination: { label: "Ламинация", values: ["Нет", "Да"] },
+        },
+        quantities: { quantity: [10, 50, 100, 200, 500, 1000] },
+      },
       print: {
         "Цветная": { "10": 70, "50": 64, "100": 60, "200": 55, "500": 50, "1000": 45 },
         "Цветная + ч/б": { "10": 50, "50": 45, "100": 41, "200": 38, "500": 34, "1000": 30 },
@@ -136,6 +191,13 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
   "конверты": {
     label: "Конверты",
     data: {
+      ui: {
+        fields: {
+          kind: { label: "Вид конверта", values: ["Е65 (110×220 мм)", "С5 (162×229 мм)", "С4 (229×324 мм)"] },
+          paperFinish: { label: "Бумага", values: ["Матовая", "Глянцевая"], hint: "на цену не влияет" },
+        },
+        quantities: { quantity: [20, 50, 100, 200, 500] },
+      },
       price: {
         "Е65 (110×220 мм)": { "20": 28, "50": 24, "100": 20, "500": 16 },
         "С5 (162×229 мм)": { "20": 30, "50": 26, "100": 22, "500": 18 },
@@ -148,6 +210,15 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
   "грамоты-и-дипломы": {
     label: "Грамоты и дипломы",
     data: {
+      ui: {
+        fields: {
+          density: { label: "Материал для печати (плотность)", values: ["200 г/м²", "250 г/м²", "300 г/м²"] },
+          orientation: { label: "Ориентация", values: ["Вертикальная", "Горизонтальная"], hint: "на цену не влияет" },
+          paperFinish: { label: "Бумага", values: ["Матовая", "Глянцевая"], hint: "на цену не влияет" },
+          lamination: { label: "Ламинирование", values: ["Нет", "Да"] },
+        },
+        quantities: { quantity: [1, 10, 20, 50, 100] },
+      },
       price: {
         "200 г/м²": { "1": 700, "10": 70, "20": 65, "50": 60, "100": 55 },
         "250 г/м²": { "1": 900, "10": 90, "20": 85, "50": 80, "100": 75 },
@@ -161,6 +232,19 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
   "блокноты": {
     label: "Блокноты",
     data: {
+      ui: {
+        fields: {
+          format: { label: "Формат блокнота", values: ["А6 (105×148 мм)", "А5 (148×210 мм)", "А4 (210×297 мм)"] },
+          blockColor: { label: "Цветность блока", values: ["Без печати", "Чёрно-белая", "Цветная"] },
+          coverSides: { label: "Стороны печати обложки и подложки", values: ["Двусторонняя", "Односторонняя"] },
+          blockSides: { label: "Стороны печати блока", values: ["Двусторонняя", "Односторонняя"] },
+          sheets: { label: "Количество листов", values: ["30 листов", "50 листов"] },
+          orientation: { label: "Ориентация скругления", values: ["По вертикали", "По горизонтали"], hint: "на цену не влияет" },
+          paperFinish: { label: "Бумага обложки", values: ["Матовая", "Глянцевая"], hint: "на цену не влияет" },
+          lamination: { label: "Ламинация обложки и подложки", values: ["Нет", "Да"] },
+        },
+        quantities: { quantity: [10, 20, 30, 50, 100] },
+      },
       price: {
         "А6 (105×148 мм)": {
           "4:0": {
@@ -273,6 +357,13 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
   "сканирование-документов": {
     label: "Сканирование документов",
     data: {
+      ui: {
+        fields: {
+          format: { label: "Формат", values: ["А4", "А3"], hint: "менее А4 = по цене А4" },
+          method: { label: "Способ сканирования", values: ["Автоподатчик", "Со стекла"] },
+          storage: { label: "Сохранение на наши носители", values: ["Нет", "Да"] },
+        },
+      },
       scan: {
         "Автоподатчик": { "А4": 10, "А3": 20 },
         "Со стекла": { "А4": 20, "А3": 40 },
@@ -284,6 +375,11 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
   "ламинирование": {
     label: "Ламинирование",
     data: {
+      ui: {
+        fields: {
+          format: { label: "Формат", values: ["А4", "А3"], hint: "менее А4 = по цене А4" },
+        },
+      },
       price: { "А4": 50, "А3": 100 },
     },
   },
@@ -291,6 +387,16 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
   "наклейки": {
     label: "Наклейки и стикеры",
     data: {
+      ui: {
+        fields: {
+          material: { label: "Материал", values: ["Бумага", "Плёнка"], hint: "самоклеящаяся" },
+          filmColor: { label: "Цвет плёнки", values: ["Белая", "Прозрачная"], hint: "цена одинаковая" },
+          finish: { label: "Фольгирование", values: ["Без фольги", "С фольгой"] },
+          foilColor: { label: "Цвет фольги", values: ["Золото", "Серебро"], hint: "цена одинаковая" },
+          shape: { label: "Форма наклеек" },
+          sizeLabel: { label: "Размер" },
+        },
+      },
       prices: STICKER_PRICES,
       lamination: 100,
       design: 1000,
@@ -364,6 +470,15 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
   "карманные-календари": {
     label: "Карманные календари",
     data: {
+      ui: {
+        fields: {
+          orientation: { label: "Ориентация", values: ["По вертикали", "По горизонтали"], hint: "на цену не влияет" },
+          paperFinish: { label: "Бумага", values: ["Матовая", "Глянцевая"], hint: "на цену не влияет" },
+          lamination: { label: "Ламинация", values: ["Нет", "Да"] },
+          rounding: { label: "Скругление углов", values: ["Нет", "Да"] },
+        },
+        quantities: { quantity: [10, 25, 50] },
+      },
       price: { "50": 18 },
       lamination: 10,
       rounding: 2,
@@ -396,6 +511,16 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
   "печать-фотографий": {
     label: "Печать фотографий",
     data: {
+      ui: {
+        fields: {
+          size: { label: "Формат", values: ["А6 (10×15 см)", "А5 (15×20 см)", "А4 (21×30 см)", "А3 (30×40 см)"] },
+          margins: { label: "Поля", values: ["Без полей", "С полями"] },
+          paper: { label: "Бумага", values: ["Глянцевая", "Матовая"] },
+          packaging: { label: "Упаковка", values: ["Без упаковки", "Файл А4", "Конверт E65 (110×220)", "Конверт C5 (162×229)", "Конверт C4 (229×324)"] },
+          lamination: { label: "Ламинирование", values: ["Нет", "Да"] },
+          handWork: { label: "Ручная обработка файлов", values: ["Нет", "Да"] },
+        },
+      },
       price: { "А6 (10×15 см)": 22, "А5 (15×20 см)": 50, "А4 (21×30 см)": 100, "А3 (30×40 см)": 200 },
       lamination: { "А6 (10×15 см)": 15, "А5 (15×20 см)": 25, "А4 (21×30 см)": 50, "А3 (30×40 см)": 100 },
       packaging: {
@@ -413,6 +538,17 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
   "меню-для-кафе": {
     label: "Меню для кафе",
     data: {
+      ui: {
+        fields: {
+          material: { label: "Материал", values: ["Бумага 300 г/м²", "Бумага 250 г/м²", "Пластик"] },
+          sides: { label: "Сторона печати", values: ["Двусторонняя", "Односторонняя"] },
+          paperFinish: { label: "Бумага", values: ["Матовая", "Глянцевая"], hint: "на цену не влияет" },
+          lamination: { label: "Ламинация", values: ["Нет", "Да"] },
+          rounding: { label: "Скругление углов", values: ["Нет", "Да"] },
+          spring: { label: "Пружина", values: ["Нет", "Да"] },
+          staple: { label: "Скоба" },
+        },
+      },
       sheet: {
         "Бумага 300 г/м²": {
           "Односторонняя": { "10": 200, "50": 180, "100": 150 },
@@ -438,6 +574,18 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
   "копирование-и-печать-документов": {
     label: "Копирование и печать документов",
     data: {
+      ui: {
+        fields: {
+          format: { label: "Формат", values: ["А4", "А3"] },
+          color: { label: "Цветность печати", values: ["Цветная", "Ч/Б"] },
+          sides: { label: "Стороны печати", values: ["Двусторонняя", "Односторонняя"] },
+          orientation: { label: "Ориентация печати", values: ["По вертикали", "По горизонтали"], hint: "на цену не влияет" },
+          density: { label: "Плотность бумаги, г/м²", values: ["80", "120", "160", "200", "250", "300"] },
+          binding: { label: "Тип пружины", values: ["Пластиковая пружина", "Металлическая пружина"] },
+          lamination: { label: "Ламинирование", values: ["Нет", "Да"] },
+          packaging: { label: "Упаковка", values: ["Без упаковки", "Файл", "Конверт"] },
+        },
+      },
       page: {
         "А4": {
           "1+0": { "80": [11, 10, 9, 8, 7, 6], "120": [20, 19, 18, 17, 16, 15], "160": [25, 24, 23, 22, 21, 20], "200": [30, 29, 28, 27, 26, 25], "250": [40, 39, 38, 37, 36, 35], "300": [55, 54, 53, 52, 51, 50] },
@@ -465,6 +613,12 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
   "переплёт-и-брошюровка": {
     label: "Брошюровка и переплёт",
     data: {
+      ui: {
+        fields: {
+          spring: { label: "Пружина", values: ["Пластиковая", "Металлическая"] },
+          format: { label: "Формат", values: ["А4", "А3"] },
+        },
+      },
       plasticA4: [
         { maxSheets: 30, price: 80 }, { maxSheets: 70, price: 85 }, { maxSheets: 150, price: 90 },
         { maxSheets: 200, price: 95 }, { maxSheets: 300, price: 100 }, { maxSheets: 400, price: 105 },

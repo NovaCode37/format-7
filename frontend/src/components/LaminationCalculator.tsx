@@ -8,7 +8,9 @@ import {
 } from "@/lib/icons";
 import { api } from "@/lib/api";
 import { useToast } from "./Toast";
-import { CheckoutModal, usePricing } from "./calc/kit";
+import { CheckoutModal, usePricing,
+  ConfigurableField,
+} from "./calc/kit";
 import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type Format = "А4" | "А3";
@@ -87,9 +89,7 @@ export default function LaminationCalculator({ serviceId }: { serviceId?: number
           <div className="lg:col-span-5">
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
 
-              <PillsField
-                label="Формат"
-                values={["А4", "А3"]}
+              <ConfigurableField id="format" pricing={pricing}
                 value={format}
                 onChange={(v) => setFormat(v as Format)}
                 hint="менее А4 = по цене А4"

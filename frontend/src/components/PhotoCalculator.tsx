@@ -6,6 +6,7 @@ import {
   PillsField, QuantityField, BreakdownRow, CheckoutModal,
   DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
   fmt, useResolvedServiceId, useUpload, usePricing,
+  ConfigurableField,
 } from "./calc/kit";
 import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
@@ -122,24 +123,22 @@ export default function PhotoCalculator({ serviceId }: { serviceId?: number }) {
 
           <div className="lg:col-span-5">
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
-              <PillsField label="Формат" values={["А6 (10×15 см)", "А5 (15×20 см)", "А4 (21×30 см)", "А3 (30×40 см)"]} value={size} onChange={(v) => setSize(v as Size)} hint={`${(pricing.price as any)[size]} ₽/фото`} />
-              <PillsField label="Поля" values={["Без полей", "С полями"]} value={margins} onChange={(v) => setMargins(v as Margins)} hint={margins === "Без полей" ? "часть фото может обрезаться" : "возможны белые поля"} />
-              <PillsField label="Бумага" values={["Глянцевая", "Матовая"]} value={paper} onChange={(v) => setPaper(v as Paper)} />
+              <ConfigurableField id="size" pricing={pricing} value={size} onChange={(v) => setSize(v as Size)} hint={`${(pricing.price as any)[size]} ₽/фото`} />
+              <ConfigurableField id="margins" pricing={pricing} value={margins} onChange={(v) => setMargins(v as Margins)} hint={margins === "Без полей" ? "часть фото может обрезаться" : "возможны белые поля"} />
+              <ConfigurableField id="paper" pricing={pricing} value={paper} onChange={(v) => setPaper(v as Paper)} />
 
               <div className="pt-4 border-t border-ink-100">
-                <PillsField
-                  label="Упаковка"
-                  values={["Без упаковки", "Файл А4", "Конверт E65 (110×220)", "Конверт C5 (162×229)", "Конверт C4 (229×324)"]}
+                <ConfigurableField id="packaging" pricing={pricing}
                   value={packaging}
                   onChange={(v) => setPackaging(v as Packaging)}
                   hint={(pricing.packaging as any)[packaging] ? `+${(pricing.packaging as any)[packaging]} ₽` : undefined}
                 />
               </div>
               <div className="pt-4 border-t border-ink-100">
-                <PillsField label="Ламинирование" values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${calc.lamUnit} ₽/фото` : undefined} />
+                <ConfigurableField id="lamination" pricing={pricing} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${calc.lamUnit} ₽/фото` : undefined} />
               </div>
               <div className="pt-4 border-t border-ink-100">
-                <PillsField label="Ручная обработка файлов" values={["Нет", "Да"]} value={handWork} onChange={(v) => setHandWork(v as YesNo)} hint={handWork === "Да" ? `+${pricing.hand} ₽` : undefined} />
+                <ConfigurableField id="handWork" pricing={pricing} value={handWork} onChange={(v) => setHandWork(v as YesNo)} hint={handWork === "Да" ? `+${pricing.hand} ₽` : undefined} />
               </div>
               <div className="pt-4 border-t border-ink-100">
                 <QuantityField label="Количество фото, шт." presets={QTY_PRESETS} value={quantity} onChange={setQuantity} min={1} />

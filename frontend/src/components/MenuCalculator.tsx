@@ -7,7 +7,9 @@ import {
   CheckCircle2, Phone, Info, Palette,
 } from "@/lib/icons";
 import { api } from "@/lib/api";
-import { CheckoutModal, usePricing, useUpload } from "./calc/kit";
+import { CheckoutModal, usePricing, useUpload,
+  ConfigurableField,
+} from "./calc/kit";
 import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type Material = "Бумага 300 г/м²" | "Бумага 250 г/м²" | "Пластик";
@@ -230,23 +232,17 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
           <div className="lg:col-span-5">
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
 
-              <PillsField
-                label="Материал"
-                values={["Бумага 300 г/м²", "Бумага 250 г/м²", "Пластик"]}
+              <ConfigurableField id="material" pricing={pricing}
                 value={material}
                 onChange={(v) => setMaterial(v as Material)}
               />
 
-              <PillsField
-                label="Сторона печати"
-                values={["Двусторонняя", "Односторонняя"]}
+              <ConfigurableField id="sides" pricing={pricing}
                 value={sides}
                 onChange={(v) => setSides(v as Sides)}
               />
 
-              <PillsField
-                label="Бумага"
-                values={["Матовая", "Глянцевая"]}
+              <ConfigurableField id="paperFinish" pricing={pricing}
                 value={paperFinish}
                 onChange={(v) => setPaperFinish(v as any)}
                 hint="на цену не влияет"
@@ -282,9 +278,7 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
               </div>
 
               <div className="pt-4 border-t border-ink-100">
-                <PillsField
-                  label="Ламинация"
-                  values={["Нет", "Да"]}
+                <ConfigurableField id="lamination" pricing={pricing}
                   value={lamination}
                   onChange={(v) => setLamination(v as YesNo)}
                   hint={lamination === "Да" ? `+${pricing.lamination} ₽/лист` : undefined}
@@ -292,9 +286,7 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
               </div>
 
               <div className="pt-4 border-t border-ink-100">
-                <PillsField
-                  label="Скругление углов"
-                  values={["Нет", "Да"]}
+                <ConfigurableField id="rounding" pricing={pricing}
                   value={rounding}
                   onChange={(v) => setRounding(v as YesNo)}
                   hint={rounding === "Да" ? `+${pricing.rounding} ₽/угол × 4` : undefined}
@@ -302,9 +294,7 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
               </div>
 
               <div className="pt-4 border-t border-ink-100">
-                <PillsField
-                  label="Пружина"
-                  values={["Нет", "Да"]}
+                <ConfigurableField id="spring" pricing={pricing}
                   value={spring}
                   onChange={(v) => {
                     setSpring(v as YesNo);
@@ -315,8 +305,7 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
               </div>
 
               <div className="pt-4 border-t border-ink-100">
-                <PillsField
-                  label="Скоба"
+                <ConfigurableField id="staple" pricing={pricing}
                   values={material === "Пластик" ? ["Нет"] : ["Нет", "Да"]}
                   value={staple}
                   onChange={(v) => {
