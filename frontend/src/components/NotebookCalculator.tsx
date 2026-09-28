@@ -145,7 +145,7 @@ export default function NotebookCalculator({ serviceId }: { serviceId?: number }
               )}
 
               <div className="rounded-xl border border-ink-200 bg-ink-50 p-4 text-[12px] text-ink-600 space-y-2">
-                <p className="flex items-start gap-2"><Info size={13} className="mt-0.5 shrink-0" /> Скрепление — металлическая пружина. Цена блока 4+0 — за заливку менее 50%; при большей заливке +100%.</p>
+                <p className="flex items-start gap-2"><Info size={13} className="mt-0.5 shrink-0" /> Скрепление — металлическая пружина.</p>
                 <p>Размер готового изделия может отличаться от стандартного на ±2 мм.</p>
                 <p className="flex items-center gap-1.5"><Truck size={13} /> Доставка по Тюмени — 700 ₽.</p>
                 <p className="flex items-center gap-1.5"><Package size={13} /> Возможна отправка СДЭК наложенным платежом по РФ.</p>
