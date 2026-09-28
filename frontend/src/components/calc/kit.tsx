@@ -10,7 +10,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { useToast } from "../Toast";
 
-export const fmt = (n: number) => n.toLocaleString("ru-RU");
+export const fmt = (n: number) => (Number.isFinite(n) ? n.toLocaleString("ru-RU") : "—");
 
 export const POLY_SIZE_NOTE =
   "Размер готового изделия может отличаться от стандарта на ±2 мм.";
@@ -441,8 +441,13 @@ export function CheckoutModal({
   const [adding, setAdding] = useState(false);
 
   const needsAddress = summary.delivery !== "Самовывоз";
+  const priceOk = Number.isFinite(summary.total) && summary.total > 0;
 
   const addToCartAndGo = async () => {
+    if (!priceOk) {
+      toast.error("Для этой комбинации не задана цена. Напишите менеджеру, посчитаем вручную");
+      return;
+    }
     if (!token) {
       toast.error("Войдите, чтобы оформить заказ");
       onClose();
@@ -505,7 +510,11 @@ export function CheckoutModal({
         <div className="mt-4 rounded-lg bg-ink-50 border border-ink-200 p-3 text-[12px] text-ink-700 space-y-0.5">
           <p className="font-medium text-ink-900">{summary.productLabel}</p>
           {summary.lines.map((l, i) => <p key={i}>{l}</p>)}
-          <p className="pt-1 font-semibold text-ink-900">Итого: {summary.total.toLocaleString("ru-RU")} ₽</p>
+          {priceOk ? (
+            <p className="pt-1 font-semibold text-ink-900">Итого: {fmt(summary.total)} ₽</p>
+          ) : (
+            <p className="pt-1 font-semibold text-red-600">Для этой комбинации не задана цена, менеджер посчитает вручную</p>
+          )}
         </div>
 
         {needsAddress && (
@@ -536,7 +545,7 @@ export function CheckoutModal({
         <button
           type="button"
           onClick={addToCartAndGo}
-          disabled={adding}
+          disabled={adding || !priceOk}
           className="mt-4 w-full h-11 rounded-lg flex items-center justify-center gap-2 font-semibold text-[14px] bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-60 transition-colors"
         >
           <ShoppingCart size={16} />
