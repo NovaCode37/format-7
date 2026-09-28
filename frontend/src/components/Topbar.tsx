@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, Phone, Mail, Clock, ArrowUpRight } from "@/lib/icons";
+import { MapPin, Phone, Mail, Clock, Stamp } from "@/lib/icons";
 import Link from "next/link";
 import { useSiteSettings } from "@/lib/siteSettings";
 import CallbackButton from "./CallbackButton";
@@ -46,8 +46,8 @@ export default function Topbar() {
             title="Перейти на сайт «Печати 7»"
             className="inline-flex items-center gap-1.5 rounded-md border border-accent/50 px-2.5 py-1 text-accent hover:bg-accent hover:text-ink-900 transition-colors"
           >
+            <Stamp size={13} strokeWidth={2} />
             Печати и штампы
-            <ArrowUpRight size={13} strokeWidth={2} />
           </a>
           <div className="hidden lg:flex items-center gap-4">
             <Link href="/contacts" className="hover:text-accent transition-colors">

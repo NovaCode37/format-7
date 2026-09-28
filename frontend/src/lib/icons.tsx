@@ -59,6 +59,7 @@ import {
   QrCode as PQrCode,
   Scan as PScan,
   ShieldCheck as PShieldCheck,
+  Stamp as PStamp,
   ShoppingBag as PShoppingBag,
   ShoppingCart as PShoppingCart,
   SignOut as PSignOut,
@@ -142,6 +143,7 @@ export const Phone = make(PPhone);
 export const Play = make(PPlay);
 export const Plus = make(PPlus);
 export const Printer = make(PPrinter);
+export const Stamp = make(PStamp);
 export const QrCode = make(PQrCode);
 export const RefreshCw = make(PArrowsClockwise);
 export const RotateCcw = make(PArrowCounterClockwise);
