@@ -14,7 +14,6 @@ type Format = "А6 (105×148 мм)" | "А5 (148×210 мм)" | "А4 (210×297 м�
 type Sides = "Односторонняя" | "Двусторонняя";
 type BlockColor = "Без печати" | "Чёрно-белая" | "Цветная";
 type Sheets = "30 листов" | "50 листов";
-type Orientation = "По вертикали" | "По горизонтали";
 type YesNo = "Да" | "Нет";
 type Track = "upload" | "design";
 
@@ -50,7 +49,7 @@ export default function NotebookCalculator({ serviceId }: { serviceId?: number }
   const [blockColor, setBlockColor] = useState<BlockColor>("Без печати");
   const [blockSides, setBlockSides] = useState<Sides>("Двусторонняя");
   const [sheets, setSheets] = useState<Sheets>("50 листов");
-  const [orientation, setOrientation] = useState<Orientation>("По вертикали");
+  const [rounding, setRounding] = useState<YesNo>("Нет");
   const [lamination, setLamination] = useState<YesNo>("Нет");
   const [paperFinish, setPaperFinish] = useState<"Матовая" | "Глянцевая">("Матовая");
   const [quantity, setQuantity] = useState<number>(10);
@@ -68,19 +67,21 @@ export default function NotebookCalculator({ serviceId }: { serviceId?: number }
     const printTotal = printUnit * quantity;
     const lamUnit = (pricing.lamination as any)[format];
     const lamTotal = lamination === "Да" ? lamUnit * quantity : 0;
+    const roundTotal = rounding === "Да" ? pricing.rounding * quantity : 0;
     const designTotal = track === "design" ? pricing.design : 0;
     const deliveryTotal = DELIVERY_PRICE[delivery];
-    const grandTotal = printTotal + lamTotal + designTotal + deliveryTotal;
-    return { printUnit, printTotal, lamUnit, lamTotal, designTotal, deliveryTotal, grandTotal };
-  }, [format, coverSides, sheets, blockColor, blockSides, quantity, lamination, track, delivery, pricing]);
+    const grandTotal = printTotal + lamTotal + roundTotal + designTotal + deliveryTotal;
+    return { printUnit, printTotal, lamUnit, lamTotal, roundTotal, designTotal, deliveryTotal, grandTotal };
+  }, [format, coverSides, sheets, blockColor, blockSides, quantity, lamination, rounding, track, delivery, pricing]);
 
   const blockSidesLine = blockColor !== "Без печати" ? ` · блок: ${blockSides.toLowerCase()}` : "";
+  const roundingLine = rounding === "Да" ? " · скругление углов" : "";
 
   const orderSummary = {
     productLabel: `Блокнот ${format}, блок ${blockColor.toLowerCase()}`,
     lines: [
       `${format} · блок ${blockColor} · ${sheets} · ${quantity} шт.`,
-      `Обложка: ${coverSides.toLowerCase()}${blockSidesLine} · скругление ${orientation.toLowerCase()}`,
+      `Обложка: ${coverSides.toLowerCase()}${blockSidesLine}${roundingLine}`,
       `Бумага обложки: ${paperFinish.toLowerCase()}`,
       lamination === "Да" ? "Ламинация обложки и подложки" : null,
       track === "design" ? `Разработка макета дизайнером (${pricing.design} ₽)` : null,
@@ -89,7 +90,7 @@ export default function NotebookCalculator({ serviceId }: { serviceId?: number }
     options: {
       track: track === "design" ? "Заказ дизайна" : "Загрузка макета",
       format, cover_sides: coverSides, block_color: blockColor, block_sides: blockSides,
-      sheets, rounding_orientation: orientation, paper_finish: paperFinish, lamination,
+      sheets, rounding, paper_finish: paperFinish, lamination,
       design_fee: calc.designTotal, delivery, file: uploadedFile?.name || "—",
     },
     delivery,
@@ -161,7 +162,7 @@ export default function NotebookCalculator({ serviceId }: { serviceId?: number }
                 <ConfigurableField id="blockSides" pricing={pricing} value={blockSides} onChange={(v) => setBlockSides(v as Sides)} />
               )}
               <ConfigurableField id="sheets" pricing={pricing} value={sheets} onChange={(v) => setSheets(v as Sheets)} />
-              <ConfigurableField id="orientation" pricing={pricing} value={orientation} onChange={(v) => setOrientation(v as Orientation)} hint="на цену не влияет" />
+              <ConfigurableField id="rounding" pricing={pricing} value={rounding} onChange={(v) => setRounding(v as YesNo)} hint={rounding === "Да" ? `+${pricing.rounding} ₽/шт` : undefined} />
 
               <ConfigurableField id="paperFinish" pricing={pricing} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
 
@@ -183,6 +184,7 @@ export default function NotebookCalculator({ serviceId }: { serviceId?: number }
                 <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500 mb-3">Расчёт стоимости</p>
                 <BreakdownRow label="Печать" hint={`${quantity} × ${fmt(calc.printUnit)} ₽`} value={`${fmt(calc.printTotal)} ₽`} />
                 {calc.lamTotal > 0 && <BreakdownRow label="Ламинация" hint={`${quantity} × ${calc.lamUnit} ₽`} value={`${fmt(calc.lamTotal)} ₽`} />}
+                {calc.roundTotal > 0 && <BreakdownRow label="Скругление углов" hint={`${quantity} × ${pricing.rounding} ₽`} value={`${fmt(calc.roundTotal)} ₽`} />}
                 {calc.designTotal > 0 && <BreakdownRow label="Разработка макета" hint="2 доработки в стоимости" value={`${fmt(calc.designTotal)} ₽`} />}
                 <BreakdownRow label="Доставка" hint={delivery === "СДЭК (наложенный платёж)" ? "оплачивает получатель" : undefined} value={calc.deliveryTotal ? `${fmt(calc.deliveryTotal)} ₽` : "—"} />
                 <div className="mt-3 pt-3 border-t border-ink-200">

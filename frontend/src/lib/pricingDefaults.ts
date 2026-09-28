@@ -238,12 +238,13 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
           coverSides: { label: "Стороны печати обложки и подложки", values: ["Двусторонняя", "Односторонняя"] },
           blockSides: { label: "Стороны печати блока", values: ["Двусторонняя", "Односторонняя"] },
           sheets: { label: "Количество листов", values: ["30 листов", "50 листов"] },
-          orientation: { label: "Ориентация скругления", values: ["По вертикали", "По горизонтали"], hint: "на цену не влияет" },
+          rounding: { label: "Скругление углов", values: ["Нет", "Да"] },
           paperFinish: { label: "Бумага обложки", values: ["Матовая", "Глянцевая"], hint: "на цену не влияет" },
           lamination: { label: "Ламинация обложки и подложки", values: ["Нет", "Да"] },
         },
         quantities: { quantity: [1, 10, 20, 30, 50, 100] },
       },
+      rounding: 2,
       price: {
         "А6 (105×148 мм)": {
           "4:0": {
