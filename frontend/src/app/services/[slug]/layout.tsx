@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { CATALOG_INDEX } from "@/lib/catalogIndex";
 import { SERVICE_FAQ } from "@/lib/serviceFaq";
 import { SITE_URL } from "@/lib/siteUrl";
+import { jsonLdScript } from "@/lib/jsonLd";
 
 // Категории-слаги, у которых нет отдельной услуги (показывают каталог).
 const CATEGORY_TITLES: Record<string, string> = {
@@ -112,9 +113,9 @@ export default function ServiceLayout({
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(productLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(faqLd) }} />
       {children}
     </>
   );

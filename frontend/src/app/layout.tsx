@@ -18,6 +18,7 @@ import { ToastProvider } from "@/components/Toast";
 import ApiErrorGuard from "@/components/ApiErrorGuard";
 
 import { SITE_URL } from "@/lib/siteUrl";
+import { jsonLdScript } from "@/lib/jsonLd";
 
 const METRIKA_ID = process.env.NEXT_PUBLIC_YM_ID || "110140760";
 
@@ -182,15 +183,15 @@ export default function RootLayout({
         <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }}
         />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationLd) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(organizationLd) }}
         />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLd) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(websiteLd) }}
         />
       </head>
       <body className="min-h-screen flex flex-col font-sans antialiased bg-white text-ink-700">
