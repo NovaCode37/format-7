@@ -825,10 +825,11 @@ def create_order(
     # Anti-tampering: client sends the price, so reject lines that are absurdly
     # below the product's advertised minimum (price_from). 30% tolerance keeps
     # legitimate edge configs valid while blocking gross manipulation (e.g. 1 ₽).
+    floor_ids = existing_ids | {fallback_service.id}
     price_floor = {
         row[0]: float(row[1] or 0)
-        for row in db.query(Service.id, Service.price_from).filter(Service.id.in_(existing_ids)).all()
-    } if existing_ids else {}
+        for row in db.query(Service.id, Service.price_from).filter(Service.id.in_(floor_ids)).all()
+    }
     for i in data.items:
         floor = price_floor.get(resolve_sid(i.service_id), 0.0)
         if floor > 0 and max(i.price, 0) * max(i.quantity, 1) < floor * 0.3:

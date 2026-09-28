@@ -323,3 +323,39 @@ def test_refund_cap_counts_pending_refunds(client, monkeypatch):
 
     second = client.post(f"/api/admin/orders/{num}/refund", headers=h, json={"amount": 700.0, "reason": ""})
     assert second.status_code == 400
+
+def _seed_priced_service(price_from):
+
+    from database import SessionLocal
+    from models import Service
+
+    db = SessionLocal()
+    svc = Service(name="Календари", slug="kalendari", icon="📅", description="", order=1, price_from=price_from)
+    db.add(svc)
+    db.commit()
+    db.refresh(svc)
+    db.close()
+    return svc.id
+
+def _one_item_payload(service_id, price, quantity=1):
+    payload = _mk_order_payload(service_id)
+    payload["items"] = [{"service_id": service_id, "quantity": quantity, "price": price}]
+    return payload
+
+def test_price_floor_rejects_underpriced_known_service(client):
+    sid = _seed_priced_service(1000)
+    r = client.post("/api/orders", json=_one_item_payload(sid, 1))
+    assert r.status_code == 400
+    assert r.json()["detail"] == "Некорректная стоимость позиции"
+
+def test_price_floor_applies_to_unknown_service_fallback(client):
+    _seed_priced_service(1000)
+    r = client.post("/api/orders", json=_one_item_payload(999999, 1))
+    assert r.status_code == 400
+    assert r.json()["detail"] == "Некорректная стоимость позиции"
+
+def test_price_floor_allows_fair_price_on_fallback(client):
+    sid = _seed_priced_service(1000)
+    r = client.post("/api/orders", json=_one_item_payload(999999, 1000))
+    assert r.status_code == 200, r.text
+    assert r.json()["items"][0]["service_id"] == sid
