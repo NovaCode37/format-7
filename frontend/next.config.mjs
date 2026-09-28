@@ -14,13 +14,13 @@ const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob: ${apiOrigin} https://images.unsplash.com https://plus.unsplash.com https://picsum.photos`,
+  `img-src 'self' data: blob: ${apiOrigin}`,
   "font-src 'self' data:",
   `connect-src 'self' ${apiOrigin}${isDev ? " ws://localhost:* http://localhost:*" : ""}`,
   "frame-src 'self' https://www.google.com https://maps.google.com https://www.openstreetmap.org https://yandex.ru",
   "frame-ancestors 'none'",
   "base-uri 'self'",
-  "form-action 'self' https://yoomoney.ru https://yookassa.ru",
+  "form-action 'self'",
   "object-src 'none'",
   "upgrade-insecure-requests",
 ].join("; ");
@@ -37,11 +37,7 @@ const securityHeaders = [
 
 const nextConfig = {
   images: {
-    remotePatterns: [
-      { protocol: "https", hostname: "images.unsplash.com" },
-      { protocol: "https", hostname: "plus.unsplash.com" },
-      { protocol: "https", hostname: "picsum.photos" },
-    ],
+    unoptimized: true,
   },
   async headers() {
     return [
