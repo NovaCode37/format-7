@@ -988,7 +988,9 @@ def get_payment_info(order_number: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Заказ не найден")
     return _build_payment_info(order)
 
-ENABLE_DEV_PAYMENT = os.environ.get("ENABLE_DEV_PAYMENT", "0") == "1"
+ENABLE_DEV_PAYMENT = os.environ.get("ENABLE_DEV_PAYMENT", "0") == "1" and not _is_prod
+if os.environ.get("ENABLE_DEV_PAYMENT", "0") == "1" and _is_prod:
+    log.warning("ENABLE_DEV_PAYMENT=1 ignored: mark-paid stays disabled in production")
 
 @app.post("/api/orders/{order_number}/mark-paid", response_model=PaymentInfoOut, dependencies=[Depends(paid_limit)])
 def mark_order_paid(

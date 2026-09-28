@@ -359,3 +359,24 @@ def test_price_floor_allows_fair_price_on_fallback(client):
     r = client.post("/api/orders", json=_one_item_payload(999999, 1000))
     assert r.status_code == 200, r.text
     assert r.json()["items"][0]["service_id"] == sid
+
+def _load_main(tmp_path, monkeypatch, **env):
+    import importlib
+    import sys
+
+    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path / 'env.db'}")
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+    for m in ("main", "auth", "models", "database"):
+        sys.modules.pop(m, None)
+    import main
+    importlib.reload(main)
+    return main
+
+def test_dev_payment_is_off_in_production_even_if_flag_set(tmp_path, monkeypatch):
+    main = _load_main(tmp_path, monkeypatch, APP_ENV="production", ENABLE_DEV_PAYMENT="1")
+    assert main.ENABLE_DEV_PAYMENT is False
+
+def test_dev_payment_works_outside_production(tmp_path, monkeypatch):
+    main = _load_main(tmp_path, monkeypatch, APP_ENV="test", ENABLE_DEV_PAYMENT="1")
+    assert main.ENABLE_DEV_PAYMENT is True
