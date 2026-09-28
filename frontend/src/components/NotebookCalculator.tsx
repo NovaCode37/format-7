@@ -21,7 +21,7 @@ type Track = "upload" | "design";
 const NOTEBOOK_SLUGS = ["блокноты", "блокнот"];
 
 const NOTEBOOK_PRICING = PRICING_DEFAULTS["блокноты"].data;
-const QTY_PRESETS = [10, 20, 30, 50, 100];
+const QTY_PRESETS = [1, 10, 20, 30, 50, 100];
 
 const QTY_TIERS_BY_FORMAT: Record<Format, readonly number[]> = {
   "А6 (105×148 мм)": [4, 10, 20, 30, 50, 100],
@@ -74,11 +74,13 @@ export default function NotebookCalculator({ serviceId }: { serviceId?: number }
     return { printUnit, printTotal, lamUnit, lamTotal, designTotal, deliveryTotal, grandTotal };
   }, [format, coverSides, sheets, blockColor, blockSides, quantity, lamination, track, delivery, pricing]);
 
+  const blockSidesLine = blockColor !== "Без печати" ? ` · блок: ${blockSides.toLowerCase()}` : "";
+
   const orderSummary = {
     productLabel: `Блокнот ${format}, блок ${blockColor.toLowerCase()}`,
     lines: [
       `${format} · блок ${blockColor} · ${sheets} · ${quantity} шт.`,
-      `Обложка: ${coverSides.toLowerCase()} · блок: ${blockSides.toLowerCase()} · скругление ${orientation.toLowerCase()}`,
+      `Обложка: ${coverSides.toLowerCase()}${blockSidesLine} · скругление ${orientation.toLowerCase()}`,
       `Бумага обложки: ${paperFinish.toLowerCase()}`,
       lamination === "Да" ? "Ламинация обложки и подложки" : null,
       track === "design" ? `Разработка макета дизайнером (${pricing.design} ₽)` : null,
@@ -155,7 +157,9 @@ export default function NotebookCalculator({ serviceId }: { serviceId?: number }
               <ConfigurableField id="format" pricing={pricing} value={format} onChange={(v) => setFormat(v as Format)} />
               <ConfigurableField id="blockColor" pricing={pricing} value={blockColor} onChange={(v) => setBlockColor(v as BlockColor)} />
               <ConfigurableField id="coverSides" pricing={pricing} value={coverSides} onChange={(v) => setCoverSides(v as Sides)} />
-              <ConfigurableField id="blockSides" pricing={pricing} value={blockSides} onChange={(v) => setBlockSides(v as Sides)} hint={blockColor === "Без печати" ? "на цену не влияет" : undefined} />
+              {blockColor !== "Без печати" && (
+                <ConfigurableField id="blockSides" pricing={pricing} value={blockSides} onChange={(v) => setBlockSides(v as Sides)} />
+              )}
               <ConfigurableField id="sheets" pricing={pricing} value={sheets} onChange={(v) => setSheets(v as Sheets)} />
               <ConfigurableField id="orientation" pricing={pricing} value={orientation} onChange={(v) => setOrientation(v as Orientation)} hint="на цену не влияет" />
 

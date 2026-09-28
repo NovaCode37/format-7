@@ -17,8 +17,8 @@ const ENVELOPE_SLUGS = ["конверты", "конверт"];
 
 const QTY_TIERS = [20, 50, 100, 500] as const;
 type Tier = (typeof QTY_TIERS)[number];
-const QTY_PRESETS = [20, 50, 100, 200, 500];
-const MIN_QTY = 20;
+const QTY_PRESETS = [10, 20, 50, 100, 500];
+const MIN_QTY = 10;
 
 const ENVELOPE_PRICING = PRICING_DEFAULTS["конверты"].data;
 
@@ -35,7 +35,6 @@ export default function EnvelopeCalculator({ serviceId }: { serviceId?: number }
 
   const [track, setTrack] = useState<Track>("upload");
   const [kind, setKind] = useState<Kind>("Е65 (110×220 мм)");
-  const [paperFinish, setPaperFinish] = useState<"Матовая" | "Глянцевая">("Матовая");
   const [quantity, setQuantity] = useState<number>(100);
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -55,13 +54,12 @@ export default function EnvelopeCalculator({ serviceId }: { serviceId?: number }
     productLabel: `Конверты ${kind}, 4+0`,
     lines: [
       `${kind} · область печати ${PRINT_AREA[kind]} · ${quantity} шт.`,
-      `Бумага: ${paperFinish.toLowerCase()}`,
       track === "design" ? `Разработка макета дизайнером (${pricing.design} ₽)` : null,
       `Доставка: ${delivery}`,
     ].filter(Boolean) as string[],
     options: {
       track: track === "design" ? "Заказ дизайна" : track === "template" ? "Каталог шаблонов" : "Загрузка макета",
-      kind, print_area: PRINT_AREA[kind], paper_finish: paperFinish,
+      kind, print_area: PRINT_AREA[kind],
       design_fee: calc.designTotal, delivery,
       file: uploadedFile?.name || "—",
     },
@@ -130,7 +128,6 @@ export default function EnvelopeCalculator({ serviceId }: { serviceId?: number }
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
               <ConfigurableField id="kind" pricing={pricing} value={kind} onChange={(v) => setKind(v as Kind)} hint={`печать ${PRINT_AREA[kind]}`} />
 
-              <ConfigurableField id="paperFinish" pricing={pricing} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
 
               <div className="pt-4 border-t border-ink-100">
                 <QuantityField presets={quantityPresets(pricing, "quantity", QTY_PRESETS)} value={quantity} onChange={setQuantity} min={MIN_QTY} step={10} />

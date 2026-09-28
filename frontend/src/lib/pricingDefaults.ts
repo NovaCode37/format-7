@@ -139,7 +139,7 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
           foil: { label: "Фольгирование", values: ["Нет", "Да"] },
           foilColor: { label: "Цвет фольги", values: ["Золото", "Серебро"], hint: "цена одинаковая" },
         },
-        quantities: { quantity: [1, 50, 100, 200] },
+        quantities: { quantity: [1, 10, 50, 100, 200] },
       },
       price: {
         "Евро (98×210 мм)": {
@@ -194,9 +194,8 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
       ui: {
         fields: {
           kind: { label: "Вид конверта", values: ["Е65 (110×220 мм)", "С5 (162×229 мм)", "С4 (229×324 мм)"] },
-          paperFinish: { label: "Бумага", values: ["Матовая", "Глянцевая"], hint: "на цену не влияет" },
         },
-        quantities: { quantity: [20, 50, 100, 200, 500] },
+        quantities: { quantity: [10, 20, 50, 100, 500] },
       },
       price: {
         "Е65 (110×220 мм)": { "20": 28, "50": 24, "100": 20, "500": 16 },
@@ -243,7 +242,7 @@ export const PRICING_DEFAULTS: Record<string, PricingEntry> = {
           paperFinish: { label: "Бумага обложки", values: ["Матовая", "Глянцевая"], hint: "на цену не влияет" },
           lamination: { label: "Ламинация обложки и подложки", values: ["Нет", "Да"] },
         },
-        quantities: { quantity: [10, 20, 30, 50, 100] },
+        quantities: { quantity: [1, 10, 20, 30, 50, 100] },
       },
       price: {
         "А6 (105×148 мм)": {

@@ -22,7 +22,7 @@ const POSTCARD_SLUGS = ["открытки", "открытка"];
 
 const QTY_TIERS = [50, 100, 200] as const;
 type Tier = (typeof QTY_TIERS)[number];
-const QTY_PRESETS = [1, 50, 100, 200];
+const QTY_PRESETS = [1, 10, 50, 100, 200];
 const MIN_QTY = 1;
 
 const POSTCARD_PRICING = PRICING_DEFAULTS["открытки"].data;
