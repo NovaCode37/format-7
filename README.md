@@ -1,22 +1,22 @@
-# Format7 — Online Typography & Print Shop
+# Format7: online typography and print shop
 
 A production e-commerce platform for a commercial printing house (**[формат7.рф](https://формат7.рф)**, Tyumen, Russia). Customers configure print products through live price calculators, preview them in 3D, design layouts in the browser, and place orders with online payment. The project ships with a full operational stack: reverse proxy with automatic TLS, connection-pooled PostgreSQL, Redis, metrics, and automated backups.
 
-> Real commercial product, not a tutorial clone — built end to end: frontend, backend, infrastructure, SEO, and analytics.
+> Real commercial product, not a tutorial clone. Built end to end: frontend, backend, infrastructure, SEO, and analytics.
 
 ---
 
 ## Highlights
 
-- **26 product price calculators** — matrix-based pricing (format × paper × colors × run size) computed live in the browser, with an admin editor to change every price without a deploy.
-- **3D product preview** — interactive WebGL preview of printed items.
-- **In-browser layout designer** — customers assemble artwork or submit a design brief.
-- **Full commerce flow** — catalog, cart, checkout, order statuses, and **SBP** (Russian instant-payments) integration.
-- **Accounts** — JWT auth, email verification, password reset, OAuth sign-in, wishlist, saved addresses, web-push notifications.
-- **Admin panel** — manage pricing, products, reviews, and offices.
-- **SEO & analytics** — server-rendered metadata, sitemap/robots, JSON-LD microdata (Organization, WebSite, LocalBusiness, Product, Breadcrumb, FAQ), Open Graph, IDN→punycode normalization, Yandex.Metrika.
-- **PWA** — installable, service worker, offline-friendly shell.
-- **Production-grade backend** — rate limiting, idempotency keys, audit log, background scheduler, S3-compatible storage, Sentry, Prometheus metrics.
+- **26 product price calculators.** Matrix-based pricing (format x paper x colors x run size) computed live in the browser, with an admin editor to change every price without a deploy.
+- **3D product preview.** Interactive WebGL preview of printed items.
+- **In-browser layout designer.** Customers assemble artwork or submit a design brief.
+- **Full commerce flow.** Catalog, cart, checkout, order statuses, and **SBP** (Russian instant payments) integration.
+- **Accounts.** JWT auth, email verification, password reset, OAuth sign-in, wishlist, saved addresses, web-push notifications.
+- **Admin panel.** Manage pricing, products, reviews, and offices.
+- **SEO and analytics.** Server-rendered metadata, sitemap/robots, JSON-LD microdata (Organization, WebSite, LocalBusiness, Product, Breadcrumb, FAQ), Open Graph, IDN to punycode normalization, Yandex.Metrika.
+- **PWA.** Installable, service worker, offline-friendly shell.
+- **Backend.** Rate limiting, idempotency keys, audit log, background scheduler, S3-compatible storage, Sentry, Prometheus metrics.
 
 ---
 
@@ -110,8 +110,8 @@ make prod-up
 
 ## Engineering Notes
 
-- **Pricing as data.** Every calculator reads from a single pricing source; the admin can override any value, and changes apply on the next page load — no redeploy.
-- **SEO done properly.** Client-rendered pages get server-side metadata via dedicated layout wrappers; structured data is emitted server-side so crawlers see it; the IDN domain (`формат7.рф`) is normalized to punycode for robots/sitemap/canonical to avoid encoding ambiguity.
+- **Pricing as data.** Every calculator reads from a single pricing source; the admin can override any value, and changes apply on the next page load, with no redeploy.
+- **SEO done properly.** Client-rendered pages get server-side metadata via dedicated layout wrappers; structured data is emitted server-side so crawlers see it; the IDN domain (`формат7.рф`) is normalized to punycode for robots, sitemap and canonical URLs to avoid encoding ambiguity.
 - **Resilience & safety.** Idempotency keys on order/payment endpoints, Redis-backed rate limiting, an audit log, and security checks guard the commerce flow.
 - **Observability.** Prometheus metrics and Grafana dashboards; Sentry for error tracking.
 
@@ -119,4 +119,4 @@ make prod-up
 
 ## License
 
-Proprietary — source published for portfolio and review purposes. Not licensed for reuse or redistribution.
+Proprietary. Source published for portfolio and review purposes, not licensed for reuse or redistribution.
