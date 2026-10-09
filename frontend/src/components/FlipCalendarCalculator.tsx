@@ -11,10 +11,10 @@ import {
 import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type Format = "А4 (210×297 мм)" | "А3 (297×420 мм)";
-type Cursor = "Нет" | "Пластиковый" | "Статический" | "Магнитный";
+type Cursor = "Пластиковый" | "Статический" | "Магнитный";
 type YesNo = "Да" | "Нет";
 
-const CURSOR_VALUES: Cursor[] = ["Нет", "Пластиковый", "Статический", "Магнитный"];
+const CURSOR_VALUES: Cursor[] = ["Пластиковый", "Статический", "Магнитный"];
 
 const FLIP_SLUGS = ["перекидной-календарь", "настенный-перекидной-календарь", "перекидные-календари", "календари"];
 
@@ -31,7 +31,7 @@ export default function FlipCalendarCalculator({ serviceId }: { serviceId?: numb
 
   const [format, setFormat] = useState<Format>("А3 (297×420 мм)");
   const [lamination, setLamination] = useState<YesNo>("Нет");
-  const [cursor, setCursor] = useState<Cursor>("Нет");
+  const [cursor, setCursor] = useState<Cursor>("Пластиковый");
   const [quantity, setQuantity] = useState<number>(5);
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -57,7 +57,7 @@ export default function FlipCalendarCalculator({ serviceId }: { serviceId?: numb
     lines: [
       `${format} · ${quantity} шт.`,
       lamination === "Да" ? "Ламинация подложки" : null,
-      cursor !== "Нет" ? `Курсор: ${cursor.toLowerCase()} (${calc.cursorUnit} ₽/шт)` : null,
+      `Курсор: ${cursor.toLowerCase()} (${calc.cursorUnit} ₽/шт)`,
       isA3 ? "А3: скрепление пружиной только по короткому краю" : null,
       `Доставка: ${delivery}`,
     ].filter(Boolean) as string[],
@@ -120,7 +120,7 @@ export default function FlipCalendarCalculator({ serviceId }: { serviceId?: numb
                 <ConfigurableField id="lamination" pricing={pricing} label="Ламинация подложки" values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${calc.lamUnit} ₽/шт` : undefined} />
               </div>
               <div className="pt-4 border-t border-ink-100">
-                <ConfigurableField id="cursor" pricing={pricing} label="Курсор" values={CURSOR_VALUES} value={cursor} onChange={(v) => setCursor(v as Cursor)} hint={cursor !== "Нет" ? `+${calc.cursorUnit} ₽/шт` : undefined} />
+                <ConfigurableField id="cursor" pricing={pricing} label="Курсор" values={CURSOR_VALUES} value={cursor} onChange={(v) => setCursor(v as Cursor)} hint={`+${calc.cursorUnit} ₽/шт`} />
               </div>
               <div className="pt-4 border-t border-ink-100">
                 <QuantityField presets={quantityPresets(pricing, "quantity", QTY_PRESETS)} value={quantity} onChange={setQuantity} min={1} />

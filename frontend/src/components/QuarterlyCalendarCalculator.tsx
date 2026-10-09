@@ -11,9 +11,9 @@ import {
 import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type AdField = "Без полей" | "1 рекламное поле" | "3 рекламных поля";
-type Cursor = "Нет" | "Пластиковый" | "Статический" | "Магнитный";
+type Cursor = "Пластиковый" | "Статический" | "Магнитный";
 
-const CURSOR_VALUES: Cursor[] = ["Нет", "Пластиковый", "Статический", "Магнитный"];
+const CURSOR_VALUES: Cursor[] = ["Пластиковый", "Статический", "Магнитный"];
 type YesNo = "Да" | "Нет";
 type Track = "upload" | "design";
 
@@ -30,7 +30,7 @@ export default function QuarterlyCalendarCalculator({ serviceId }: { serviceId?:
 
   const [track, setTrack] = useState<Track>("upload");
   const [adField, setAdField] = useState<AdField>("Без полей");
-  const [cursor, setCursor] = useState<Cursor>("Нет");
+  const [cursor, setCursor] = useState<Cursor>("Пластиковый");
   const [paperFinish, setPaperFinish] = useState<"Матовая" | "Глянцевая">("Глянцевая");
   const [lamPoster, setLamPoster] = useState<YesNo>("Нет");
   const [quantity, setQuantity] = useState<number>(10);
@@ -55,7 +55,7 @@ export default function QuarterlyCalendarCalculator({ serviceId }: { serviceId?:
     productLabel: `Квартальный календарь А4, ${adField.toLowerCase()}`,
     lines: [
       `А4 · ${adField} · ${quantity} шт.`,
-      cursor !== "Нет" ? `Курсор: ${cursor.toLowerCase()} (${calc.cursorUnit} ₽/шт)` : null,
+      `Курсор: ${cursor.toLowerCase()} (${calc.cursorUnit} ₽/шт)`,
       `Бумага постера и подложки: ${paperFinish.toLowerCase()}`,
       lamPoster === "Да" ? "Ламинация постера и подложек блоков" : null,
       track === "design" ? "Разработка макета дизайнером (1000 ₽)" : null,
@@ -130,7 +130,7 @@ export default function QuarterlyCalendarCalculator({ serviceId }: { serviceId?:
           <div className="lg:col-span-5">
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
               <ConfigurableField id="adField" pricing={pricing} values={["Без полей", "1 рекламное поле", "3 рекламных поля"]} value={adField} onChange={(v) => setAdField(v as AdField)} />
-              <ConfigurableField id="cursor" pricing={pricing} values={CURSOR_VALUES} value={cursor} onChange={(v) => setCursor(v as Cursor)} hint={cursor !== "Нет" ? `+${calc.cursorUnit} ₽/шт` : undefined} />
+              <ConfigurableField id="cursor" pricing={pricing} values={CURSOR_VALUES} value={cursor} onChange={(v) => setCursor(v as Cursor)} hint={`+${calc.cursorUnit} ₽/шт`} />
 
               <ConfigurableField id="paperFinish" pricing={pricing} values={["Матовая", "Глянцевая"]} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} />
 

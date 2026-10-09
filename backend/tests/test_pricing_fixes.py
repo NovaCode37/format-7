@@ -101,7 +101,7 @@ def test_run_rewrites_rows_once(tmp_path):
     with Session() as db:
         envelopes = json.loads(db.get(PricingConfig, "конверты").data)
         assert envelopes["ui"]["quantities"]["quantity"][0] == 10
-        assert json.loads(db.get(SiteSetting, pricing_fixes.MARKER_KEY).data) == ["2026-10-calculators", "2026-10-hints-and-quarterly-cursor"]
+        assert json.loads(db.get(SiteSetting, pricing_fixes.MARKER_KEY).data) == ["2026-10-calculators", "2026-10-hints-and-quarterly-cursor", "2026-10-no-cursor-none"]
         row = db.get(PricingConfig, "конверты")
         row.data = json.dumps({"ui": {"quantities": {"quantity": [20]}}})
         db.commit()
@@ -122,7 +122,7 @@ def test_no_price_effect_hints_removed_everywhere_but_custom_ones_kept():
     assert changed == {"листовки"}
 
 
-def test_quarterly_cursor_gets_prices_and_a_none_option():
+def test_quarterly_cursor_gets_prices_without_a_none_option():
     configs = {
         "квартальный-календарь": {
             "lamPoster": 50,
@@ -131,8 +131,8 @@ def test_quarterly_cursor_gets_prices_and_a_none_option():
     }
     configs, changed, _ = _run(configs)
     q = configs["квартальный-календарь"]
-    assert q["cursor"] == {"Нет": 0, "Пластиковый": 10, "Статический": 40, "Магнитный": 70}
-    assert q["ui"]["fields"]["cursor"] == {"label": "Курсор", "values": ["Нет", "Пластиковый", "Статический", "Магнитный"]}
+    assert q["cursor"] == {"Пластиковый": 10, "Статический": 40, "Магнитный": 70}
+    assert q["ui"]["fields"]["cursor"] == {"label": "Курсор", "values": ["Пластиковый", "Статический", "Магнитный"]}
     assert q["lamPoster"] == 50
     assert changed == {"квартальный-календарь"}
 
@@ -142,3 +142,15 @@ def test_quarterly_cursor_keeps_prices_the_admin_already_set():
     configs, _, _ = _run(configs)
     assert configs["квартальный-календарь"]["cursor"]["Магнитный"] == 90
     assert configs["квартальный-календарь"]["cursor"]["Пластиковый"] == 10
+
+
+def test_none_cursor_option_removed_from_every_calendar():
+    configs = {
+        "плакатный-календарь": {"cursor": {"Нет": 0, "Пластиковый": 10}, "ui": {"fields": {"cursor": {"label": "Курсор", "values": ["Нет", "Пластиковый"]}}}},
+        "перекидной-календарь": {"cursor": {"Пластиковый": 15}},
+    }
+    configs, changed, _ = _run(configs)
+    assert configs["плакатный-календарь"]["cursor"] == {"Пластиковый": 10}
+    assert configs["плакатный-календарь"]["ui"]["fields"]["cursor"]["values"] == ["Пластиковый"]
+    assert configs["перекидной-календарь"]["cursor"] == {"Пластиковый": 15}
+    assert changed == {"плакатный-календарь"}

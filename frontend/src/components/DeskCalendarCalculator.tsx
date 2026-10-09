@@ -12,10 +12,10 @@ import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type Kind = "Безблочный" | "С 12 блоками";
 type YesNo = "Да" | "Нет";
-type Cursor = "Нет" | "Пластиковый" | "Статический" | "Магнитный";
+type Cursor = "Пластиковый" | "Статический" | "Магнитный";
 type Track = "template" | "upload" | "design";
 
-const CURSOR_VALUES: Cursor[] = ["Нет", "Пластиковый", "Статический", "Магнитный"];
+const CURSOR_VALUES: Cursor[] = ["Пластиковый", "Статический", "Магнитный"];
 
 const DESK_SLUGS = ["настольный-календарь-домик", "настольный-календарь", "календарь-домик", "календари"];
 
@@ -34,7 +34,7 @@ export default function DeskCalendarCalculator({ serviceId }: { serviceId?: numb
   const [kind, setKind] = useState<Kind>("Безблочный");
   const [paperFinish, setPaperFinish] = useState<"Матовая" | "Глянцевая">("Глянцевая");
   const [lamination, setLamination] = useState<YesNo>("Нет");
-  const [cursor, setCursor] = useState<Cursor>("Нет");
+  const [cursor, setCursor] = useState<Cursor>("Пластиковый");
   const [quantity, setQuantity] = useState<number>(10);
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -59,7 +59,7 @@ export default function DeskCalendarCalculator({ serviceId }: { serviceId?: numb
       `А5 · ${kind} · ${quantity} шт.`,
       `Бумага: ${paperFinish.toLowerCase()}`,
       lamination === "Да" ? "Ламинация" : null,
-      cursor !== "Нет" ? `Курсор: ${cursor.toLowerCase()} (${calc.cursorUnit} ₽/шт)` : null,
+      `Курсор: ${cursor.toLowerCase()} (${calc.cursorUnit} ₽/шт)`,
       track === "design" ? `Разработка макета дизайнером (${pricing.design} ₽)` : null,
       `Доставка: ${delivery}`,
     ].filter(Boolean) as string[],
@@ -162,7 +162,7 @@ export default function DeskCalendarCalculator({ serviceId }: { serviceId?: numb
               </div>
 
               <div className="pt-4 border-t border-ink-100">
-                <ConfigurableField id="cursor" pricing={pricing} values={CURSOR_VALUES} value={cursor} onChange={(v) => setCursor(v as Cursor)} hint={cursor !== "Нет" ? `+${calc.cursorUnit} ₽/шт` : undefined} />
+                <ConfigurableField id="cursor" pricing={pricing} values={CURSOR_VALUES} value={cursor} onChange={(v) => setCursor(v as Cursor)} hint={`+${calc.cursorUnit} ₽/шт`} />
               </div>
 
               <div className="pt-4 border-t border-ink-100">

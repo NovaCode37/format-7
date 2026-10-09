@@ -59,7 +59,7 @@ def _fix_calculators_2026_10(configs: dict[str, dict]) -> set[str]:
 
 
 NO_PRICE_EFFECT_HINTS = ("на цену не влияет", "входит в стоимость")
-CURSOR_PRICES = {"Нет": 0, "Пластиковый": 10, "Статический": 40, "Магнитный": 70}
+CURSOR_PRICES = {"Пластиковый": 10, "Статический": 40, "Магнитный": 70}
 
 
 def _fix_hints_and_quarterly_cursor_2026_10(configs: dict[str, dict]) -> set[str]:
@@ -80,15 +80,31 @@ def _fix_hints_and_quarterly_cursor_2026_10(configs: dict[str, dict]) -> set[str
         cursor_field = _fields(quarterly).get("cursor")
         if isinstance(cursor_field, dict):
             values = cursor_field.get("values") or []
-            cursor_field["values"] = ["Нет", *[v for v in values if v != "Нет"]] or list(CURSOR_PRICES)
+            cursor_field["values"] = [v for v in values if v != "Нет"] or list(CURSOR_PRICES)
         if json.dumps(quarterly, sort_keys=True) != before:
             changed.add("квартальный-календарь")
+    return changed
+
+
+def _drop_no_cursor_option_2026_10(configs: dict[str, dict]) -> set[str]:
+    changed: set[str] = set()
+    for slug, cfg in configs.items():
+        before = json.dumps(cfg, sort_keys=True)
+        prices = cfg.get("cursor")
+        if isinstance(prices, dict):
+            prices.pop("Нет", None)
+        cursor_field = _fields(cfg).get("cursor")
+        if isinstance(cursor_field, dict) and isinstance(cursor_field.get("values"), list):
+            cursor_field["values"] = [v for v in cursor_field["values"] if v != "Нет"]
+        if json.dumps(cfg, sort_keys=True) != before:
+            changed.add(slug)
     return changed
 
 
 FIXES: list[tuple[str, Callable[[dict[str, dict]], set[str]]]] = [
     ("2026-10-calculators", _fix_calculators_2026_10),
     ("2026-10-hints-and-quarterly-cursor", _fix_hints_and_quarterly_cursor_2026_10),
+    ("2026-10-no-cursor-none", _drop_no_cursor_option_2026_10),
 ]
 
 

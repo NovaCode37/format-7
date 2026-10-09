@@ -13,9 +13,9 @@ import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 type Track = "upload" | "design";
 type Orientation = "По горизонтали" | "По вертикали";
 type YesNo = "Да" | "Нет";
-type Cursor = "Нет" | "Пластиковый" | "Статический" | "Магнитный";
+type Cursor = "Пластиковый" | "Статический" | "Магнитный";
 
-const CURSOR_VALUES: Cursor[] = ["Нет", "Пластиковый", "Статический", "Магнитный"];
+const CURSOR_VALUES: Cursor[] = ["Пластиковый", "Статический", "Магнитный"];
 
 const CALENDAR_SLUGS = ["плакатный-календарь", "календари"];
 
@@ -34,7 +34,7 @@ export default function CalendarCalculator({ serviceId }: { serviceId?: number }
   const [orientation, setOrientation] = useState<Orientation>("По горизонтали");
   const [paperFinish, setPaperFinish] = useState<"Матовая" | "Глянцевая">("Глянцевая");
   const [lamination, setLamination] = useState<YesNo>("Нет");
-  const [cursor, setCursor] = useState<Cursor>("Нет");
+  const [cursor, setCursor] = useState<Cursor>("Пластиковый");
   const [quantity, setQuantity] = useState<number>(10);
   const [delivery, setDelivery] = useState<Delivery>("Самовывоз");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -57,7 +57,7 @@ export default function CalendarCalculator({ serviceId }: { serviceId?: number }
     lines: [
       `А3 · ${orientation} · ${lamination === "Да" ? "с ламинацией" : "без ламинации"} · ${quantity} шт.`,
       `Бумага: ${paperFinish.toLowerCase()}`,
-      cursor !== "Нет" ? `Курсор: ${cursor.toLowerCase()} (${calc.cursorUnit} ₽/шт)` : null,
+      `Курсор: ${cursor.toLowerCase()} (${calc.cursorUnit} ₽/шт)`,
       track === "design" ? `Разработка макета дизайнером (${pricing.design} ₽)` : null,
       `Доставка: ${delivery}`,
     ].filter(Boolean) as string[],
@@ -144,7 +144,7 @@ export default function CalendarCalculator({ serviceId }: { serviceId?: number }
               <ConfigurableField id="lamination" pricing={pricing} values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? "цена по таблице с ламинацией" : undefined} />
 
               <div className="pt-4 border-t border-ink-100">
-                <ConfigurableField id="cursor" pricing={pricing} values={CURSOR_VALUES} value={cursor} onChange={(v) => setCursor(v as Cursor)} hint={cursor !== "Нет" ? `+${calc.cursorUnit} ₽/шт` : undefined} />
+                <ConfigurableField id="cursor" pricing={pricing} values={CURSOR_VALUES} value={cursor} onChange={(v) => setCursor(v as Cursor)} hint={`+${calc.cursorUnit} ₽/шт`} />
               </div>
 
               <div className="pt-4 border-t border-ink-100">
