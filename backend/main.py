@@ -17,6 +17,7 @@ from starlette.datastructures import MutableHeaders
 import audit
 import idempotency
 import oauth as oauth_mod
+import pricing_fixes
 import push as webpush
 import scheduler as bg_scheduler
 import storage
@@ -30,7 +31,7 @@ from auth import (
     require_user,
     verify_password,
 )
-from database import Base, engine, get_db
+from database import Base, SessionLocal, engine, get_db
 from models import (
     AdminAudit,
     CartItem,
@@ -218,6 +219,13 @@ try:
     _auto_migrate()
 except Exception as e:
     print(f"[migrate] warning: {e}")
+
+try:
+    _fixed = pricing_fixes.run(SessionLocal)
+    if _fixed:
+        log.info("pricing fixes applied to: %s", ", ".join(_fixed))
+except Exception as e:
+    log.warning("pricing fixes skipped: %s", e)
 
 UPLOADS_DIR = (Path(__file__).parent / "uploads").resolve()
 UPLOADS_DIR.mkdir(exist_ok=True)
