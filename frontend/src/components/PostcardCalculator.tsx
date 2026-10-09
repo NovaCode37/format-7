@@ -155,8 +155,8 @@ export default function PostcardCalculator({ serviceId }: { serviceId?: number }
               <ConfigurableField id="size" pricing={pricing} value={size} onChange={(v) => setSize(v as Size)} />
               <ConfigurableField id="color" pricing={pricing} value={color} onChange={(v) => setColor(v as Color)} hint={approx ? "ч/б — по ближайшей позиции прайса" : undefined} />
               <ConfigurableField id="sides" pricing={pricing} value={sides} onChange={(v) => setSides(v as Sides)} />
-              <ConfigurableField id="orientation" pricing={pricing} value={orientation} onChange={(v) => setOrientation(v as Orientation)} hint="на цену не влияет" />
-              <ConfigurableField id="paperFinish" pricing={pricing} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
+              <ConfigurableField id="orientation" pricing={pricing} value={orientation} onChange={(v) => setOrientation(v as Orientation)} />
+              <ConfigurableField id="paperFinish" pricing={pricing} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} />
 
               <div className="pt-4 border-t border-ink-100">
                 <ConfigurableField id="lamination" pricing={pricing} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${calc.lamUnit} ₽/шт` : undefined} />

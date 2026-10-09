@@ -8,7 +8,7 @@ import {
 } from "@/lib/icons";
 import { api } from "@/lib/api";
 import { CheckoutModal, usePricing, useUpload,
-  ConfigurableField,
+  ConfigurableField, quantityPresets,
 } from "./calc/kit";
 import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
@@ -85,6 +85,7 @@ export default function BindingCalculator({ serviceId }: { serviceId?: number })
   }, [serviceId]);
 
   const pricing = usePricing("переплёт-и-брошюровка", BINDING_PRICING);
+  const qtyPresets = quantityPresets(pricing, "quantity", QTY_PRESETS);
 
   const sheetPresets = spring === "Пластиковая" ? SHEET_PRESETS_PLASTIC : SHEET_PRESETS_METAL;
   const maxSheets = getMaxSheets(spring);
@@ -236,7 +237,7 @@ export default function BindingCalculator({ serviceId }: { serviceId?: number })
                   Количество экземпляров (брошюр)
                 </label>
                 <div className="flex flex-wrap gap-1.5 mb-2">
-                  {QTY_PRESETS.map((q) => (
+                  {qtyPresets.map((q) => (
                     <button
                       key={q}
                       onClick={() => { setCopies(q); setCopiesInput(String(q)); }}

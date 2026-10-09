@@ -8,7 +8,7 @@ import {
 } from "@/lib/icons";
 import { api } from "@/lib/api";
 import { DesignBriefCard, CheckoutModal, usePricing, useUpload,
-  ConfigurableField,
+  ConfigurableField, quantityPresets,
 } from "./calc/kit";
 import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
@@ -83,6 +83,7 @@ export default function FlyerCalculator({ serviceId }: { serviceId?: number }) {
   }, [serviceId]);
 
   const pricing = usePricing("флаеры", FLYER_PRICING);
+  const qtyPresets = quantityPresets(pricing, "quantity", QTY_PRESETS);
 
   const calc = useMemo(() => {
     const mode = modeKey(color, sides);
@@ -290,13 +291,11 @@ export default function FlyerCalculator({ serviceId }: { serviceId?: number }) {
               <ConfigurableField id="orient" pricing={pricing}
                 value={orient}
                 onChange={(v) => setOrient(v as Orient)}
-                hint="на цену не влияет"
               />
 
               <ConfigurableField id="paperFinish" pricing={pricing}
                 value={paperFinish}
                 onChange={(v) => setPaperFinish(v as any)}
-                hint="на цену не влияет"
               />
 
               <div className="pt-4 border-t border-ink-100">
@@ -321,7 +320,7 @@ export default function FlyerCalculator({ serviceId }: { serviceId?: number }) {
                   Тираж, шт.
                 </label>
                 <div className="flex flex-wrap gap-1.5 mb-2">
-                  {QTY_PRESETS.map((q) => (
+                  {qtyPresets.map((q) => (
                     <button
                       key={q}
                       onClick={() => { setQuantity(q); setQtyInput(String(q)); }}

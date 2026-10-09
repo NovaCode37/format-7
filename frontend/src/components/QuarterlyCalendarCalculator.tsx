@@ -11,7 +11,9 @@ import {
 import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
 type AdField = "Без полей" | "1 рекламное поле" | "3 рекламных поля";
-type Cursor = "Пластиковый" | "Статический" | "Магнитный";
+type Cursor = "Нет" | "Пластиковый" | "Статический" | "Магнитный";
+
+const CURSOR_VALUES: Cursor[] = ["Нет", "Пластиковый", "Статический", "Магнитный"];
 type YesNo = "Да" | "Нет";
 type Track = "upload" | "design";
 
@@ -28,7 +30,7 @@ export default function QuarterlyCalendarCalculator({ serviceId }: { serviceId?:
 
   const [track, setTrack] = useState<Track>("upload");
   const [adField, setAdField] = useState<AdField>("Без полей");
-  const [cursor, setCursor] = useState<Cursor>("Пластиковый");
+  const [cursor, setCursor] = useState<Cursor>("Нет");
   const [paperFinish, setPaperFinish] = useState<"Матовая" | "Глянцевая">("Глянцевая");
   const [lamPoster, setLamPoster] = useState<YesNo>("Нет");
   const [quantity, setQuantity] = useState<number>(10);
@@ -41,17 +43,19 @@ export default function QuarterlyCalendarCalculator({ serviceId }: { serviceId?:
     const printUnit = tierValue(QTY_TIERS, (pricing.price as any)[adField], quantity);
     const printTotal = printUnit * quantity;
     const lamPosterTotal = lamPoster === "Да" ? pricing.lamPoster * quantity : 0;
+    const cursorUnit = Number((pricing as any).cursor?.[cursor]) || 0;
+    const cursorTotal = cursorUnit * quantity;
     const designTotal = track === "design" ? pricing.design : 0;
     const deliveryTotal = DELIVERY_PRICE[delivery];
-    const grandTotal = printTotal + lamPosterTotal + designTotal + deliveryTotal;
-    return { printUnit, printTotal, lamPosterTotal, designTotal, deliveryTotal, grandTotal };
-  }, [adField, quantity, lamPoster, track, delivery, pricing]);
+    const grandTotal = printTotal + lamPosterTotal + cursorTotal + designTotal + deliveryTotal;
+    return { printUnit, printTotal, lamPosterTotal, cursorUnit, cursorTotal, designTotal, deliveryTotal, grandTotal };
+  }, [adField, quantity, lamPoster, cursor, track, delivery, pricing]);
 
   const orderSummary = {
     productLabel: `Квартальный календарь А4, ${adField.toLowerCase()}`,
     lines: [
       `А4 · ${adField} · ${quantity} шт.`,
-      `Курсор: ${cursor.toLowerCase()}`,
+      cursor !== "Нет" ? `Курсор: ${cursor.toLowerCase()} (${calc.cursorUnit} ₽/шт)` : null,
       `Бумага постера и подложки: ${paperFinish.toLowerCase()}`,
       lamPoster === "Да" ? "Ламинация постера и подложек блоков" : null,
       track === "design" ? "Разработка макета дизайнером (1000 ₽)" : null,
@@ -126,9 +130,9 @@ export default function QuarterlyCalendarCalculator({ serviceId }: { serviceId?:
           <div className="lg:col-span-5">
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
               <ConfigurableField id="adField" pricing={pricing} values={["Без полей", "1 рекламное поле", "3 рекламных поля"]} value={adField} onChange={(v) => setAdField(v as AdField)} />
-              <ConfigurableField id="cursor" pricing={pricing} values={["Пластиковый", "Статический", "Магнитный"]} value={cursor} onChange={(v) => setCursor(v as Cursor)} hint="входит в стоимость" />
+              <ConfigurableField id="cursor" pricing={pricing} values={CURSOR_VALUES} value={cursor} onChange={(v) => setCursor(v as Cursor)} hint={cursor !== "Нет" ? `+${calc.cursorUnit} ₽/шт` : undefined} />
 
-              <ConfigurableField id="paperFinish" pricing={pricing} values={["Матовая", "Глянцевая"]} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
+              <ConfigurableField id="paperFinish" pricing={pricing} values={["Матовая", "Глянцевая"]} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} />
 
               <div className="pt-4 border-t border-ink-100">
                 <ConfigurableField id="lamPoster" pricing={pricing} values={["Нет", "Да"]} value={lamPoster} onChange={(v) => setLamPoster(v as YesNo)} hint={lamPoster === "Да" ? `+${pricing.lamPoster} ₽/шт (А4)` : undefined} />
@@ -148,6 +152,7 @@ export default function QuarterlyCalendarCalculator({ serviceId }: { serviceId?:
                 <p className="text-[11px] uppercase tracking-[0.14em] text-ink-500 mb-3">Расчёт стоимости</p>
                 <BreakdownRow label="Печать" hint={`${quantity} × ${fmt(calc.printUnit)} ₽`} value={`${fmt(calc.printTotal)} ₽`} />
                 {calc.lamPosterTotal > 0 && <BreakdownRow label="Ламинация постера" hint={`${quantity} × ${pricing.lamPoster} ₽`} value={`${fmt(calc.lamPosterTotal)} ₽`} />}
+                {calc.cursorTotal > 0 && <BreakdownRow label={`Курсор ${cursor.toLowerCase()}`} hint={`${quantity} × ${calc.cursorUnit} ₽`} value={`${fmt(calc.cursorTotal)} ₽`} />}
                 {calc.designTotal > 0 && <BreakdownRow label="Разработка макета" hint="2 доработки в стоимости" value={`${fmt(calc.designTotal)} ₽`} />}
                 <BreakdownRow label="Доставка" hint={delivery === "СДЭК (наложенный платёж)" ? "оплачивает получатель" : undefined} value={calc.deliveryTotal ? `${fmt(calc.deliveryTotal)} ₽` : "—"} />
                 <div className="mt-3 pt-3 border-t border-ink-200">

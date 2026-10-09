@@ -6,7 +6,7 @@ import {
   PillsField, QuantityField, BreakdownRow, CheckoutModal,
   DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
   fmt, useResolvedServiceId, useUpload, usePricing,
-  ConfigurableField,
+  ConfigurableField, quantityPresets,
 } from "./calc/kit";
 import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
@@ -37,6 +37,7 @@ export default function PhotoCalculator({ serviceId }: { serviceId?: number }) {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const pricing = usePricing("печать-фотографий", PHOTO_PRICING);
+  const qtyPresets = quantityPresets(pricing, "quantity", QTY_PRESETS);
 
   const calc = useMemo(() => {
     const printUnit = (pricing.price as any)[size];
@@ -141,7 +142,7 @@ export default function PhotoCalculator({ serviceId }: { serviceId?: number }) {
                 <ConfigurableField id="handWork" pricing={pricing} value={handWork} onChange={(v) => setHandWork(v as YesNo)} hint={handWork === "Да" ? `+${pricing.hand} ₽` : undefined} />
               </div>
               <div className="pt-4 border-t border-ink-100">
-                <QuantityField label="Количество фото, шт." presets={QTY_PRESETS} value={quantity} onChange={setQuantity} min={1} />
+                <QuantityField label="Количество фото, шт." presets={qtyPresets} value={quantity} onChange={setQuantity} min={1} />
               </div>
               <div className="pt-4 border-t border-ink-100">
                 <PillsField label="Доставка" values={DELIVERY_VALUES} value={delivery} onChange={(v) => setDelivery(v as Delivery)} />

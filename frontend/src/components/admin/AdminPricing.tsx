@@ -49,6 +49,7 @@ const FIELD_LABELS: Record<string, string> = {
   prices: "Цена за лист (₽)",
   lamination: "Ламинация, ₽/шт",
   rounding: "Скругление углов, ₽/шт",
+  cursor: "Курсор, ₽/шт",
   design: "Разработка макета, ₽",
   design1: "Разработка макета (1 сгиб), ₽",
   design2: "Разработка макета (2+ сгиба), ₽",
@@ -560,6 +561,19 @@ function UiEditor({ ui, onChange }: { ui: any; onChange: (next: any) => void }) 
                   Скрыть поле
                 </label>
               </div>
+
+              {!cfg?.hidden && (
+                <input
+                  value={cfg?.hint ?? ""}
+                  onChange={(e) => {
+                    const { hint: _old, ...rest } = cfg || {};
+                    const text = e.target.value;
+                    onChange({ ...ui, fields: { ...fields, [id]: text ? { ...rest, hint: text } : rest } });
+                  }}
+                  placeholder="Подсказка справа от названия (необязательно)"
+                  className="input h-9 w-full"
+                />
+              )}
 
               {!cfg?.hidden && (
                 <div className="space-y-2">

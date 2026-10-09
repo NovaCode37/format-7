@@ -170,7 +170,7 @@ export default function BusinessCardCalculator({ serviceId }: { serviceId?: numb
           <div className="lg:col-span-5">
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
 
-              <ConfigurableField id="orientation" pricing={pricing} value={orientation} onChange={(v) => setOrientation(v as any)} hint="на цену не влияет" />
+              <ConfigurableField id="orientation" pricing={pricing} value={orientation} onChange={(v) => setOrientation(v as any)} />
 
               <ConfigurableField id="material" pricing={pricing} value={material} onChange={(v) => setMaterial(v as Material)} />
 
@@ -183,7 +183,7 @@ export default function BusinessCardCalculator({ serviceId }: { serviceId?: numb
 
               <ConfigurableField id="sides" pricing={pricing} value={sides} onChange={(v) => setSides(v as Sides)} hint={`режим ${mode}`} />
 
-              <ConfigurableField id="paperFinish" pricing={pricing} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
+              <ConfigurableField id="paperFinish" pricing={pricing} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} />
 
               <div className="pt-4 border-t border-ink-100">
                 <ConfigurableField id="lamination" pricing={pricing} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${pricing.lamination} ₽/шт` : undefined} />

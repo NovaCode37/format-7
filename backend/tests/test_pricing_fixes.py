@@ -101,7 +101,7 @@ def test_run_rewrites_rows_once(tmp_path):
     with Session() as db:
         envelopes = json.loads(db.get(PricingConfig, "конверты").data)
         assert envelopes["ui"]["quantities"]["quantity"][0] == 10
-        assert json.loads(db.get(SiteSetting, pricing_fixes.MARKER_KEY).data) == ["2026-10-calculators"]
+        assert json.loads(db.get(SiteSetting, pricing_fixes.MARKER_KEY).data) == ["2026-10-calculators", "2026-10-hints-and-quarterly-cursor"]
         row = db.get(PricingConfig, "конверты")
         row.data = json.dumps({"ui": {"quantities": {"quantity": [20]}}})
         db.commit()
@@ -109,3 +109,36 @@ def test_run_rewrites_rows_once(tmp_path):
     assert pricing_fixes.run(Session) == []
     with Session() as db:
         assert json.loads(db.get(PricingConfig, "конверты").data)["ui"]["quantities"]["quantity"] == [20]
+
+
+def test_no_price_effect_hints_removed_everywhere_but_custom_ones_kept():
+    configs = {
+        "листовки": {"ui": {"fields": {"orientation": {"label": "Ориентация", "values": ["А", "Б"], "hint": "на цену не влияет"}}}},
+        "наклейки": {"ui": {"fields": {"material": {"label": "Материал", "values": ["Бумага"], "hint": "самоклеящаяся"}}}},
+    }
+    configs, changed, _ = _run(configs)
+    assert "hint" not in configs["листовки"]["ui"]["fields"]["orientation"]
+    assert configs["наклейки"]["ui"]["fields"]["material"]["hint"] == "самоклеящаяся"
+    assert changed == {"листовки"}
+
+
+def test_quarterly_cursor_gets_prices_and_a_none_option():
+    configs = {
+        "квартальный-календарь": {
+            "lamPoster": 50,
+            "ui": {"fields": {"cursor": {"label": "Курсор", "values": ["Пластиковый", "Статический", "Магнитный"], "hint": "входит в стоимость"}}},
+        },
+    }
+    configs, changed, _ = _run(configs)
+    q = configs["квартальный-календарь"]
+    assert q["cursor"] == {"Нет": 0, "Пластиковый": 10, "Статический": 40, "Магнитный": 70}
+    assert q["ui"]["fields"]["cursor"] == {"label": "Курсор", "values": ["Нет", "Пластиковый", "Статический", "Магнитный"]}
+    assert q["lamPoster"] == 50
+    assert changed == {"квартальный-календарь"}
+
+
+def test_quarterly_cursor_keeps_prices_the_admin_already_set():
+    configs = {"квартальный-календарь": {"cursor": {"Магнитный": 90}}}
+    configs, _, _ = _run(configs)
+    assert configs["квартальный-календарь"]["cursor"]["Магнитный"] == 90
+    assert configs["квартальный-календарь"]["cursor"]["Пластиковый"] == 10

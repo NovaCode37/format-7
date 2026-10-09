@@ -8,7 +8,7 @@ import {
 } from "@/lib/icons";
 import { api } from "@/lib/api";
 import { CheckoutModal, usePricing, useUpload,
-  ConfigurableField,
+  ConfigurableField, quantityPresets,
 } from "./calc/kit";
 import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
@@ -102,6 +102,7 @@ export default function CopyPrintCalculator({ serviceId }: { serviceId?: number 
   }, [serviceId]);
 
   const pricing = usePricing("копирование-и-печать-документов", COPYPRINT_PRICING);
+  const qtyPresets = quantityPresets(pricing, "quantity", QTY_PRESETS);
 
   const calc = useMemo(() => {
     const mode = printMode(color, sides);
@@ -257,7 +258,6 @@ export default function CopyPrintCalculator({ serviceId }: { serviceId?: number 
               <ConfigurableField id="orientation" pricing={pricing}
                 value={orientation}
                 onChange={(v) => setOrientation(v as Orientation)}
-                hint="на цену не влияет"
               />
 
               <ConfigurableField id="density" pricing={pricing}
@@ -331,7 +331,7 @@ export default function CopyPrintCalculator({ serviceId }: { serviceId?: number 
                   Количество страниц
                 </label>
                 <div className="flex flex-wrap gap-1.5 mb-2">
-                  {QTY_PRESETS.map((q) => (
+                  {qtyPresets.map((q) => (
                     <button
                       key={q}
                       onClick={() => { setQuantity(q); setQtyInput(String(q)); }}

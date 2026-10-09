@@ -6,7 +6,7 @@ import {
   PillsField, QuantityField, TrackCard, BreakdownRow, CheckoutModal, DesignBriefCard,
   TemplateCatalogCard, DELIVERY_VALUES, DELIVERY_PRICE, type Delivery,
   fmt, useResolvedServiceId, useUpload, usePricing,
-  ConfigurableField,
+  ConfigurableField, quantityPresets,
 } from "./calc/kit";
 import {
   STICKER_SHAPES, STICKER_SHEET_TIERS,
@@ -48,6 +48,7 @@ export default function StickerCalculator({ serviceId }: { serviceId?: number })
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const pricing = usePricing("наклейки", STICKER_PRICING);
+  const sheetPresets = quantityPresets(pricing, "sheets", SHEET_PRESETS);
 
   const sizes = useMemo(
     () => (pricing.prices as any)[material][finish][shape],
@@ -202,7 +203,7 @@ export default function StickerCalculator({ serviceId }: { serviceId?: number })
               <div className="pt-4 border-t border-ink-100">
                 <QuantityField
                   label="Тираж, листов А3"
-                  presets={SHEET_PRESETS}
+                  presets={sheetPresets}
                   value={sheets}
                   onChange={setSheets}
                   min={1}

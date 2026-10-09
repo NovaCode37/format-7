@@ -8,7 +8,7 @@ import {
 } from "@/lib/icons";
 import { api } from "@/lib/api";
 import { CheckoutModal, usePricing, useUpload,
-  ConfigurableField,
+  ConfigurableField, quantityPresets,
 } from "./calc/kit";
 import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
@@ -84,6 +84,8 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
   }, [serviceId]);
 
   const pricing = usePricing("меню-для-кафе", MENU_PRICING);
+  const qtyPresets = quantityPresets(pricing, "quantity", QTY_PRESETS);
+  const sheetPresets = quantityPresets(pricing, "sheets", SHEET_PRESETS);
 
   const calc = useMemo(() => {
     const sheetUnit = getSheetPrice(pricing, material, sides, quantity);
@@ -245,7 +247,6 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
               <ConfigurableField id="paperFinish" pricing={pricing}
                 value={paperFinish}
                 onChange={(v) => setPaperFinish(v as any)}
-                hint="на цену не влияет"
               />
 
               <div>
@@ -253,7 +254,7 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
                   Количество листов (блоков) в одном меню
                 </label>
                 <div className="flex flex-wrap gap-1.5 mb-2">
-                  {SHEET_PRESETS.map((q) => (
+                  {sheetPresets.map((q) => (
                     <button
                       key={q}
                       onClick={() => { setSheets(q); setSheetsInput(String(q)); }}
@@ -321,7 +322,7 @@ export default function MenuCalculator({ serviceId }: { serviceId?: number }) {
                   Тираж, шт.
                 </label>
                 <div className="flex flex-wrap gap-1.5 mb-2">
-                  {QTY_PRESETS.map((q) => (
+                  {qtyPresets.map((q) => (
                     <button
                       key={q}
                       onClick={() => { setQuantity(q); setQtyInput(String(q)); }}

@@ -147,11 +147,11 @@ export default function LeafletCalculator({ serviceId }: { serviceId?: number })
           <div className="lg:col-span-5">
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
               <ConfigurableField id="format" pricing={pricing} value={format} onChange={(v) => setFormat(v as Format)} />
-              <ConfigurableField id="orientation" pricing={pricing} value={orientation} onChange={(v) => setOrientation(v as Orientation)} hint="на цену не влияет" />
+              <ConfigurableField id="orientation" pricing={pricing} value={orientation} onChange={(v) => setOrientation(v as Orientation)} />
               <ConfigurableField id="color" pricing={pricing} value={color} onChange={(v) => setColor(v as Color)} />
               <ConfigurableField id="sides" pricing={pricing} value={sides} onChange={(v) => setSides(v as Sides)} hint={`режим ${mode}`} />
 
-              <ConfigurableField id="paperFinish" pricing={pricing} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
+              <ConfigurableField id="paperFinish" pricing={pricing} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} />
 
               <div className="pt-4 border-t border-ink-100">
                 <ConfigurableField id="rounding" pricing={pricing} value={rounding} onChange={(v) => setRounding(v as YesNo)} hint={rounding === "Да" ? `+${pricing.rounding} ₽/шт` : undefined} />

@@ -137,9 +137,9 @@ export default function CalendarCalculator({ serviceId }: { serviceId?: number }
           <div className="lg:col-span-5">
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
 
-              <ConfigurableField id="orientation" pricing={pricing} values={["По горизонтали", "По вертикали"]} value={orientation} onChange={(v) => setOrientation(v as Orientation)} hint="на цену не влияет" />
+              <ConfigurableField id="orientation" pricing={pricing} values={["По горизонтали", "По вертикали"]} value={orientation} onChange={(v) => setOrientation(v as Orientation)} />
 
-              <ConfigurableField id="paperFinish" pricing={pricing} values={["Матовая", "Глянцевая"]} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
+              <ConfigurableField id="paperFinish" pricing={pricing} values={["Матовая", "Глянцевая"]} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} />
 
               <ConfigurableField id="lamination" pricing={pricing} values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? "цена по таблице с ламинацией" : undefined} />
 

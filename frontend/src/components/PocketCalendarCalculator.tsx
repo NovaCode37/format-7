@@ -131,9 +131,9 @@ export default function PocketCalendarCalculator({ serviceId }: { serviceId?: nu
 
           <div className="lg:col-span-5">
             <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-6 space-y-5">
-              <ConfigurableField id="orientation" pricing={pricing} value={orientation} onChange={(v) => setOrientation(v as Orientation)} hint="на цену не влияет" />
+              <ConfigurableField id="orientation" pricing={pricing} value={orientation} onChange={(v) => setOrientation(v as Orientation)} />
 
-              <ConfigurableField id="paperFinish" pricing={pricing} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
+              <ConfigurableField id="paperFinish" pricing={pricing} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} />
 
               <div className="pt-4 border-t border-ink-100">
                 <ConfigurableField id="lamination" pricing={pricing} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${pricing.lamination} ₽/шт` : undefined} />

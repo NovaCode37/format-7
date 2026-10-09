@@ -155,7 +155,7 @@ export default function DeskCalendarCalculator({ serviceId }: { serviceId?: numb
 
               <ConfigurableField id="kind" pricing={pricing} values={["Безблочный", "С 12 блоками"]} value={kind} onChange={(v) => setKind(v as Kind)} />
 
-              <ConfigurableField id="paperFinish" pricing={pricing} values={["Матовая", "Глянцевая"]} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
+              <ConfigurableField id="paperFinish" pricing={pricing} values={["Матовая", "Глянцевая"]} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} />
 
               <div className="pt-4 border-t border-ink-100">
                 <ConfigurableField id="lamination" pricing={pricing} values={["Нет", "Да"]} value={lamination} onChange={(v) => setLamination(v as YesNo)} hint={lamination === "Да" ? `+${pricing.lamination} ₽/шт` : undefined} />

@@ -144,7 +144,7 @@ export default function BookletCalculator({ serviceId }: { serviceId?: number })
 
               <ConfigurableField id="color" pricing={pricing} value={color} onChange={(v) => setColor(v as Color)} hint="двусторонняя печать" />
 
-              <ConfigurableField id="paperFinish" pricing={pricing} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} hint="на цену не влияет" />
+              <ConfigurableField id="paperFinish" pricing={pricing} value={paperFinish} onChange={(v) => setPaperFinish(v as any)} />
 
               <div>
                 <label className="block text-[12px] font-semibold text-ink-700 mb-1.5">Количество бигов (сложений)</label>

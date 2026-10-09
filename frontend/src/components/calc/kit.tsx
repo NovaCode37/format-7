@@ -192,7 +192,7 @@ export function ConfigurableField({
       values={resolved}
       value={value}
       onChange={onChange}
-      hint={cfg.hint ?? hint}
+      hint={cfg.hint || hint}
     />
   );
 }

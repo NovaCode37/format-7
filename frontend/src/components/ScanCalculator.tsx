@@ -9,7 +9,7 @@ import {
 import { api } from "@/lib/api";
 import { useToast } from "./Toast";
 import { CheckoutModal, usePricing,
-  ConfigurableField,
+  ConfigurableField, quantityPresets,
 } from "./calc/kit";
 import { PRICING_DEFAULTS } from "@/lib/pricingDefaults";
 
@@ -48,6 +48,7 @@ export default function ScanCalculator({ serviceId }: { serviceId?: number }) {
   }, [serviceId]);
 
   const pricing = usePricing("сканирование-документов", SCAN_PRICING);
+  const qtyPresets = quantityPresets(pricing, "quantity", QTY_PRESETS);
 
   const calc = useMemo(() => {
     const pagePrice = (pricing.scan as any)[method][format];
@@ -161,7 +162,7 @@ export default function ScanCalculator({ serviceId }: { serviceId?: number }) {
                   Количество страниц
                 </label>
                 <div className="flex flex-wrap gap-1.5 mb-2">
-                  {QTY_PRESETS.map((q) => (
+                  {qtyPresets.map((q) => (
                     <button
                       key={q}
                       onClick={() => { setQuantity(q); setQtyInput(String(q)); }}
